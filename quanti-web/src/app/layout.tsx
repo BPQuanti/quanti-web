@@ -13,16 +13,33 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti — The Verified Social Ledger",
-  description:
-    "Track your real life, log AI-verified stats, and share recaps that actually mean something. Launching soon on iOS.",
+  title: "Quanti — Intelligent Financial Analytics",
+  description: "Track, analyze, and optimize your personal finances with Quanti.",
   metadataBase: new URL("https://quanti-app.com"),
   openGraph: {
-    title: "Quanti — The Verified Social Ledger",
-    description:
-      "Track your real life, log AI-verified stats, and share recaps that actually mean something.",
+    title: "Quanti — Intelligent Financial Analytics",
+    description: "Track, analyze, and optimize your personal finances with Quanti.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
+    images: [
+      {
+        url: "https://quanti-app.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Quanti App Preview",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Quanti — Intelligent Financial Analytics",
+    description: "Track, analyze, and optimize your personal finances with Quanti.",
+    images: ["https://quanti-app.com/og-image.png"],
+  },
+  other: {
+    "apple-itunes-app": "app-id=YOUR_APP_ID",
   },
 };
 

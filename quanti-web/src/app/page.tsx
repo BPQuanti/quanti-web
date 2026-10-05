@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { HeartPulse, Share2, Sparkles } from "lucide-react";
+import { HeartPulse, Lock, Share2, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
+import IPhoneMockup from "@/components/IPhoneMockup";
 import WaitlistForm from "@/components/WaitlistForm";
 
 const fadeUp = {
@@ -56,32 +57,37 @@ export default function Home() {
           initial="hidden"
           animate="show"
           transition={{ staggerChildren: 0.12 }}
-          className="flex flex-col items-center pt-16 text-center sm:pt-24"
+          className="grid items-center gap-12 pt-16 sm:pt-20 lg:grid-cols-2"
         >
-          <motion.p
-            variants={fadeUp}
-            className="mb-4 rounded-full border border-[#8b5cf6]/30 bg-[#161124] px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-[#a78bfa]"
-          >
-            iOS • Verified Life
-          </motion.p>
-          <motion.h1
-            variants={fadeUp}
-            className="max-w-3xl text-4xl font-semibold tracking-tight text-[#f8fafc] sm:text-6xl sm:leading-[1.05]"
-          >
-            The Verified Social Ledger.
-          </motion.h1>
-          <motion.p
-            variants={fadeUp}
-            className="mt-5 max-w-xl text-base leading-7 text-[#94a3b8] sm:text-lg"
-          >
-            Track your real life, log AI-verified stats, and share recaps that actually mean something.
-          </motion.p>
-          <motion.div variants={fadeUp} className="mt-8 w-full max-w-lg">
-            <WaitlistForm id="hero-waitlist" />
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <motion.p
+              variants={fadeUp}
+              className="mb-4 rounded-full border border-[#8b5cf6]/30 bg-[#161124] px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-[#a78bfa]"
+            >
+              iOS • Verified Life
+            </motion.p>
+            <motion.h1
+              variants={fadeUp}
+              className="max-w-3xl text-4xl font-semibold tracking-tight text-[#f8fafc] sm:text-6xl sm:leading-[1.05]"
+            >
+              The Verified Social Ledger.
+            </motion.h1>
+            <motion.p
+              variants={fadeUp}
+              className="mt-5 max-w-xl text-base leading-7 text-[#94a3b8] sm:text-lg"
+            >
+              Track your real life, log AI-verified stats, and share recaps that actually mean something.
+            </motion.p>
+            <motion.div variants={fadeUp} className="mt-8 w-full max-w-lg">
+              <WaitlistForm id="hero-waitlist" />
+            </motion.div>
+            <motion.p variants={fadeUp} className="mt-4 text-sm text-[#94a3b8]">
+              Launching soon on iOS • quanti-app.com
+            </motion.p>
+          </div>
+          <motion.div variants={fadeUp} className="flex justify-center">
+            <IPhoneMockup />
           </motion.div>
-          <motion.p variants={fadeUp} className="mt-4 text-sm text-[#94a3b8]">
-            Launching soon on iOS • quanti-app.com
-          </motion.p>
         </motion.section>
 
         <motion.section
@@ -95,7 +101,7 @@ export default function Home() {
             <motion.article
               key={feature.title}
               variants={fadeUp}
-              className="rounded-2xl border border-[#2d2442] bg-[#161124] p-6 text-left shadow-[0_0_0_1px_rgba(139,92,246,0.08),0_20px_50px_rgba(11,7,18,0.45)] transition hover:border-[#8b5cf6]/50 hover:shadow-[0_0_40px_rgba(139,92,246,0.18)]"
+              className="rounded-2xl border border-[#2d2442] bg-[#161124] p-6 text-left shadow-[0_0_0_1px_rgba(139,92,246,0.08),0_0_40px_rgba(139,92,246,0.12)] transition hover:border-[#8b5cf6]/50 hover:shadow-[0_0_50px_rgba(139,92,246,0.22)]"
             >
               <feature.icon className="mb-4 h-5 w-5 text-[#a78bfa]" strokeWidth={1.75} />
               <h2 className="text-lg font-semibold tracking-tight text-[#f8fafc]">{feature.title}</h2>
@@ -119,12 +125,27 @@ export default function Home() {
           <div className="mx-auto mt-8 max-w-lg">
             <WaitlistForm id="waitlist-form" />
           </div>
+          <div className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-[#2d2442] bg-[#0b0712]/60 px-4 py-3 text-left sm:justify-start">
+              <Lock className="h-4 w-4 shrink-0 text-[#a78bfa]" strokeWidth={1.75} />
+              <p className="text-xs font-medium leading-5 text-[#f8fafc]">Bank-grade 256-bit encryption</p>
+            </div>
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-[#2d2442] bg-[#0b0712]/60 px-4 py-3 text-left sm:justify-start">
+              <ShieldCheck className="h-4 w-4 shrink-0 text-[#a78bfa]" strokeWidth={1.75} />
+              <p className="text-xs font-medium leading-5 text-[#f8fafc]">
+                Powered by Plaid — We never see or store your bank credentials
+              </p>
+            </div>
+          </div>
         </motion.section>
       </main>
 
       <footer className="relative z-10 border-t border-[#2d2442] px-6 py-8">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-sm text-[#94a3b8] sm:flex-row">
           <p>Copyright © 2026 Quanti LLC. All rights reserved.</p>
+          <p className="max-w-md text-center text-xs leading-5 sm:text-right">
+            Bank-grade 256-bit encryption · Powered by Plaid — we never see or store your bank credentials
+          </p>
           <nav className="flex gap-5">
             <Link href="/privacy" className="hover:text-[#f8fafc]">
               Privacy Policy
