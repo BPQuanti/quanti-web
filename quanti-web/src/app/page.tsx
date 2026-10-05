@@ -2,8 +2,10 @@
 
 import { motion } from "framer-motion";
 import { HeartPulse, Lock, Share2, ShieldCheck, Sparkles } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import IPhoneMockup from "@/components/IPhoneMockup";
+import VerifiedStamp from "@/components/VerifiedStamp";
 import WaitlistForm from "@/components/WaitlistForm";
 
 const fadeUp = {
@@ -40,10 +42,17 @@ export default function Home() {
         transition={{ duration: 0.5 }}
         className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6"
       >
-        <a href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
-          <span className="h-2 w-2 rounded-full bg-[#8b5cf6] shadow-[0_0_12px_#8b5cf6]" />
-          Quanti
-        </a>
+        <Link href="/" className="flex shrink-0 items-center">
+          <Image
+            src="/logo-full.svg"
+            alt="Quanti"
+            width={220}
+            height={56}
+            priority
+            unoptimized
+            className="h-8 w-auto max-w-[148px] object-contain object-left sm:h-10 sm:max-w-[220px]"
+          />
+        </Link>
         <a
           href="#waitlist"
           className="rounded-full border border-[#8b5cf6]/40 bg-[#161124] px-4 py-2 text-sm font-medium text-[#f8fafc] transition hover:border-[#8b5cf6] hover:shadow-[0_0_20px_rgba(139,92,246,0.35)]"
@@ -118,6 +127,9 @@ export default function Home() {
           variants={fadeUp}
           className="mt-24 scroll-mt-24 rounded-3xl border border-[#8b5cf6]/25 bg-[#161124] px-6 py-12 text-center shadow-[0_0_60px_rgba(139,92,246,0.12)] sm:px-12"
         >
+          <div className="mb-6 flex justify-center">
+            <VerifiedStamp />
+          </div>
           <h2 className="text-3xl font-semibold tracking-tight">Get early access</h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#94a3b8]">
             Be first in line when Quanti opens on iOS. No spam — just a note when the ledger goes live.

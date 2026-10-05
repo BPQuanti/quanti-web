@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Quanti — Intelligent Financial Analytics",
   description: "Track, analyze, and optimize your personal finances with Quanti.",
   metadataBase: new URL("https://quanti-app.com"),
+  icons: {
+    icon: "/logo-mark.svg",
+    apple: "/logo-mark.svg",
+  },
   openGraph: {
     title: "Quanti — Intelligent Financial Analytics",
     description: "Track, analyze, and optimize your personal finances with Quanti.",
