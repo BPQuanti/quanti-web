@@ -1,0 +1,66 @@
+{
+  "expo": {
+    "name": "quanti-app",
+    "slug": "quanti-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.quanti.app",
+      "usesAppleSignIn": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "NSHealthShareUsageDescription": "Quanti uses your Health data to passively calculate verified fitness percentiles and stat badges.",
+        "NSHealthUpdateUsageDescription": "Quanti requires access to calculate verified health recaps.",
+        "NSLocationWhenInUseUsageDescription": "Quanti uses your location to verify local fitness activities.",
+        "NSPhotoLibraryUsageDescription": "Quanti uses your photo library so you can update your profile picture."
+      },
+      "entitlements": {
+        "com.apple.developer.healthkit": true,
+        "com.apple.developer.healthkit.background-delivery": true,
+        "com.apple.developer.healthkit.access": [],
+        "com.apple.developer.applesignin": ["Default"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Quanti uses your photo library so you can update your profile picture.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Quanti uses your location to verify local fitness activities."
+        }
+      ],
+      [
+        "react-native-health",
+        {
+          "healthSharePermission": "Quanti uses your Health data to passively calculate verified fitness percentiles and stat badges.",
+          "healthUpdatePermission": "Quanti requires access to calculate verified health recaps."
+        }
+      ],
+      "expo-secure-store",
+      "expo-apple-authentication"
+    ]
+  }
+}
