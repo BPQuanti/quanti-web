@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { HeartPulse, Share2, Sparkles } from "lucide-react";
+import Link from "next/link";
 import WaitlistForm from "@/components/WaitlistForm";
 
 const fadeUp = {
@@ -125,12 +126,12 @@ export default function Home() {
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-sm text-[#94a3b8] sm:flex-row">
           <p>Copyright © 2026 Quanti LLC. All rights reserved.</p>
           <nav className="flex gap-5">
-            <a href="/privacy" className="hover:text-[#f8fafc]">
+            <Link href="/privacy" className="hover:text-[#f8fafc]">
               Privacy Policy
-            </a>
-            <a href="/terms" className="hover:text-[#f8fafc]">
+            </Link>
+            <Link href="/terms" className="hover:text-[#f8fafc]">
               Terms of Service
-            </a>
+            </Link>
           </nav>
         </div>
       </footer>
