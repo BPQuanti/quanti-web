@@ -1,3 +1,5 @@
+import Footer from "@/components/Footer";
+
 export const metadata = {
   title: "Privacy Policy | Quanti",
   description: "Privacy Policy for Quanti app and quanti-app.com.",
@@ -5,13 +7,14 @@ export const metadata = {
 
 export default function PrivacyPolicy() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-300 py-16 px-6 sm:px-12 max-w-4xl mx-auto font-sans leading-relaxed">
+    <>
+      <main className="min-h-screen bg-zinc-950 text-zinc-300 py-16 px-6 sm:px-12 max-w-4xl mx-auto font-sans leading-relaxed">
       <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Privacy Policy</h1>
       <p className="text-sm text-zinc-500 mb-8">Last Updated: October 5, 2026</p>
       <section className="space-y-6 text-sm sm:text-base">
         <p>
           Quanti (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by Quanti when you use our website at{" "}
-          <a href="https://quanti-app.com" className="text-violet-400 underline">
+          <a href="https://quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             quanti-app.com
           </a>{" "}
           or our mobile application (collectively, the &quot;Service&quot;).
@@ -49,7 +52,7 @@ export default function PrivacyPolicy() {
               href="https://plaid.com/legal"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-violet-400 underline"
+              className="text-violet-400 underline transition-colors hover:text-violet-400"
             >
               Plaid End User Privacy Policy
             </a>
@@ -62,7 +65,7 @@ export default function PrivacyPolicy() {
         <h2 className="text-xl font-semibold text-white mt-8 mb-3">4. Data Retention and Account Deletion</h2>
         <p>
           We retain your information for as long as necessary to fulfill the purposes outlined in this Privacy Policy. You have the right to request the deletion of your account and associated personal data at any time by contacting us at{" "}
-          <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline">
+          <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             brian@quanti-app.com
           </a>
           . Upon receiving your deletion request, all associated financial connections and personal identifiers will be permanently removed from our active databases.
@@ -77,16 +80,18 @@ export default function PrivacyPolicy() {
           <strong>Quanti</strong>
           <br />
           Email:{" "}
-          <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline">
+          <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             brian@quanti-app.com
           </a>
           <br />
           Website:{" "}
-          <a href="https://quanti-app.com" className="text-violet-400 underline">
+          <a href="https://quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             quanti-app.com
           </a>
         </p>
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

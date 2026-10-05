@@ -1,3 +1,5 @@
+import Footer from "@/components/Footer";
+
 export const metadata = {
   title: "Terms of Service | Quanti",
   description: "Terms of Service for Quanti app and quanti-app.com.",
@@ -5,13 +7,14 @@ export const metadata = {
 
 export default function TermsOfService() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-300 py-16 px-6 sm:px-12 max-w-4xl mx-auto font-sans leading-relaxed">
+    <>
+      <main className="min-h-screen bg-zinc-950 text-zinc-300 py-16 px-6 sm:px-12 max-w-4xl mx-auto font-sans leading-relaxed">
       <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">Terms of Service</h1>
       <p className="text-sm text-zinc-500 mb-8">Last Updated: October 5, 2026</p>
       <section className="space-y-6 text-sm sm:text-base">
         <p>
           Welcome to Quanti. By accessing our website at{" "}
-          <a href="https://quanti-app.com" className="text-violet-400 underline">
+          <a href="https://quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             quanti-app.com
           </a>{" "}
           or using the Quanti mobile application (collectively, the &quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;).
@@ -41,21 +44,23 @@ export default function TermsOfService() {
           To the maximum extent permitted by law, Quanti shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of the Service.
         </p>
         <h2 className="text-xl font-semibold text-white mt-8 mb-3">7. Contact Information</h2>
-        <p>If you have questions about these Terms, please reach out to us:</p>
+        <p>If you have questions about these Terms, or to request account or data deletion, please reach out to us:</p>
         <p className="text-zinc-400">
           <strong>Quanti</strong>
           <br />
           Email:{" "}
-          <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline">
+          <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             brian@quanti-app.com
           </a>
           <br />
           Website:{" "}
-          <a href="https://quanti-app.com" className="text-violet-400 underline">
+          <a href="https://quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             quanti-app.com
           </a>
         </p>
       </section>
-    </main>
+      </main>
+      <Footer />
+    </>
   );
 }

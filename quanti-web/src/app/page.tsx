@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { HeartPulse, Lock, Share2, ShieldCheck, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import Footer from "@/components/Footer";
 import IPhoneMockup from "@/components/IPhoneMockup";
 import VerifiedStamp from "@/components/VerifiedStamp";
 import WaitlistForm from "@/components/WaitlistForm";
@@ -152,22 +153,7 @@ export default function Home() {
         </motion.section>
       </main>
 
-      <footer className="relative z-10 border-t border-[#2d2442] px-6 py-8">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-sm text-[#94a3b8] sm:flex-row">
-          <p>Copyright © 2026 Quanti LLC. All rights reserved.</p>
-          <p className="max-w-md text-center text-xs leading-5 sm:text-right">
-            Bank-grade 256-bit encryption · Powered by Plaid — we never see or store your bank credentials
-          </p>
-          <nav className="flex gap-5">
-            <Link href="/privacy" className="hover:text-[#f8fafc]">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-[#f8fafc]">
-              Terms of Service
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
