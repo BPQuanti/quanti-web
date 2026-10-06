@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import IPhoneMockup from "@/components/IPhoneMockup";
+import InteractivePreview from "@/components/InteractivePreview";
 import TrustSecurity from "@/components/TrustSecurity";
 import VerifiedStamp from "@/components/VerifiedStamp";
 import WaitlistForm from "@/components/WaitlistForm";
@@ -100,6 +101,8 @@ export default function Home() {
             <IPhoneMockup />
           </motion.div>
         </motion.section>
+
+        <InteractivePreview />
 
         <motion.section
           initial="hidden"
