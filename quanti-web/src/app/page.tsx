@@ -1,11 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { HeartPulse, Lock, Share2, ShieldCheck, Sparkles } from "lucide-react";
+import { HeartPulse, Share2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import IPhoneMockup from "@/components/IPhoneMockup";
+import TrustSecurity from "@/components/TrustSecurity";
 import VerifiedStamp from "@/components/VerifiedStamp";
 import WaitlistForm from "@/components/WaitlistForm";
 
@@ -120,6 +121,8 @@ export default function Home() {
           ))}
         </motion.section>
 
+        <TrustSecurity />
+
         <motion.section
           id="waitlist"
           initial="hidden"
@@ -137,18 +140,6 @@ export default function Home() {
           </p>
           <div className="mx-auto mt-8 max-w-lg">
             <WaitlistForm id="waitlist-form" />
-          </div>
-          <div className="mx-auto mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-[#2d2442] bg-[#0b0712]/60 px-4 py-3 text-left sm:justify-start">
-              <Lock className="h-4 w-4 shrink-0 text-[#a78bfa]" strokeWidth={1.75} />
-              <p className="text-xs font-medium leading-5 text-[#f8fafc]">Bank-grade 256-bit encryption</p>
-            </div>
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-[#2d2442] bg-[#0b0712]/60 px-4 py-3 text-left sm:justify-start">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-[#a78bfa]" strokeWidth={1.75} />
-              <p className="text-xs font-medium leading-5 text-[#f8fafc]">
-                Powered by Plaid — We never see or store your bank credentials
-              </p>
-            </div>
           </div>
         </motion.section>
       </main>

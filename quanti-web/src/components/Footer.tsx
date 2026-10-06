@@ -17,9 +17,6 @@ export default function Footer() {
             </a>
           </p>
         </div>
-        <p className="max-w-md text-center text-xs leading-5 sm:text-right">
-          Bank-grade 256-bit encryption · Powered by Plaid — we never see or store your bank credentials
-        </p>
         <nav className="flex flex-wrap items-center justify-center gap-5">
           <a href={`mailto:${SUPPORT_EMAIL}`} className={linkClass}>
             Contact
