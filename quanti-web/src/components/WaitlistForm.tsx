@@ -9,6 +9,7 @@ const REF_STORAGE_KEY = "quanti_waitlist_ref";
 const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
 const SIGNUP_EVENT = "quanti-waitlist-updated";
 const SITE_ORIGIN = "https://quanti-app.com";
+const WAITLIST_ID = process.env.NEXT_PUBLIC_GETWAITLIST_ID || "33110";
 
 type SignupState = {
   email: string;
@@ -93,6 +94,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           referred_by: referredBy,
+          waitlist_id: WAITLIST_ID,
         }),
       });
       const payload = (await response.json()) as SignupState & { error?: string };
@@ -148,8 +150,10 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 You&apos;re #{signup.position} in Line
               </h3>
               <p className="mt-2 text-sm leading-6 text-[#A1A1AA]">
-                Want to jump the line? Invite 3 friends to get instant VIP TestFlight access &amp; unlock the exclusive
-                &apos;Founding Member&apos; badge.
+                First 500 signups unlock the exclusive &apos;OG Verified&apos; badge.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-violet-400">
+                Share your link to jump the TestFlight line and lock in your OG status.
               </p>
             </div>
 

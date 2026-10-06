@@ -6,7 +6,7 @@ const SITE_ORIGIN = "https://quanti-app.com";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { email?: string; referred_by?: string };
+    const body = (await request.json()) as { email?: string; referred_by?: string; waitlist_id?: string | number };
     const email = String(body.email || "").trim().toLowerCase();
     const referredBy = String(body.referred_by || "").trim();
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     }
 
     const waitlistId = Number(
-      process.env.NEXT_PUBLIC_GETWAITLIST_ID || process.env.GETWAITLIST_ID || process.env.WAITLIST_ID || "33110",
+      process.env.NEXT_PUBLIC_GETWAITLIST_ID || body.waitlist_id || process.env.GETWAITLIST_ID || "33110",
     );
     if (!Number.isFinite(waitlistId) || waitlistId <= 0) {
       return NextResponse.json(
