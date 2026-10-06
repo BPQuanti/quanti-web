@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
 import FounderNote from "@/components/FounderNote";
-import IPhoneMockup from "@/components/IPhoneMockup";
+import Hero from "@/components/Hero";
 import InteractivePreview from "@/components/InteractivePreview";
 import TrustSecurity from "@/components/TrustSecurity";
 import VerifiedStamp from "@/components/VerifiedStamp";
@@ -37,8 +37,8 @@ const features = [
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-full flex-1 flex-col overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(139,92,246,0.18),_transparent_55%)]" />
+    <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.18),_transparent_55%)]" />
 
       <motion.header
         initial={{ opacity: 0, y: -12 }}
@@ -59,49 +59,14 @@ export default function Home() {
         </Link>
         <a
           href="#waitlist"
-          className="rounded-full border border-[#8b5cf6]/40 bg-[#161124] px-4 py-2 text-sm font-medium text-[#f8fafc] transition hover:border-[#8b5cf6] hover:shadow-[0_0_20px_rgba(139,92,246,0.35)]"
+          className="rounded-full border border-violet-500/40 bg-zinc-900 px-4 py-2 text-sm font-medium text-[#FAFAFA] transition hover:border-violet-500 hover:shadow-[0_0_20px_rgba(124,58,237,0.35)]"
         >
           Join Waitlist
         </a>
       </motion.header>
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24">
-        <motion.section
-          initial="hidden"
-          animate="show"
-          transition={{ staggerChildren: 0.12 }}
-          className="grid items-center gap-12 pt-16 sm:pt-20 lg:grid-cols-2"
-        >
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-            <motion.p
-              variants={fadeUp}
-              className="mb-4 rounded-full border border-[#8b5cf6]/30 bg-[#161124] px-3 py-1 text-xs font-medium uppercase tracking-[0.22em] text-[#a78bfa]"
-            >
-              iOS • Verified Life
-            </motion.p>
-            <motion.h1
-              variants={fadeUp}
-              className="max-w-3xl text-4xl font-semibold tracking-tight text-[#f8fafc] sm:text-6xl sm:leading-[1.05]"
-            >
-              The Verified Social Ledger.
-            </motion.h1>
-            <motion.p
-              variants={fadeUp}
-              className="mt-5 max-w-xl text-base leading-7 text-[#94a3b8] sm:text-lg"
-            >
-              Track your real life, log AI-verified stats, and share recaps that actually mean something.
-            </motion.p>
-            <motion.div variants={fadeUp} className="mt-8 w-full max-w-lg">
-              <WaitlistForm id="hero-waitlist" />
-            </motion.div>
-            <motion.p variants={fadeUp} className="mt-4 text-sm text-[#94a3b8]">
-              Launching soon on iOS • quanti-app.com
-            </motion.p>
-          </div>
-          <motion.div variants={fadeUp} className="flex justify-center">
-            <IPhoneMockup />
-          </motion.div>
-        </motion.section>
+        <Hero />
 
         <InteractivePreview />
 
@@ -116,11 +81,11 @@ export default function Home() {
             <motion.article
               key={feature.title}
               variants={fadeUp}
-              className="rounded-2xl border border-[#2d2442] bg-[#161124] p-6 text-left shadow-[0_0_0_1px_rgba(139,92,246,0.08),0_0_40px_rgba(139,92,246,0.12)] transition hover:border-[#8b5cf6]/50 hover:shadow-[0_0_50px_rgba(139,92,246,0.22)]"
+              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 text-left shadow-[0_0_40px_rgba(124,58,237,0.12)] transition hover:border-violet-500/50 hover:shadow-[0_0_50px_rgba(124,58,237,0.22)]"
             >
-              <feature.icon className="mb-4 h-5 w-5 text-[#a78bfa]" strokeWidth={1.75} />
-              <h2 className="text-lg font-semibold tracking-tight text-[#f8fafc]">{feature.title}</h2>
-              <p className="mt-3 text-sm leading-6 text-[#94a3b8]">{feature.body}</p>
+              <feature.icon className="mb-4 h-5 w-5 text-violet-400" strokeWidth={1.75} />
+              <h2 className="text-lg font-semibold tracking-tight text-[#FAFAFA]">{feature.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-zinc-400">{feature.body}</p>
             </motion.article>
           ))}
         </motion.section>
@@ -135,13 +100,13 @@ export default function Home() {
           whileInView="show"
           viewport={{ once: true, amount: 0.3 }}
           variants={fadeUp}
-          className="mt-24 scroll-mt-24 rounded-3xl border border-[#8b5cf6]/25 bg-[#161124] px-6 py-12 text-center shadow-[0_0_60px_rgba(139,92,246,0.12)] sm:px-12"
+          className="mt-24 scroll-mt-24 rounded-3xl border border-violet-500/25 bg-zinc-900 px-6 py-12 text-center shadow-[0_0_60px_rgba(124,58,237,0.12)] sm:px-12"
         >
           <div className="mb-6 flex justify-center">
             <VerifiedStamp />
           </div>
-          <h2 className="text-3xl font-semibold tracking-tight">Get early access</h2>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#94a3b8]">
+          <h2 className="text-3xl font-semibold tracking-tight text-[#FAFAFA]">Get early access</h2>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-zinc-400">
             Be first in line when Quanti opens on iOS. No spam — just a note when the ledger goes live.
           </p>
           <div className="mx-auto mt-8 max-w-lg">

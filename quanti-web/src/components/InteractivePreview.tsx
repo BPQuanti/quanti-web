@@ -196,7 +196,7 @@ export default function InteractivePreview() {
                 <motion.article
                   key={card.header}
                   variants={cardEnter}
-                  className="flex-1 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5 backdrop-blur-md"
+              className="flex-1 min-w-0 rounded-2xl border border-zinc-800 bg-zinc-950/40 p-5 backdrop-blur-md"
                 >
                   <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-violet-400">
                     <StreamIcon kind={card.kind} />
@@ -208,7 +208,7 @@ export default function InteractivePreview() {
               ))}
               <motion.article
                 variants={cardEnter}
-                className="flex-1 rounded-2xl border border-[#7C3AED]/50 bg-[#7C3AED]/10 p-5 shadow-[0_0_30px_rgba(124,58,237,0.2)] backdrop-blur-md"
+                className="flex-1 min-w-0 rounded-2xl border border-violet-500/50 bg-violet-600/10 p-5 shadow-[0_0_30px_rgba(124,58,237,0.2)] backdrop-blur-md"
               >
                 <p className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.16em] text-violet-400">
                   <StreamIcon kind="ai" />

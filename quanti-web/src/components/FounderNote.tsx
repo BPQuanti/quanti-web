@@ -3,7 +3,7 @@ import { Quote } from "lucide-react";
 export default function FounderNote() {
   return (
     <section aria-label="Founder note" className="mt-24 px-1">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-violet-500/20 bg-zinc-900/40 p-6 shadow-[0_0_20px_rgba(124,58,237,0.1)] backdrop-blur-md md:p-8">
+      <div className="mx-auto max-w-2xl rounded-2xl border border-zinc-800/60 bg-zinc-900/40 p-6 shadow-[0_0_20px_rgba(124,58,237,0.1)] backdrop-blur-md md:p-8">
         <Quote className="h-6 w-6 text-violet-400" strokeWidth={1.5} aria-hidden />
         <blockquote className="mt-4 text-lg leading-relaxed text-[#E4E4E7] md:text-xl">
           We built Quanti out of a genuine curiosity to see what our daily habits actually look like when you

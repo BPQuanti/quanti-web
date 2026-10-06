@@ -55,7 +55,7 @@ export default function IPhoneMockup() {
               Plaid Financial + Apple HealthKit Sync
             </p>
 
-            <div className="mt-3 flex items-center gap-2.5 rounded-2xl border border-violet-500/50 bg-zinc-900/90 px-3 py-2.5 shadow-[0_0_18px_rgba(124,58,237,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <div className="mt-3 flex items-center gap-2.5 rounded-2xl border border-[#7C3AED] bg-zinc-900/90 px-3 py-2.5 shadow-[0_0_18px_rgba(124,58,237,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-zinc-200 to-zinc-500 text-[#09090B] shadow-[0_0_10px_rgba(196,132,252,0.4)]">
                 <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.5} />
               </span>
@@ -97,11 +97,15 @@ export default function IPhoneMockup() {
                 <Share2 className="h-3.5 w-3.5" strokeWidth={2} />
                 Share Recap to Story / Group Chat
               </button>
-              <div className="mt-2 flex items-center justify-center gap-2 text-zinc-400">
-                <span className="flex items-center gap-1.5">
-                  <InstagramMark />
-                  <XMark />
-                  <IMessageMark />
+              <div className="mt-2 flex items-center justify-center gap-3 text-zinc-300">
+                <span className="inline-flex items-center gap-1 text-[8px] uppercase tracking-wide">
+                  <IMessageMark /> iMessage
+                </span>
+                <span className="inline-flex items-center gap-1 text-[8px] uppercase tracking-wide">
+                  <InstagramMark /> IG
+                </span>
+                <span className="inline-flex items-center gap-1 text-[8px] uppercase tracking-wide">
+                  <XMark /> X
                 </span>
               </div>
               <p className="mt-1 text-center text-[8px] leading-3 text-[#A1A1AA]">
