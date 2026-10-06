@@ -28,9 +28,9 @@ const badges: ShowcaseBadge[] = [
     icon: "shield",
     frontTitle: "OG FOUNDING MEMBER",
     frontKicker: "EARLY ACCESS",
-    backHeadline: "1 OF FIRST 500",
-    backDetail: "Joined pre-launch • TestFlight Verified",
-    backKicker: "PERMANENT STATUS",
+    backHeadline: "10K MILESTONE REWARD",
+    backDetail: "0.5% Founder Revenue Dividend Pool Unlocked at 10k Subscribers",
+    backKicker: "1 OF 500 OG FOUNDERS",
   },
   {
     id: "golf",

@@ -117,15 +117,15 @@ function BackFace({ pathId }: { pathId: string }) {
           height={140}
           className="pointer-events-none absolute left-1/2 top-[46%] h-28 w-28 -translate-x-1/2 -translate-y-1/2 opacity-[0.07]"
         />
-        <p className="relative text-center text-[11px] font-semibold tracking-[0.12em] text-violet-300">
-          Verified Founding User
+        <p className="relative text-center text-[10px] font-semibold tracking-[0.16em] text-violet-300">
+          10K MILESTONE REWARD
         </p>
-        <p className="relative mt-6 text-center text-2xl font-bold leading-tight tracking-tight text-[#FAFAFA] sm:text-[1.7rem]">
-          1 OF FIRST 500
+        <p className="relative mt-4 text-center text-[12px] font-medium leading-4 text-[#FAFAFA] sm:text-[13px]">
+          0.5% Founder Revenue Dividend Pool Unlocked at 10k Subscribers
         </p>
-        <p className="relative mt-2 text-center text-[11px] leading-4 text-zinc-400">
-          Joined pre-launch • TestFlight Verified
-        </p>
+        <span className="relative mt-auto rounded-full border border-violet-500/40 bg-[#7C3AED]/15 px-2.5 py-0.5 text-[8px] font-semibold tracking-[0.14em] text-violet-300">
+          1 OF 500 OG FOUNDERS
+        </span>
       </div>
     </CoinShell>
   );
@@ -154,7 +154,7 @@ export default function DigitalOGBadge() {
   const captureRef = useRef<HTMLDivElement>(null);
 
   const shareCopy = flipped
-    ? "1 of first 500 — Verified Founding User. Quanti Verified."
+    ? "10K Milestone Reward — 0.5% Founder Revenue Dividend Pool. 1 of 500 OG Founders."
     : "OG Founding Member — Quanti Verified Founder Status.";
   const filename = flipped ? "quanti-og-founder-back.png" : "quanti-og-founder-front.png";
 

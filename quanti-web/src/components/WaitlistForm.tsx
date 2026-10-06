@@ -171,6 +171,13 @@ export default function WaitlistForm({ id }: { id?: string }) {
               </button>
             </div>
 
+            <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-2.5 shadow-[0_0_16px_rgba(124,58,237,0.12)]">
+              <p className="text-xs leading-5 text-violet-200">
+                ⚡ First 500 OG members unlock Lifetime Free Access + a share of our 10k Founder Revenue Pool when we
+                cross 10,000 subscribers.
+              </p>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <a
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`}
