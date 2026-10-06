@@ -15,7 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 
-import { colors } from '../screens/theme';
+import { colors, fonts, radii } from '../screens/theme';
 
 const BG = colors.bg;
 const SURFACE = colors.card;
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 16,
     backgroundColor: colors.input,
-    borderRadius: 16,
+    borderRadius: radii.md,
     borderWidth: 1,
     borderBottomWidth: 1,
     borderColor: DIVIDER,

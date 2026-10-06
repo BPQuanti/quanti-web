@@ -11,8 +11,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
 import { useAppContext } from '../context/AppContext';
+import { LogoFull } from '../components/Logo';
 import { shareStatCard } from '../utils/shareCard';
-import { colors, glow, radii } from './theme';
+import { colors, fonts, glow, radii } from './theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const RECAP_WIDTH = SCREEN_WIDTH - 48;
@@ -116,7 +117,7 @@ export default function ForMeScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.eyebrow}>For Me</Text>
+        <LogoFull width={156} />
         <Text style={styles.title}>Today</Text>
         <Text style={styles.subtitle}>Fitness, finance, recaps, and verified stamps.</Text>
 
@@ -168,7 +169,7 @@ export default function ForMeScreen() {
           ))}
         </View>
 
-        <View style={styles.card}>
+        <View style={[styles.card, styles.cardGlow]}>
           <Text style={styles.cardLabel}>Health</Text>
           <View style={styles.healthRow}>
             <View style={styles.ring}>
@@ -202,15 +203,33 @@ export default function ForMeScreen() {
           <Text style={styles.muted}>{coordinateLabel}</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Financial overview</Text>
+        <View style={[styles.card, styles.cardGlow]}>
+          <Text style={styles.cardLabel}>Transactions</Text>
           {plaidData.isConnected ? (
             <>
               <Text style={styles.status}>{plaidData.bankName}</Text>
               <Text style={styles.metric}>
                 ${Number(plaidData.accountBalance || 0).toLocaleString()}
               </Text>
-              <Text style={styles.tag}>Linked</Text>
+              <View style={styles.txList}>
+                {(plaidData.transactions?.length ? plaidData.transactions : plaidData.accounts || []).map((row) => (
+                  <View key={row.id || row.mask || row.name} style={styles.txRow}>
+                    <View style={styles.txCopy}>
+                      <Text style={styles.txName}>{row.name}</Text>
+                      <Text style={styles.txMeta}>
+                        {row.date
+                          ? row.date
+                          : `${row.subtype || row.type || 'Account'}${row.mask ? ` ····${row.mask}` : ''}`}
+                      </Text>
+                    </View>
+                    <Text style={styles.txTag}>
+                      {typeof row.amount === 'number'
+                        ? `${row.amount < 0 ? '-' : '+'}$${Math.abs(row.amount).toLocaleString()}`
+                        : 'Linked'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </>
           ) : (
             <>
@@ -230,23 +249,35 @@ export default function ForMeScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
   scroll: { padding: 20, paddingBottom: 40 },
-  eyebrow: {
-    color: colors.insight,
-    fontSize: 12,
+  title: {
+    color: colors.white,
+    fontFamily: fonts.bold,
+    fontSize: 32,
     fontWeight: '700',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
+    marginTop: 14,
   },
-  title: { color: colors.white, fontSize: 32, fontWeight: '700', marginTop: 6 },
-  subtitle: { color: colors.muted, fontSize: 15, marginTop: 4, marginBottom: 20 },
+  subtitle: {
+    color: colors.muted,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    marginTop: 4,
+    marginBottom: 20,
+  },
   sectionTitle: {
     color: colors.text,
+    fontFamily: fonts.bold,
     fontSize: 18,
-    fontWeight: '800',
+    fontWeight: '700',
     marginBottom: 10,
     marginTop: 8,
   },
-  sectionHint: { color: colors.muted, fontSize: 13, marginTop: -4, marginBottom: 12 },
+  sectionHint: {
+    color: colors.muted,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    marginTop: -4,
+    marginBottom: 12,
+  },
   periodRow: { gap: 8, paddingBottom: 14 },
   periodChip: {
     backgroundColor: colors.input,
@@ -261,7 +292,7 @@ const styles = StyleSheet.create({
     borderColor: colors.accent,
     backgroundColor: colors.borderGlow,
   },
-  periodChipText: { color: colors.muted, fontWeight: '700', fontSize: 13 },
+  periodChipText: { color: colors.muted, fontFamily: fonts.semibold, fontWeight: '600', fontSize: 13 },
   periodChipTextActive: { color: colors.text },
   recapBlock: { marginBottom: 20 },
   storyCard: {
@@ -270,20 +301,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: colors.borderViolet,
     padding: 22,
     ...glow,
   },
   storyBrand: {
     color: colors.glow,
-    fontWeight: '800',
+    fontFamily: fonts.semibold,
+    fontWeight: '600',
     letterSpacing: 3,
     fontSize: 11,
   },
-  storyPeriod: { color: colors.text, fontSize: 22, fontWeight: '800', marginTop: 10 },
-  storyRange: { color: colors.muted, marginTop: 4 },
+  storyPeriod: {
+    color: colors.text,
+    fontFamily: fonts.bold,
+    fontSize: 22,
+    fontWeight: '700',
+    marginTop: 10,
+  },
+  storyRange: { color: colors.muted, fontFamily: fonts.regular, marginTop: 4 },
   storyEmoji: { fontSize: 42, marginTop: 18 },
-  storyHeadline: { color: colors.text, fontSize: 26, fontWeight: '800', marginTop: 12, lineHeight: 32 },
+  storyHeadline: {
+    color: colors.text,
+    fontFamily: fonts.bold,
+    fontSize: 26,
+    fontWeight: '700',
+    marginTop: 12,
+    lineHeight: 32,
+  },
   percentileBadge: {
     alignSelf: 'flex-start',
     marginTop: 14,
@@ -292,10 +337,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: colors.glow,
+    borderColor: colors.accentSoft,
   },
-  percentileText: { color: colors.text, fontWeight: '800', fontSize: 12 },
-  storyMetric: { color: colors.glow, marginTop: 8, fontWeight: '600' },
+  percentileText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700', fontSize: 12 },
+  storyMetric: { color: colors.accentSoft, fontFamily: fonts.mono, marginTop: 8, fontWeight: '500' },
   verifiedMark: {
     color: colors.muted,
     marginTop: 18,
@@ -305,15 +350,13 @@ const styles = StyleSheet.create({
   },
   shareSocial: {
     marginTop: 12,
-    backgroundColor: colors.accentDeep,
+    backgroundColor: colors.accent,
     borderRadius: radii.md,
     paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.glow,
     ...glow,
   },
-  shareSocialText: { color: colors.text, fontWeight: '800' },
+  shareSocialText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700' },
   stampGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 20 },
   stampWrap: { width: STAMP_WIDTH },
   stampCard: {
@@ -325,8 +368,8 @@ const styles = StyleSheet.create({
     minHeight: 160,
   },
   stampEmoji: { fontSize: 28 },
-  stampTitle: { color: colors.text, fontWeight: '800', fontSize: 14, marginTop: 8 },
-  stampSub: { color: colors.muted, fontSize: 12, marginTop: 4 },
+  stampTitle: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700', fontSize: 14, marginTop: 8 },
+  stampSub: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12, marginTop: 4 },
   stampBadge: {
     marginTop: 10,
     alignSelf: 'flex-start',
@@ -337,9 +380,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     backgroundColor: colors.borderGlow,
   },
-  stampBadgeText: { color: colors.glow, fontSize: 9, fontWeight: '800' },
+  stampBadgeText: { color: colors.glow, fontFamily: fonts.bold, fontSize: 9, fontWeight: '700' },
   stampShare: { marginTop: 8, alignItems: 'center' },
-  stampShareText: { color: colors.accent, fontWeight: '700', fontSize: 12 },
+  stampShareText: { color: colors.accentSoft, fontFamily: fonts.semibold, fontWeight: '600', fontSize: 12 },
   card: {
     backgroundColor: colors.card,
     borderColor: colors.border,
@@ -348,8 +391,13 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
+  cardGlow: {
+    borderColor: colors.borderViolet,
+    ...glow,
+  },
   cardLabel: {
     color: colors.muted,
+    fontFamily: fonts.semibold,
     fontSize: 12,
     fontWeight: '600',
     letterSpacing: 0.6,
@@ -367,11 +415,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.bg,
   },
-  ringValue: { color: colors.white, fontSize: 18, fontWeight: '700' },
-  ringHint: { color: colors.muted, fontSize: 11 },
-  metric: { color: colors.accent, fontSize: 20, fontWeight: '700' },
-  muted: { color: colors.muted, fontSize: 14, marginTop: 4 },
-  status: { color: colors.white, fontSize: 20, fontWeight: '700' },
+  ringValue: { color: colors.white, fontFamily: fonts.bold, fontSize: 18, fontWeight: '700' },
+  ringHint: { color: colors.muted, fontFamily: fonts.regular, fontSize: 11 },
+  metric: { color: colors.accentSoft, fontFamily: fonts.mono, fontSize: 20, fontWeight: '500' },
+  muted: { color: colors.muted, fontFamily: fonts.regular, fontSize: 14, marginTop: 4 },
+  status: { color: colors.white, fontFamily: fonts.bold, fontSize: 20, fontWeight: '700' },
   barTrack: {
     height: 8,
     borderRadius: radii.full,
@@ -384,7 +432,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderRadius: radii.full,
   },
-  tag: { fontSize: 12, fontWeight: '700', marginTop: 10 },
+  tag: { fontFamily: fonts.semibold, fontSize: 12, fontWeight: '600', marginTop: 10 },
   tagMock: { color: colors.mock },
   tagLive: { color: colors.accent },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -396,18 +444,30 @@ const styles = StyleSheet.create({
   },
   badgeLive: { borderColor: colors.accent, backgroundColor: colors.borderGlow },
   badgePending: { borderColor: colors.mock, backgroundColor: 'rgba(251, 191, 36, 0.12)' },
-  badgeText: { fontSize: 11, fontWeight: '700' },
+  badgeText: { fontFamily: fonts.semibold, fontSize: 11, fontWeight: '600' },
   liveText: { color: colors.accent },
   pendingText: { color: colors.mock },
   button: {
     marginTop: 14,
     backgroundColor: colors.accent,
     borderRadius: radii.md,
-    paddingVertical: 12,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.glow,
     ...glow,
   },
-  buttonText: { color: colors.text, fontWeight: '700' },
+  buttonText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700' },
+  txList: { marginTop: 12 },
+  txRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  txCopy: { flex: 1 },
+  txName: { color: colors.text, fontFamily: fonts.semibold, fontSize: 15, fontWeight: '600' },
+  txMeta: { color: colors.muted, fontFamily: fonts.regular, fontSize: 12, marginTop: 2 },
+  txTag: { color: colors.glow, fontFamily: fonts.semibold, fontSize: 12, fontWeight: '600' },
 });

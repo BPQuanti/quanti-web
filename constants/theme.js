@@ -1,42 +1,85 @@
 export const colors = {
-  bg: '#0b0712',
-  card: '#161124',
-  input: '#221c33',
-  accent: '#8b5cf6',
-  accentDeep: '#7c3aed',
-  glow: '#a78bfa',
-  text: '#f8fafc',
-  white: '#f8fafc',
-  muted: '#94a3b8',
-  inactive: '#64748b',
-  border: '#2d2442',
-  borderGlow: 'rgba(139, 92, 246, 0.15)',
-  tab: 'rgba(11, 7, 18, 0.92)',
-  tabActive: '#a78bfa',
-  insight: '#a78bfa',
-  mock: '#fbbf24',
-  overlay: 'rgba(11, 7, 18, 0.85)',
+  bg: '#09090B',
+  card: '#18181B',
+  cardGlass: 'rgba(24, 24, 27, 0.7)',
+  input: '#27272A',
+  accent: '#7C3AED',
+  accentDeep: '#7C3AED',
+  accentSoft: '#DDD6FE',
+  glow: '#C084FC',
+  text: '#FAFAFA',
+  white: '#FAFAFA',
+  muted: '#A1A1AA',
+  inactive: '#71717A',
+  border: '#27272A',
+  borderViolet: 'rgba(139, 92, 246, 0.2)',
+  borderGlow: 'rgba(139, 92, 246, 0.2)',
+  tab: '#09090B',
+  tabActive: '#C084FC',
+  insight: '#C084FC',
+  mock: '#FBBF24',
+  overlay: 'rgba(9, 9, 11, 0.85)',
 };
 
 export const radii = {
   sm: 8,
   md: 16,
-  lg: 24,
+  lg: 16,
+  xl: 24,
   full: 9999,
 };
 
 export const glow = {
-  shadowColor: '#8b5cf6',
-  shadowOpacity: 0.4,
-  shadowRadius: 14,
-  shadowOffset: { width: 0, height: 4 },
+  shadowColor: '#7C3AED',
+  shadowOpacity: 0.25,
+  shadowRadius: 20,
+  shadowOffset: { width: 0, height: 0 },
   elevation: 8,
+};
+
+export const fonts = {
+  regular: 'Geist_400Regular',
+  medium: 'Geist_500Medium',
+  semibold: 'Geist_600SemiBold',
+  bold: 'Geist_700Bold',
+  mono: 'GeistMono_500Medium',
+};
+
+export const surfaces = {
+  card: {
+    backgroundColor: colors.card,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radii.md,
+  },
+  cardGlow: {
+    backgroundColor: colors.card,
+    borderColor: colors.borderViolet,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    ...glow,
+  },
+  glass: {
+    backgroundColor: colors.cardGlass,
+    borderColor: colors.borderViolet,
+    borderWidth: 1,
+    borderRadius: radii.md,
+  },
+  button: {
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...glow,
+  },
 };
 
 export const theme = {
   colors,
   radii,
   glow,
+  fonts,
+  surfaces,
 };
 
 export default theme;

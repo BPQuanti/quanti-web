@@ -1,16 +1,29 @@
+import { useEffect } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import {
+  Geist_400Regular,
+  Geist_500Medium,
+  Geist_600SemiBold,
+  Geist_700Bold,
+} from '@expo-google-fonts/geist';
+import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono';
+import { StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
+import BootScreen from './components/BootScreen';
 import AuthScreen from './screens/AuthScreen';
 import ForMeScreen from './screens/ForMeScreen';
 import ForYouScreen from './screens/ForYouScreen';
 import QuantiAiScreen from './screens/QuantiAiScreen';
 import ProfileScreen from './screens/ProfileScreen';
-import { colors } from './screens/theme';
+import { colors, fonts } from './screens/theme';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const Tab = createBottomTabNavigator();
 
@@ -84,13 +97,22 @@ function MainTabs() {
 
 function Root() {
   const { user, loading, isDevBypass } = useAuth();
+  const [fontsLoaded] = useFonts({
+    Geist_400Regular,
+    Geist_500Medium,
+    Geist_600SemiBold,
+    Geist_700Bold,
+    GeistMono_500Medium,
+  });
 
-  if (loading) {
-    return (
-      <View style={styles.boot}>
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
+  useEffect(() => {
+    if (fontsLoaded && !loading) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded, loading]);
+
+  if (!fontsLoaded || loading) {
+    return <BootScreen />;
   }
 
   if (!user && !isDevBypass) {
@@ -114,12 +136,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  boot: {
-    flex: 1,
-    backgroundColor: colors.bg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   tabBar: {
     backgroundColor: colors.tab,
     borderTopColor: colors.border,
@@ -129,8 +145,9 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   tabLabel: {
+    fontFamily: fonts.semibold,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   tabIcon: {
     fontSize: 18,

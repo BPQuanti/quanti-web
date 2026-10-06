@@ -68,7 +68,7 @@ export default function PrivacyPolicy() {
           <a href="mailto:brian@quanti-app.com" className="text-violet-400 underline transition-colors hover:text-violet-400">
             brian@quanti-app.com
           </a>
-          . Upon receiving your deletion request, all associated financial connections and personal identifiers will be permanently removed from our active databases.
+          . You can also delete the account inside the Quanti app from Profile, then Settings. That request revokes the bank connection and permanently removes the login and associated records.
         </p>
         <h2 className="text-xl font-semibold text-white mt-8 mb-3">5. Data Security</h2>
         <p>

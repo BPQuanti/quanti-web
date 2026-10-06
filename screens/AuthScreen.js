@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import { LogoFull, LogoMark } from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 
-import { colors } from './theme';
+import { colors, fonts, glow, radii } from './theme';
 
 const BG = colors.bg;
 const SURFACE = colors.card;
@@ -108,8 +109,11 @@ export default function AuthScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          <Text style={styles.logoMark}>Q</Text>
-          <Text style={styles.brand}>Quanti — The Verified Social Ledger</Text>
+          <LogoMark width={72} glowing />
+          <View style={styles.wordmark}>
+            <LogoFull width={180} />
+          </View>
+          <Text style={styles.brand}>The verified social ledger</Text>
           <Text style={styles.title}>{mode === 'signup' ? 'Create Account' : 'Sign In'}</Text>
 
           {status ? (
@@ -201,22 +205,17 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: BG },
   flex: { flex: 1, backgroundColor: BG },
   body: { padding: 24, paddingTop: 36, flexGrow: 1 },
-  logoMark: {
-    color: EMERALD,
-    fontSize: 42,
-    fontWeight: '800',
-    letterSpacing: 2,
-  },
+  wordmark: { marginTop: 18 },
   brand: {
-    color: WHITE,
-    fontSize: 22,
-    fontWeight: '800',
-    marginTop: 4,
+    color: MUTED,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    marginTop: 10,
     marginBottom: 28,
-    lineHeight: 30,
   },
   title: {
     color: WHITE,
+    fontFamily: fonts.bold,
     fontSize: 22,
     fontWeight: '700',
     marginBottom: 16,
@@ -264,15 +263,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   primary: {
-    backgroundColor: colors.accentDeep,
-    borderColor: colors.glow,
-    borderWidth: 1,
-    borderRadius: 16,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 4,
+    ...glow,
   },
-  primaryText: { color: colors.text, fontWeight: '800', fontSize: 16 },
+  primaryText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700', fontSize: 16 },
   devBypass: {
     marginTop: 28,
     alignItems: 'center',

@@ -1,5 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  IS_APP_REVIEW_DEMO,
+  REVIEW_HEALTH,
+  REVIEW_PLAID,
+  setReviewDemoEnabled,
+} from '../lib/config/demoMode';
 import { fetchHealthData, isUsingMockHealthData } from '../services/healthService';
 import { getCurrentLocation } from '../services/locationService';
 import { openPlaidLink } from '../services/plaidService';
@@ -16,6 +22,7 @@ const STORAGE_KEYS = {
   plaid: '@quanti_plaid_data',
   recaps: '@quanti_recaps',
   savedStats: '@quanti_saved_stats',
+  reviewDemo: '@quanti_review_demo',
 };
 
 const DEFAULT_PROFILE = {
@@ -174,33 +181,48 @@ export function AppProvider({ children }) {
   const [plaidData, setPlaidData] = useState(DEFAULT_PLAID);
   const [recaps, setRecaps] = useState(DEFAULT_RECAPS);
   const [savedStats, setSavedStats] = useState(DEFAULT_SAVED_STATS);
+  const [reviewDemoEnabled, setReviewDemoState] = useState(IS_APP_REVIEW_DEMO);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const [profile, health, location, plaid, recapsStored, statsStored] = await Promise.all([
+        const [profile, health, location, plaid, recapsStored, statsStored, storedDemo] = await Promise.all([
           readItem(STORAGE_KEYS.profile),
           readItem(STORAGE_KEYS.health),
           readItem(STORAGE_KEYS.location),
           readItem(STORAGE_KEYS.plaid),
           readItem(STORAGE_KEYS.recaps),
           readItem(STORAGE_KEYS.savedStats),
+          readItem(STORAGE_KEYS.reviewDemo),
         ]);
         if (cancelled) {
           return;
         }
+        const demoOn = IS_APP_REVIEW_DEMO || storedDemo === true;
+        setReviewDemoEnabled(demoOn);
+        setReviewDemoState(demoOn);
         if (profile && typeof profile === 'object') {
           setUserProfile({ ...DEFAULT_PROFILE, ...profile });
         }
-        if (health && typeof health === 'object') {
+        if (demoOn) {
+          setHealthData({
+            ...DEFAULT_HEALTH,
+            steps: REVIEW_HEALTH.steps,
+            activeCalories: REVIEW_HEALTH.activeEnergyKcal,
+            isMock: true,
+            status: REVIEW_HEALTH.status,
+            badge: REVIEW_HEALTH.badge,
+          });
+          setPlaidData({ ...DEFAULT_PLAID, ...REVIEW_PLAID });
+        } else if (health && typeof health === 'object') {
           setHealthData({ ...DEFAULT_HEALTH, ...health });
         }
         if (location && typeof location === 'object') {
           setLocationData({ ...DEFAULT_LOCATION, ...location });
         }
-        if (plaid && typeof plaid === 'object') {
+        if (!demoOn && plaid && typeof plaid === 'object') {
           setPlaidData({ ...DEFAULT_PLAID, ...plaid });
         }
         if (Array.isArray(recapsStored) && recapsStored.length) {
@@ -403,6 +425,28 @@ export function AppProvider({ children }) {
     return stamp;
   }, []);
 
+  const setReviewDemo = useCallback((enabled) => {
+    const next = IS_APP_REVIEW_DEMO || Boolean(enabled);
+    setReviewDemoEnabled(next);
+    setReviewDemoState(next);
+    void saveItem(STORAGE_KEYS.reviewDemo, next);
+    if (next) {
+      applyHealth({
+        ...DEFAULT_HEALTH,
+        steps: REVIEW_HEALTH.steps,
+        activeCalories: REVIEW_HEALTH.activeEnergyKcal,
+        isMock: true,
+        status: REVIEW_HEALTH.status,
+        badge: REVIEW_HEALTH.badge,
+        lastSynced: new Date().toISOString(),
+      });
+      applyPlaid({ ...DEFAULT_PLAID, ...REVIEW_PLAID });
+      return;
+    }
+    applyHealth(DEFAULT_HEALTH);
+    applyPlaid(DEFAULT_PLAID);
+  }, [applyHealth, applyPlaid]);
+
   const resetAppData = useCallback(async () => {
     try {
       await AsyncStorage.clear();
@@ -434,6 +478,8 @@ export function AppProvider({ children }) {
       fetchUserProfile,
       saveAiStatToForMe,
       resetAppData,
+      reviewDemoEnabled,
+      setReviewDemo,
     }),
     [
       userProfile,
@@ -442,6 +488,7 @@ export function AppProvider({ children }) {
       plaidData,
       recaps,
       savedStats,
+      reviewDemoEnabled,
       syncHealth,
       syncLocation,
       connectPlaid,
@@ -450,6 +497,7 @@ export function AppProvider({ children }) {
       fetchUserProfile,
       saveAiStatToForMe,
       resetAppData,
+      setReviewDemo,
     ]
   );
 

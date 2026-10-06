@@ -11,15 +11,16 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LogoFull } from '../components/Logo';
 import { useAppContext } from '../context/AppContext';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
-import { colors, glow, radii } from './theme';
+import { colors, fonts, glow, radii } from './theme';
 
 const CHAT_BG = colors.bg;
-const USER_BUBBLE = colors.input;
-const AI_BUBBLE = colors.card;
-const AI_BORDER = colors.accent;
+const USER_BUBBLE = colors.accent;
+const AI_BUBBLE = colors.cardGlass;
+const AI_BORDER = colors.borderViolet;
 const TEXT = colors.text;
 const MUTED = colors.muted;
 
@@ -251,8 +252,7 @@ export default function QuantiAiScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
       >
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>Quanti AI</Text>
-          <Text style={styles.title}>Conversation</Text>
+          <LogoFull width={150} />
         </View>
 
         <FlatList
@@ -332,16 +332,8 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    backgroundColor: colors.overlay,
+    backgroundColor: colors.bg,
   },
-  eyebrow: {
-    color: colors.insight,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-  },
-  title: { color: TEXT, fontSize: 26, fontWeight: '700', marginTop: 4 },
   list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   row: { marginBottom: 10, maxWidth: '88%' },
   rowUser: { alignSelf: 'flex-end' },
@@ -353,23 +345,27 @@ const styles = StyleSheet.create({
   },
   userBubble: {
     backgroundColor: USER_BUBBLE,
-    borderBottomRightRadius: 4,
+    borderRadius: radii.md,
+    borderBottomRightRadius: 6,
+    ...glow,
   },
   aiBubble: {
     backgroundColor: AI_BUBBLE,
     borderColor: AI_BORDER,
     borderWidth: 1,
-    borderBottomLeftRadius: 4,
+    borderRadius: radii.md,
+    borderBottomLeftRadius: 6,
   },
   thinkingBubble: { opacity: 0.85 },
   assistantLabel: {
-    color: AI_BORDER,
+    color: colors.glow,
+    fontFamily: fonts.semibold,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '600',
     marginBottom: 4,
   },
-  bubbleText: { color: TEXT, fontSize: 15, lineHeight: 21 },
-  timestamp: { color: MUTED, fontSize: 10, marginTop: 6 },
+  bubbleText: { color: TEXT, fontFamily: fonts.regular, fontSize: 15, lineHeight: 21 },
+  timestamp: { color: MUTED, fontFamily: fonts.regular, fontSize: 10, marginTop: 6 },
   addToForMe: {
     marginTop: 10,
     alignSelf: 'flex-start',
@@ -380,19 +376,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  addToForMeText: { color: colors.glow, fontSize: 11, fontWeight: '800' },
-  thinking: { color: AI_BORDER, fontSize: 13, fontStyle: 'italic' },
+  addToForMeText: { color: colors.accentSoft, fontFamily: fonts.semibold, fontSize: 11, fontWeight: '600' },
+  thinking: { color: colors.glow, fontFamily: fonts.medium, fontSize: 13, fontStyle: 'italic' },
   chipRow: { paddingHorizontal: 16, paddingBottom: 8, gap: 8 },
   chip: {
     backgroundColor: colors.card,
-    borderColor: colors.borderGlow,
+    borderColor: colors.borderViolet,
     borderWidth: 1,
-    borderRadius: 18,
+    borderRadius: radii.md,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginRight: 8,
   },
-  chipText: { color: TEXT, fontSize: 12 },
+  chipText: { color: TEXT, fontFamily: fonts.medium, fontSize: 12 },
   composer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -405,24 +401,25 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: USER_BUBBLE,
+    backgroundColor: colors.input,
     color: TEXT,
-    borderRadius: 14,
+    fontFamily: fonts.regular,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
     paddingHorizontal: 14,
     paddingVertical: 10,
     fontSize: 15,
   },
   send: {
-    backgroundColor: colors.accentDeep,
+    backgroundColor: colors.accent,
     borderRadius: radii.md,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: colors.glow,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     ...glow,
   },
   sendDisabled: { opacity: 0.5 },
-  sendText: { color: colors.text, fontWeight: '700' },
+  sendText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700' },
   toast: {
     position: 'absolute',
     left: 16,
@@ -433,5 +430,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
-  toastText: { color: '#FECACA', fontSize: 13, textAlign: 'center' },
+  toastText: { color: '#FECACA', fontFamily: fonts.medium, fontSize: 13, textAlign: 'center' },
 });

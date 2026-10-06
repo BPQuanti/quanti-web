@@ -15,11 +15,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { deleteAccount } from '../lib/accountDeletion';
+import { IS_APP_REVIEW_DEMO } from '../lib/config/demoMode';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import EditProfileModal from '../components/EditProfileModal';
+import { LogoFull } from '../components/Logo';
 
-import { colors } from './theme';
+import { colors, fonts, glow, radii } from './theme';
 
 const BG = colors.bg;
 const SURFACE = colors.card;
@@ -59,12 +62,14 @@ export default function ProfileScreen() {
     syncLocation,
     connectPlaid,
     setHealthMock,
+    reviewDemoEnabled,
+    setReviewDemo,
     userProfile,
     updateUserProfile,
     fetchUserProfile,
     resetAppData,
   } = useAppContext();
-  const { signOut, user } = useAuth();
+  const { signOut, user, session } = useAuth();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -112,7 +117,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
-        <Text style={styles.handle}>@{userProfile.username}</Text>
+        <LogoFull width={140} />
         <TouchableOpacity onPress={() => setSettingsOpen(true)} hitSlop={12} accessibilityLabel="Settings & Activity">
           <Text style={styles.menuIcon}>☰</Text>
         </TouchableOpacity>
@@ -157,6 +162,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.bioBlock}>
+          <Text style={styles.handle}>@{userProfile.username}</Text>
           <Text style={styles.displayName}>{userProfile.name}</Text>
           <Text style={styles.bio}>{userProfile.bio}</Text>
           <Text style={styles.link}>quanti.app/{userProfile.username}</Text>
@@ -266,6 +272,23 @@ export default function ProfileScreen() {
               </View>
 
               <View style={styles.card}>
+                <Text style={styles.cardLabel}>App Review demo</Text>
+                <Text style={styles.muted}>
+                  Simulated bank transactions and HealthKit metrics for reviewers. No live bank or Health login.
+                </Text>
+                <View style={styles.toggleRow}>
+                  <Text style={styles.muted}>Show demo data</Text>
+                  <Switch
+                    value={Boolean(reviewDemoEnabled)}
+                    disabled={IS_APP_REVIEW_DEMO}
+                    onValueChange={setReviewDemo}
+                    trackColor={{ false: '#333', true: ACCENT }}
+                    thumbColor={WHITE}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.card}>
                 <Text style={styles.cardLabel}>Subscription tier</Text>
                 {TIERS.map((item) => (
                   <TouchableOpacity
@@ -278,6 +301,43 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
+
+              <TouchableOpacity
+                style={styles.resetBtn}
+                onPress={() => {
+                  Alert.alert(
+                    'Delete account',
+                    'This revokes your bank connection, deletes chat and profile data, and removes the login. This cannot be undone.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete account',
+                        style: 'destructive',
+                        onPress: async () => {
+                          try {
+                            const result = await deleteAccount(session?.access_token);
+                            setSettingsOpen(false);
+                            await resetAppData();
+                            await signOut();
+                            if (result?.success) {
+                              Alert.alert('Account deleted', result.message);
+                            } else {
+                              Alert.alert('On-device data cleared', result?.message || 'Cloud account was not deleted.');
+                            }
+                          } catch (error) {
+                            Alert.alert(
+                              'Deletion failed',
+                              error?.message ? String(error.message) : 'Account deletion failed.',
+                            );
+                          }
+                        },
+                      },
+                    ],
+                  );
+                }}
+              >
+                <Text style={styles.resetBtnText}>Delete account</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.resetBtn}
@@ -342,12 +402,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1,
     borderBottomColor: DIVIDER,
-    backgroundColor: colors.overlay,
+    backgroundColor: colors.bg,
   },
-  handle: { color: WHITE, fontSize: 20, fontWeight: '800' },
-  menuIcon: { color: WHITE, fontSize: 26, lineHeight: 28 },
+  handle: { color: WHITE, fontFamily: fonts.bold, fontSize: 18, fontWeight: '700' },
+  menuIcon: { color: colors.accentSoft, fontSize: 26, lineHeight: 28 },
   tabIcon: { color: MUTED, fontSize: 20, lineHeight: 22 },
   tabIconActive: { color: colors.glow },
   headerRow: {
@@ -362,7 +422,8 @@ const styles = StyleSheet.create({
     height: 92,
     borderRadius: 46,
     borderWidth: 2,
-    borderColor: ACCENT,
+    borderColor: colors.borderViolet,
+    ...glow,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -382,12 +443,12 @@ const styles = StyleSheet.create({
   avatarText: { color: WHITE, fontSize: 24, fontWeight: '700' },
   metricsRow: { flex: 1, flexDirection: 'row' },
   metricCell: { flex: 1, alignItems: 'center' },
-  metricLabel: { color: WHITE, fontSize: 11, fontWeight: '800', textAlign: 'center' },
-  metricValue: { color: MUTED, fontSize: 11, marginTop: 4, textAlign: 'center' },
+  metricLabel: { color: WHITE, fontFamily: fonts.semibold, fontSize: 11, fontWeight: '600', textAlign: 'center' },
+  metricValue: { color: colors.accentSoft, fontFamily: fonts.mono, fontSize: 11, marginTop: 4, textAlign: 'center' },
   bioBlock: { paddingHorizontal: 16, paddingTop: 12 },
-  displayName: { color: WHITE, fontSize: 14, fontWeight: '700' },
-  bio: { color: WHITE, fontSize: 14, marginTop: 4, lineHeight: 20 },
-  link: { color: colors.glow, fontSize: 14, marginTop: 4 },
+  displayName: { color: WHITE, fontFamily: fonts.semibold, fontSize: 14, fontWeight: '600', marginTop: 2 },
+  bio: { color: WHITE, fontFamily: fonts.regular, fontSize: 14, marginTop: 4, lineHeight: 20 },
+  link: { color: colors.glow, fontFamily: fonts.medium, fontSize: 14, marginTop: 4 },
   actions: {
     flexDirection: 'row',
     gap: 8,
@@ -396,14 +457,13 @@ const styles = StyleSheet.create({
   },
   actionBtn: {
     flex: 1,
-    backgroundColor: colors.accentDeep,
-    borderRadius: 16,
-    paddingVertical: 10,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    paddingVertical: 12,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.glow,
+    ...glow,
   },
-  actionText: { color: WHITE, fontWeight: '700', fontSize: 13 },
+  actionText: { color: WHITE, fontFamily: fonts.bold, fontWeight: '700', fontSize: 13 },
   profileTabs: {
     flexDirection: 'row',
     marginTop: 16,
@@ -424,21 +484,23 @@ const styles = StyleSheet.create({
     width: TILE,
     height: TILE,
     backgroundColor: SURFACE,
-    borderWidth: 0.5,
-    borderColor: BG,
+    borderWidth: 1,
+    borderColor: colors.border,
     padding: 8,
     justifyContent: 'flex-end',
   },
-  tileTag: { color: ACCENT, fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
-  tileTitle: { color: WHITE, fontSize: 13, fontWeight: '700', marginTop: 4 },
-  tileMetric: { color: MUTED, fontSize: 11, marginTop: 2 },
+  tileTag: { color: colors.glow, fontFamily: fonts.semibold, fontSize: 9, fontWeight: '600', letterSpacing: 0.6 },
+  tileTitle: { color: WHITE, fontFamily: fonts.semibold, fontSize: 13, fontWeight: '600', marginTop: 4 },
+  tileMetric: { color: colors.accentSoft, fontFamily: fonts.mono, fontSize: 11, marginTop: 2 },
   sheetOverlay: {
     flex: 1,
     backgroundColor: colors.overlay,
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: SURFACE,
+    backgroundColor: colors.bg,
+    borderTopWidth: 1,
+    borderColor: colors.borderViolet,
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
     maxHeight: '88%',
@@ -461,22 +523,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: DIVIDER,
   },
-  sheetTitle: { color: WHITE, fontSize: 16, fontWeight: '800' },
+  sheetTitle: { color: WHITE, fontFamily: fonts.bold, fontSize: 16, fontWeight: '700' },
   sheetBody: { padding: 16, paddingBottom: 32 },
   card: {
     backgroundColor: colors.card,
-    borderColor: DIVIDER,
+    borderColor: colors.borderViolet,
     borderWidth: 1,
-    borderRadius: 16,
+    borderRadius: radii.md,
     padding: 16,
     marginBottom: 12,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 8, marginBottom: 6 },
-  cardLabel: { color: MUTED, fontSize: 11, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 },
-  chip: { color: ACCENT, fontSize: 11, fontWeight: '700' },
-  status: { color: WHITE, fontSize: 16, fontWeight: '700' },
-  accent: { color: ACCENT, fontSize: 14, fontWeight: '600', marginTop: 4 },
-  muted: { color: MUTED, fontSize: 13, marginTop: 4 },
+  cardLabel: { color: MUTED, fontFamily: fonts.semibold, fontSize: 11, fontWeight: '600', letterSpacing: 0.6, textTransform: 'uppercase', flex: 1 },
+  chip: { color: colors.glow, fontFamily: fonts.semibold, fontSize: 11, fontWeight: '600' },
+  status: { color: WHITE, fontFamily: fonts.bold, fontSize: 16, fontWeight: '700' },
+  accent: { color: colors.accentSoft, fontFamily: fonts.mono, fontSize: 14, fontWeight: '500', marginTop: 4 },
+  muted: { color: MUTED, fontFamily: fonts.regular, fontSize: 13, marginTop: 4 },
   error: { color: '#FCA5A5', fontSize: 12, marginTop: 6 },
   toggleRow: {
     marginTop: 10,
@@ -486,14 +548,13 @@ const styles = StyleSheet.create({
   },
   primaryBtn: {
     marginTop: 12,
-    backgroundColor: colors.accentDeep,
-    borderRadius: 16,
-    paddingVertical: 10,
+    backgroundColor: colors.accent,
+    borderRadius: radii.md,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.glow,
+    ...glow,
   },
-  primaryBtnText: { color: colors.text, fontWeight: '800' },
+  primaryBtnText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700' },
   tierRow: {
     marginTop: 8,
     borderWidth: 1,
@@ -503,9 +564,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  tierRowActive: { borderColor: ACCENT, backgroundColor: colors.borderGlow },
-  tierName: { color: WHITE, fontWeight: '700' },
-  tierPrice: { color: ACCENT, fontWeight: '700' },
+  tierRowActive: { borderColor: colors.accent, backgroundColor: colors.borderGlow },
+  tierName: { color: WHITE, fontFamily: fonts.semibold, fontWeight: '600' },
+  tierPrice: { color: colors.accentSoft, fontFamily: fonts.mono, fontWeight: '500' },
   resetBtn: {
     marginTop: 4,
     marginBottom: 12,
@@ -516,5 +577,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  resetBtnText: { color: '#FCA5A5', fontWeight: '800' },
+  resetBtnText: { color: '#FCA5A5', fontFamily: fonts.semibold, fontWeight: '600' },
 });

@@ -1,5 +1,6 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Alert } from 'react-native';
+import { isReviewDemoActive, REVIEW_PLAID } from '../lib/config/demoMode';
 
 const MOCK_PUBLIC_TOKEN = 'mock-public-token-sandbox';
 
@@ -82,6 +83,11 @@ function loadPlaidSdk() {
 
 export async function openPlaidLink({ linkToken, onSuccess, onExit } = {}) {
   try {
+    if (isReviewDemoActive()) {
+      onSuccess?.(REVIEW_PLAID);
+      return { mocked: true, demo: true };
+    }
+
     if (shouldUseMockPlaid()) {
       runMockPlaid({ onSuccess, onExit });
       return { mocked: true };
