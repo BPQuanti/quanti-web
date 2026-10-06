@@ -35,7 +35,7 @@ export default function Hero() {
         <motion.p variants={fadeUp} className="mt-5 max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">
           Track your real life, log AI-verified stats, and share recaps that actually mean something.
         </motion.p>
-        <motion.div variants={fadeUp} className="mt-8 w-full max-w-lg">
+        <motion.div id="waitlist" variants={fadeUp} className="mt-8 w-full max-w-lg scroll-mt-24">
           <WaitlistForm id="hero-waitlist" />
         </motion.div>
         <motion.p variants={fadeUp} className="mt-4 text-sm text-zinc-400">

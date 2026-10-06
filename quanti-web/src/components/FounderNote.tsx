@@ -1,7 +1,7 @@
 export default function FounderNote() {
   return (
-    <section aria-label="Founder note">
-      <div className="mx-auto my-12 max-w-3xl rounded-2xl border border-zinc-800/80 bg-zinc-900/50 p-8 text-center shadow-[0_0_30px_rgba(124,58,237,0.1)] backdrop-blur-md">
+    <section aria-label="Founder note" className="pb-4">
+      <div className="mx-auto my-16 max-w-3xl rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-8 text-center shadow-[0_0_30px_rgba(124,58,237,0.1)] backdrop-blur-md md:p-10">
         <blockquote className="text-xl font-medium leading-relaxed tracking-tight text-zinc-100 md:text-2xl">
           AI built to{" "}
           <span className="font-semibold text-violet-400">connect the dots</span> you don&apos;t have time to track.
