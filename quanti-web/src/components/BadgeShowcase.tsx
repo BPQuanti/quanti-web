@@ -2,10 +2,10 @@
 
 import { motion } from "framer-motion";
 import { toBlob } from "html-to-image";
-import { Flame, Package, Share2, ShieldCheck, type LucideIcon } from "lucide-react";
+import { Flame, Package, Share2, type LucideIcon } from "lucide-react";
 import { useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
 
-type BadgeIcon = "shield" | "golf" | "package" | "flame" | "takeout";
+type BadgeIcon = "golf" | "package" | "flame" | "takeout";
 
 type ShowcaseBadge = {
   id: string;
@@ -23,16 +23,6 @@ const SITE_URL = "https://quanti-app.com";
 
 const badges: ShowcaseBadge[] = [
   {
-    id: "og",
-    name: "OG Founding Member",
-    icon: "shield",
-    frontTitle: "OG FOUNDING MEMBER",
-    frontKicker: "EARLY ACCESS",
-    backHeadline: "10K MILESTONE REWARD",
-    backDetail: "0.5% Founder Revenue Dividend Pool Unlocked at 10k Subscribers",
-    backKicker: "1 OF 500 OG FOUNDERS",
-  },
-  {
     id: "golf",
     name: "Golf Obsessed",
     icon: "golf",
@@ -47,7 +37,7 @@ const badges: ShowcaseBadge[] = [
     name: "Top 1% Amazonian",
     icon: "package",
     frontTitle: "TOP 1% AMAZONIAN",
-    frontKicker: "AI VERIFIED",
+    frontKicker: "AMAZON SYNC",
     backHeadline: "148 PACKAGES",
     backDetail: "$4,820 Spent • 1 order / 2.4 days",
     backKicker: "PLAID VERIFIED",
@@ -57,7 +47,7 @@ const badges: ShowcaseBadge[] = [
     name: "Desert Marathoner",
     icon: "flame",
     frontTitle: "DESERT MARATHONER",
-    frontKicker: "AI VERIFIED",
+    frontKicker: "STEPS SYNC",
     backHeadline: "2.84M STEPS",
     backDetail: "214 Workouts • Phoenix to Tucson 11x",
     backKicker: "HEALTHKIT VERIFIED",
@@ -67,8 +57,8 @@ const badges: ShowcaseBadge[] = [
     name: "VIP Delivery Sponsor",
     icon: "takeout",
     frontTitle: "VIP DELIVERY SPONSOR",
-    frontKicker: "AI VERIFIED",
-    backHeadline: "186 DOORDASHES",
+    frontKicker: "DOORDASH SYNC",
+    backHeadline: "186 ORDERS",
     backDetail: "$5,210 Spent • $940 in Fees",
     backKicker: "PLAID + HEALTHKIT",
   },
@@ -129,7 +119,7 @@ function BadgeIconMark({ icon }: { icon: BadgeIcon }) {
   if (icon === "takeout") {
     return <TakeoutMark className={className} />;
   }
-  const Icon: LucideIcon = icon === "package" ? Package : icon === "flame" ? Flame : ShieldCheck;
+  const Icon: LucideIcon = icon === "package" ? Package : Flame;
   return <Icon className={className} strokeWidth={2.2} />;
 }
 
@@ -374,7 +364,7 @@ export default function BadgeShowcase() {
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-4 lg:grid-cols-4">
         {badges.map((badge) => (
           <FlippableBadge
             key={badge.id}

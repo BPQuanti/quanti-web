@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import IPhoneMockup from "@/components/IPhoneMockup";
+import OGFoundingBadge from "@/components/OGFoundingBadge";
 import WaitlistForm from "@/components/WaitlistForm";
 
 const fadeUp = {
@@ -37,6 +38,7 @@ export default function Hero() {
         </motion.p>
         <motion.div variants={fadeUp} className="mt-8 w-full max-w-lg">
           <WaitlistForm id="hero-waitlist" />
+          <OGFoundingBadge />
         </motion.div>
         <motion.p variants={fadeUp} className="mt-4 text-sm text-zinc-400">
           Launching soon on iOS • quanti-app.com

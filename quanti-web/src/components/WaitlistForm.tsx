@@ -157,6 +157,17 @@ export default function WaitlistForm({ id }: { id?: string }) {
               </p>
             </div>
 
+            <div className="my-4 rounded-xl border border-violet-500/30 bg-zinc-900/60 p-4 shadow-[0_0_20px_rgba(124,58,237,0.15)]">
+              <p className="text-sm font-semibold text-[#FAFAFA]">⚡ The 10k Founder Royalty Promise</p>
+              <p className="mt-2 text-xs leading-5 text-[#A1A1AA]">
+                The first 500 verified OG Badge holders get Lifetime VIP Access PLUS a direct share of our 0.5% Founder
+                Revenue Pool once we cross 10,000 paid subscribers.
+              </p>
+              <p className="mt-2 text-xs leading-5 text-violet-300">
+                Invite 3 friends using your link below to secure your OG spot before all 500 are claimed!
+              </p>
+            </div>
+
             <div className="flex flex-col gap-2 sm:flex-row">
               <p className="h-11 flex-1 truncate rounded-xl border border-violet-500/40 bg-zinc-950/70 px-3 py-3 text-xs text-[#E4E4E7]">
                 {shareUrl}
@@ -169,13 +180,6 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copied!" : "Copy Link"}
               </button>
-            </div>
-
-            <div className="rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-2.5 shadow-[0_0_16px_rgba(124,58,237,0.12)]">
-              <p className="text-xs leading-5 text-violet-200">
-                ⚡ First 500 OG members unlock Lifetime Free Access + a share of our 10k Founder Revenue Pool when we
-                cross 10,000 subscribers.
-              </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
