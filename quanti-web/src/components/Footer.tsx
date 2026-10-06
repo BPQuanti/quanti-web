@@ -7,9 +7,9 @@ const linkClass = "transition-colors hover:text-violet-400";
 export default function Footer() {
   return (
     <footer className="relative z-10 border-t border-[#2d2442] px-6 py-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-sm text-[#94a3b8] sm:flex-row sm:items-start">
-        <div className="text-center sm:text-left">
-          <p>Copyright © 2026 Quanti LLC. All rights reserved.</p>
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 text-sm text-zinc-400 sm:flex-row sm:items-center">
+        <div className="text-center font-normal sm:text-left">
+          <p>© 2026 Quanti Technologies LLC. All rights reserved.</p>
           <p className="mt-1">
             Support:{" "}
             <a href={`mailto:${SUPPORT_EMAIL}`} className={linkClass}>
