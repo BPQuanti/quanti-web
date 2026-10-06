@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import OGFoundingBadge from "@/components/OGFoundingBadge";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REF_STORAGE_KEY = "quanti_waitlist_ref";
@@ -133,7 +134,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
   return (
     <div
       id={id}
-      className="w-full overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 text-left shadow-[0_0_24px_rgba(124,58,237,0.12)] backdrop-blur-xl sm:p-5"
+      className="w-full overflow-visible rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 text-left shadow-[0_0_24px_rgba(124,58,237,0.12)] backdrop-blur-xl sm:p-5"
     >
       <AnimatePresence mode="wait" initial={false}>
         {signup ? (
@@ -157,15 +158,18 @@ export default function WaitlistForm({ id }: { id?: string }) {
               </p>
             </div>
 
-            <div className="my-4 rounded-xl border border-violet-500/30 bg-zinc-900/60 p-4 shadow-[0_0_20px_rgba(124,58,237,0.15)]">
-              <p className="text-sm font-semibold text-[#FAFAFA]">⚡ The 10k Founder Royalty Promise</p>
-              <p className="mt-2 text-xs leading-5 text-[#A1A1AA]">
-                The first 500 verified OG Badge holders get Lifetime VIP Access PLUS a direct share of our 0.5% Founder
-                Revenue Pool once we cross 10,000 paid subscribers.
-              </p>
-              <p className="mt-2 text-xs leading-5 text-violet-300">
-                Invite 3 friends using your link below to secure your OG spot before all 500 are claimed!
-              </p>
+            <div className="my-6 flex flex-col items-center gap-6 rounded-2xl border border-violet-500/30 bg-zinc-900/80 p-5 shadow-[0_0_25px_rgba(124,58,237,0.15)] md:flex-row">
+              <div className="min-w-0 flex-1 text-center md:text-left">
+                <p className="text-lg font-bold text-violet-400">⚡ The 10k Founder Royalty Promise</p>
+                <p className="mt-2 text-sm leading-6 text-[#A1A1AA]">
+                  The first 500 OG Badge holders unlock Lifetime VIP Access PLUS a direct share of our 0.5% Founder
+                  Revenue Pool once we cross 10,000 paid subscribers.
+                </p>
+                <p className="mt-2 text-xs text-zinc-400">Invite friends using your link to lock in your spot!</p>
+              </div>
+              <div className="shrink-0">
+                <OGFoundingBadge variant="compact" />
+              </div>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row">
