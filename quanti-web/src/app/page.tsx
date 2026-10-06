@@ -69,6 +69,8 @@ export default function Home() {
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24">
         <Hero />
 
+        <FounderNote />
+
         <InteractivePreview />
 
         <BadgeShowcase />
@@ -94,8 +96,6 @@ export default function Home() {
         </motion.section>
 
         <TrustSecurity />
-
-        <FounderNote />
 
         <motion.section
           id="waitlist"
