@@ -15,8 +15,9 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { deleteAccount } from '../lib/accountDeletion';
 import { IS_APP_REVIEW_DEMO } from '../lib/config/demoMode';
+import DeleteAccountModal from '../src/features/settings/DeleteAccountModal';
+import PaywallFooter from '../src/features/subscription/PaywallFooter';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import EditProfileModal from '../components/EditProfileModal';
@@ -76,6 +77,7 @@ export default function ProfileScreen() {
   const [contentTab, setContentTab] = useState('grid');
   const [tier, setTier] = useState('pro');
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const usingMock = Boolean(healthData.isMock);
   const sourceBadge = healthData.badge || (usingMock ? 'Mock Data (Expo Go)' : 'Live HealthKit Data');
@@ -88,9 +90,15 @@ export default function ProfileScreen() {
     () => [
       { label: 'Top 12% Walker', value: `${Math.round(healthData.steps).toLocaleString()} steps` },
       { label: 'Top 1% Coffee', value: '4.2 cups' },
-      { label: '42 Golf Rounds', value: '2026 YTD' },
+      {
+        label: plaidData.golfRounds ? `${plaidData.golfRounds} Golf Rounds` : '42 Golf Rounds',
+        value: '2026 YTD',
+      },
+      ...(healthData.workouts
+        ? [{ label: 'Workouts', value: `${healthData.workouts}` }]
+        : []),
     ],
-    [healthData.steps]
+    [healthData.steps, healthData.workouts, plaidData.golfRounds]
   );
 
   const feed = contentTab === 'grid' ? SHARED_POSTS : SAVED_RECAPS;
@@ -300,42 +308,14 @@ export default function ProfileScreen() {
                     <Text style={styles.tierPrice}>{item.price}</Text>
                   </TouchableOpacity>
                 ))}
+                <PaywallFooter
+                  onRestore={() => {
+                    Alert.alert('Restore Purchases', 'No previous purchases were found for this Apple ID.');
+                  }}
+                />
               </View>
 
-              <TouchableOpacity
-                style={styles.resetBtn}
-                onPress={() => {
-                  Alert.alert(
-                    'Delete account',
-                    'This revokes your bank connection, deletes chat and profile data, and removes the login. This cannot be undone.',
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Delete account',
-                        style: 'destructive',
-                        onPress: async () => {
-                          try {
-                            const result = await deleteAccount(session?.access_token);
-                            setSettingsOpen(false);
-                            await resetAppData();
-                            await signOut();
-                            if (result?.success) {
-                              Alert.alert('Account deleted', result.message);
-                            } else {
-                              Alert.alert('On-device data cleared', result?.message || 'Cloud account was not deleted.');
-                            }
-                          } catch (error) {
-                            Alert.alert(
-                              'Deletion failed',
-                              error?.message ? String(error.message) : 'Account deletion failed.',
-                            );
-                          }
-                        },
-                      },
-                    ],
-                  );
-                }}
-              >
+              <TouchableOpacity style={styles.resetBtn} onPress={() => setDeleteOpen(true)}>
                 <Text style={styles.resetBtnText}>Delete account</Text>
               </TouchableOpacity>
 
@@ -384,6 +364,22 @@ export default function ProfileScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+      <DeleteAccountModal
+        visible={deleteOpen}
+        accessToken={session?.access_token}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={async (result) => {
+          setDeleteOpen(false);
+          setSettingsOpen(false);
+          await resetAppData();
+          await signOut();
+          if (result?.success) {
+            Alert.alert('Account deleted', result.message);
+          } else {
+            Alert.alert('On-device data cleared', result?.message || 'Cloud account was not deleted.');
+          }
+        }}
+      />
       <EditProfileModal
         visible={editOpen}
         profile={userProfile}

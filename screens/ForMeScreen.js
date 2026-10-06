@@ -178,6 +178,9 @@ export default function ForMeScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.metric}>{Math.round(healthData.steps).toLocaleString()} steps</Text>
+              {healthData.workouts ? (
+                <Text style={styles.muted}>{Number(healthData.workouts).toLocaleString()} workouts</Text>
+              ) : null}
               <Text style={styles.muted}>{Math.round(healthData.activeCalories).toLocaleString()} active kcal</Text>
               <Text style={styles.muted}>{remaining.toLocaleString()} to {stepGoal.toLocaleString()}</Text>
             </View>
@@ -186,7 +189,7 @@ export default function ForMeScreen() {
             <View style={[styles.barFill, { width: `${Math.round(progress * 100)}%` }]} />
           </View>
           <Text style={[styles.tag, healthData.isMock ? styles.tagMock : styles.tagLive]}>
-            {healthData.isMock ? 'Mock Data (Expo Go)' : 'Live HealthKit Data'}
+            {healthData.badge || (healthData.isMock ? 'Mock Data (Expo Go)' : 'Live HealthKit Data')}
           </Text>
         </View>
 
@@ -209,8 +212,12 @@ export default function ForMeScreen() {
             <>
               <Text style={styles.status}>{plaidData.bankName}</Text>
               <Text style={styles.metric}>
-                ${Number(plaidData.accountBalance || 0).toLocaleString()}
+                ${Number(plaidData.spent || plaidData.accountBalance || 0).toLocaleString()}
+                {plaidData.spent ? ' spent' : ''}
               </Text>
+              {plaidData.golfRounds ? (
+                <Text style={styles.muted}>{plaidData.golfRounds} golf rounds</Text>
+              ) : null}
               <View style={styles.txList}>
                 {(plaidData.transactions?.length ? plaidData.transactions : plaidData.accounts || []).map((row) => (
                   <View key={row.id || row.mask || row.name} style={styles.txRow}>

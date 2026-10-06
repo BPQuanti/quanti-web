@@ -1,11 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  getReviewHealthSnapshot,
+  getReviewPlaidSnapshot,
   IS_APP_REVIEW_DEMO,
-  REVIEW_HEALTH,
-  REVIEW_PLAID,
   setReviewDemoEnabled,
 } from '../lib/config/demoMode';
+import { isReviewDemoEmail, syncReviewModeFromEmail } from '../src/lib/config/reviewMode';
 import { fetchHealthData, isUsingMockHealthData } from '../services/healthService';
 import { getCurrentLocation } from '../services/locationService';
 import { openPlaidLink } from '../services/plaidService';
@@ -207,15 +208,18 @@ export function AppProvider({ children }) {
           setUserProfile({ ...DEFAULT_PROFILE, ...profile });
         }
         if (demoOn) {
+          const healthSnapshot = getReviewHealthSnapshot();
+          const plaidSnapshot = getReviewPlaidSnapshot();
           setHealthData({
             ...DEFAULT_HEALTH,
-            steps: REVIEW_HEALTH.steps,
-            activeCalories: REVIEW_HEALTH.activeEnergyKcal,
+            steps: healthSnapshot.steps,
+            activeCalories: healthSnapshot.activeEnergyKcal,
+            workouts: healthSnapshot.workouts || null,
             isMock: true,
-            status: REVIEW_HEALTH.status,
-            badge: REVIEW_HEALTH.badge,
+            status: healthSnapshot.status,
+            badge: healthSnapshot.badge,
           });
-          setPlaidData({ ...DEFAULT_PLAID, ...REVIEW_PLAID });
+          setPlaidData({ ...DEFAULT_PLAID, ...plaidSnapshot });
         } else if (health && typeof health === 'object') {
           setHealthData({ ...DEFAULT_HEALTH, ...health });
         }
@@ -293,6 +297,7 @@ export function AppProvider({ children }) {
       applyHealth({
         steps: Number(result.steps) || 0,
         activeCalories: Number(result.activeEnergyKcal) || 0,
+        workouts: result.workouts ?? null,
         isMock: result.source === 'mock' || isUsingMockHealthData(),
         lastSynced: new Date().toISOString(),
         status: result.status || 'Synced',
@@ -431,21 +436,37 @@ export function AppProvider({ children }) {
     setReviewDemoState(next);
     void saveItem(STORAGE_KEYS.reviewDemo, next);
     if (next) {
+      const healthSnapshot = getReviewHealthSnapshot();
+      const plaidSnapshot = getReviewPlaidSnapshot();
       applyHealth({
         ...DEFAULT_HEALTH,
-        steps: REVIEW_HEALTH.steps,
-        activeCalories: REVIEW_HEALTH.activeEnergyKcal,
+        steps: healthSnapshot.steps,
+        activeCalories: healthSnapshot.activeEnergyKcal,
+        workouts: healthSnapshot.workouts || null,
         isMock: true,
-        status: REVIEW_HEALTH.status,
-        badge: REVIEW_HEALTH.badge,
+        status: healthSnapshot.status,
+        badge: healthSnapshot.badge,
         lastSynced: new Date().toISOString(),
       });
-      applyPlaid({ ...DEFAULT_PLAID, ...REVIEW_PLAID });
+      applyPlaid({ ...DEFAULT_PLAID, ...plaidSnapshot });
       return;
     }
     applyHealth(DEFAULT_HEALTH);
     applyPlaid(DEFAULT_PLAID);
   }, [applyHealth, applyPlaid]);
+
+  const previousEmail = useRef(null);
+
+  useEffect(() => {
+    const wasReviewLogin = isReviewDemoEmail(previousEmail.current);
+    previousEmail.current = user?.email || null;
+    syncReviewModeFromEmail(user?.email);
+    if (isReviewDemoEmail(user?.email)) {
+      setReviewDemo(true);
+    } else if (wasReviewLogin) {
+      setReviewDemo(false);
+    }
+  }, [user?.email, setReviewDemo]);
 
   const resetAppData = useCallback(async () => {
     try {

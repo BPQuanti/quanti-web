@@ -1,6 +1,6 @@
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform } from 'react-native';
-import { isReviewDemoActive, REVIEW_HEALTH } from '../lib/config/demoMode';
+import { getReviewHealthSnapshot, isReviewDemoActive } from '../lib/config/demoMode';
 
 const MOCK_STEPS = 7420;
 const MOCK_ACTIVE_ENERGY_KCAL = 340;
@@ -146,7 +146,7 @@ function getActiveEnergy(AppleHealthKit) {
 export async function getHealthData() {
   try {
     if (isReviewDemoActive()) {
-      return { ...REVIEW_HEALTH };
+      return { ...getReviewHealthSnapshot() };
     }
     if (!canUseNativeHealthKit()) {
       return { ...MOCK_RESULT };

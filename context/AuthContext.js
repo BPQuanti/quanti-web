@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { isReviewDemoEmail, REVIEW_DEMO_EMAIL, syncReviewModeFromEmail } from '../src/lib/config/reviewMode';
 
 const AuthContext = createContext(null);
 
@@ -29,6 +30,7 @@ export function AuthProvider({ children }) {
         isDevBypassRef.current = false;
         setIsDevBypass(false);
       }
+      syncReviewModeFromEmail(nextSession?.user?.email);
       setSession(nextSession ?? null);
       setUser(nextSession?.user ?? null);
     };
@@ -64,13 +66,36 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const enterReviewDemo = useCallback(() => {
+    syncReviewModeFromEmail(REVIEW_DEMO_EMAIL);
+    isDevBypassRef.current = true;
+    setIsDevBypass(true);
+    setSession(null);
+    setUser({ id: 'review-demo', email: REVIEW_DEMO_EMAIL });
+    setLoading(false);
+    return {
+      data: { user: { id: 'review-demo', email: REVIEW_DEMO_EMAIL }, session: null },
+      error: null,
+    };
+  }, []);
+
   const signInWithEmail = useCallback(async (email, password) => {
+    if (isReviewDemoEmail(email) && String(password || '').length > 0) {
+      if (isSupabaseConfigured) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (!error) {
+          syncReviewModeFromEmail(email);
+          return { data, error: null };
+        }
+      }
+      return enterReviewDemo();
+    }
     if (!isSupabaseConfigured) {
       return { data: null, error: configError() };
     }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     return { data, error };
-  }, []);
+  }, [enterReviewDemo]);
 
   const signUpWithEmail = useCallback(async (email, password) => {
     if (!isSupabaseConfigured) {
@@ -129,6 +154,7 @@ export function AuthProvider({ children }) {
   const signOut = useCallback(async () => {
     isDevBypassRef.current = false;
     setIsDevBypass(false);
+    syncReviewModeFromEmail(null);
     setUser(null);
     setSession(null);
     if (!isSupabaseConfigured) {
