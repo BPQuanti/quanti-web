@@ -18,6 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IS_APP_REVIEW_DEMO } from '../lib/config/demoMode';
 import DeleteAccountModal from '../src/features/settings/DeleteAccountModal';
 import PaywallFooter from '../src/features/subscription/PaywallFooter';
+import PaywallModal from '../src/components/subscription/PaywallModal';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import EditProfileModal from '../components/EditProfileModal';
@@ -48,11 +49,11 @@ const SAVED_RECAPS = [
   { id: 's3', title: 'Trail Streak', metric: '12 outdoor days', tag: 'SAVED' },
 ];
 
-const TIERS = [
-  { id: 'free', name: 'Free', price: '$0' },
-  { id: 'pro', name: 'Quanti Pro', price: '$9.99' },
-  { id: 'platinum', name: 'Platinum', price: '$19.99' },
-];
+const PLAN_LABELS = {
+  free: 'Quanti Free',
+  pro: 'Quanti Pro',
+  og: 'OG Founder Pass',
+};
 
 export default function ProfileScreen() {
   const {
@@ -76,6 +77,7 @@ export default function ProfileScreen() {
   const [editOpen, setEditOpen] = useState(false);
   const [contentTab, setContentTab] = useState('grid');
   const [tier, setTier] = useState('pro');
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -298,16 +300,16 @@ export default function ProfileScreen() {
 
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>Subscription tier</Text>
-                {TIERS.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[styles.tierRow, tier === item.id && styles.tierRowActive]}
-                    onPress={() => setTier(item.id)}
-                  >
-                    <Text style={styles.tierName}>{item.name}</Text>
-                    <Text style={styles.tierPrice}>{item.price}</Text>
-                  </TouchableOpacity>
-                ))}
+                <TouchableOpacity
+                  style={[styles.tierRow, styles.tierRowActive]}
+                  onPress={() => {
+                    setSettingsOpen(false);
+                    setPaywallOpen(true);
+                  }}
+                >
+                  <Text style={styles.tierName}>{PLAN_LABELS[tier] || 'Quanti Pro'}</Text>
+                  <Text style={styles.tierPrice}>View plans</Text>
+                </TouchableOpacity>
                 <PaywallFooter
                   onRestore={() => {
                     Alert.alert('Restore Purchases', 'No previous purchases were found for this Apple ID.');
@@ -378,6 +380,18 @@ export default function ProfileScreen() {
           } else {
             Alert.alert('On-device data cleared', result?.message || 'Cloud account was not deleted.');
           }
+        }}
+      />
+      <PaywallModal
+        isOpen={paywallOpen}
+        onClose={() => {
+          setPaywallOpen(false);
+          setSettingsOpen(true);
+        }}
+        onSelectTier={(tierId) => {
+          setTier(tierId);
+          setPaywallOpen(false);
+          setSettingsOpen(true);
         }}
       />
       <EditProfileModal
