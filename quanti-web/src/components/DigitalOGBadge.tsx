@@ -5,16 +5,9 @@ import { toBlob } from "html-to-image";
 import { Share2, ShieldCheck } from "lucide-react";
 import { useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
 
-type DigitalOGBadgeProps = {
-  title?: string;
-  established?: string;
-  recapLabel?: string;
-  recapStat?: string;
-  recapSubLabel?: string;
-};
-
-const BORDER_TEXT = "QUANTI VERIFIED BADGE";
 const SITE_URL = "https://quanti-app.com";
+const FRONT_RIM = "QUANTI VERIFIED FOUNDER STATUS";
+const BACK_RIM = "SYNC VERIFIED: PLAID + APPLE HEALTHKIT";
 
 function InstagramMark() {
   return (
@@ -42,101 +35,99 @@ function IMessageMark() {
   );
 }
 
-function BadgeArcText({ pathId }: { pathId: string }) {
+function RimText({
+  pathId,
+  text,
+  tone,
+}: {
+  pathId: string;
+  text: string;
+  tone: "front" | "back";
+}) {
+  const isFront = tone === "front";
   return (
-    <svg className="pointer-events-none absolute inset-2" viewBox="0 0 280 280" aria-hidden>
+    <svg className="pointer-events-none absolute inset-0" viewBox="0 0 300 300" aria-hidden>
       <defs>
-        <path id={pathId} d="M 36 168 A 104 104 0 0 0 244 168" fill="none" />
+        <path id={pathId} d="M 54 232 A 118 118 0 0 0 246 232" fill="none" />
       </defs>
       <text
-        fill="#C084FC"
-        fontSize="11"
+        fill={isFront ? "#A78BFA" : "#71717A"}
+        fontSize={isFront ? 8.5 : 7.2}
         fontWeight="600"
-        letterSpacing="3.2"
-        className="[filter:drop-shadow(0_0_6px_rgba(124,58,237,0.85))]"
+        letterSpacing={isFront ? 1.8 : 1.1}
+        className={isFront ? "[filter:drop-shadow(0_0_4px_rgba(124,58,237,0.7))]" : "opacity-80"}
       >
         <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-          {BORDER_TEXT}
+          {text}
         </textPath>
       </text>
     </svg>
   );
 }
 
-function BadgeShell({ children }: { children: ReactNode }) {
+function CoinShell({
+  children,
+  pathId,
+  rimText,
+  tone,
+}: {
+  children: ReactNode;
+  pathId: string;
+  rimText: string;
+  tone: "front" | "back";
+}) {
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-[2.4rem] border border-violet-500/40 bg-gradient-to-b from-zinc-200/25 via-zinc-900 to-zinc-950 p-[3px] shadow-[0_0_40px_rgba(124,58,237,0.28),inset_0_1px_0_rgba(255,255,255,0.35)]">
-      <div className="relative h-full w-full overflow-hidden rounded-[2.2rem] border border-zinc-700/80 bg-[radial-gradient(ellipse_at_30%_20%,rgba(124,58,237,0.22),transparent_55%),linear-gradient(180deg,#18181B_0%,#09090B_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+    <div className="relative h-full w-full overflow-hidden rounded-full border border-violet-500/40 bg-[linear-gradient(160deg,#d4d4d8_0%,#3f3f46_22%,#18181b_48%,#09090b_76%,#52525b_100%)] p-[18px] shadow-[0_0_40px_rgba(124,58,237,0.28),inset_0_1px_0_rgba(255,255,255,0.4)]">
+      <RimText pathId={pathId} text={rimText} tone={tone} />
+      <div className="relative h-full w-full overflow-hidden rounded-full border border-zinc-800/90 bg-[radial-gradient(ellipse_at_30%_18%,rgba(124,58,237,0.2),transparent_52%),linear-gradient(180deg,#18181B_0%,#09090B_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         {children}
       </div>
     </div>
   );
 }
 
-function FrontFace({
-  title,
-  established,
-  pathId,
-}: {
-  title: string;
-  established: string;
-  pathId: string;
-}) {
+function FrontFace({ pathId }: { pathId: string }) {
   return (
-    <BadgeShell>
-      <div className="flex h-full flex-col items-center px-6 pb-8 pt-8">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-300">
-          {title}
-        </p>
-        <div className="relative mt-8 flex h-28 w-28 items-center justify-center">
+    <CoinShell pathId={pathId} rimText={FRONT_RIM} tone="front">
+      <div className="flex h-full flex-col items-center px-7 pb-10 pt-8">
+        <p className="text-center text-[11px] font-semibold tracking-[0.18em] text-[#FAFAFA]">OG FOUNDING MEMBER</p>
+        <span className="mt-2 rounded-full border border-violet-500/40 bg-[#7C3AED]/15 px-2.5 py-0.5 text-[8px] font-semibold tracking-[0.2em] text-violet-300">
+          EARLY ACCESS
+        </span>
+        <div className="relative my-auto flex h-24 w-24 items-center justify-center">
           <span className="absolute inset-0 rounded-full bg-[#7C3AED]/30 blur-2xl" />
-          <span className="relative flex h-24 w-24 items-center justify-center rounded-full border border-violet-400/50 bg-gradient-to-b from-zinc-200 to-zinc-500 text-[#09090B] shadow-[0_0_36px_rgba(124,58,237,0.55)]">
-            <ShieldCheck className="h-12 w-12 text-[#7C3AED]" strokeWidth={2.4} />
+          <span className="relative flex h-20 w-20 items-center justify-center rounded-full border border-violet-400/50 bg-gradient-to-b from-zinc-200 to-zinc-500 shadow-[0_0_32px_rgba(124,58,237,0.55)]">
+            <ShieldCheck className="h-10 w-10 text-[#7C3AED]" strokeWidth={2.4} />
           </span>
         </div>
-        <BadgeArcText pathId={pathId} />
-        <p className="mt-auto self-end text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
-          {established}
-        </p>
       </div>
-    </BadgeShell>
+    </CoinShell>
   );
 }
 
-function BackFace({
-  recapLabel,
-  recapStat,
-  recapSubLabel,
-  pathId,
-}: {
-  recapLabel: string;
-  recapStat: string;
-  recapSubLabel: string;
-  pathId: string;
-}) {
+function BackFace({ pathId }: { pathId: string }) {
   return (
-    <BadgeShell>
-      <div className="relative flex h-full flex-col items-center px-6 pb-8 pt-8">
+    <CoinShell pathId={pathId} rimText={BACK_RIM} tone="back">
+      <div className="relative flex h-full flex-col items-center px-7 pb-10 pt-8">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo-mark.svg"
           alt=""
-          width={180}
-          height={160}
-          className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 opacity-[0.08]"
+          width={160}
+          height={140}
+          className="pointer-events-none absolute left-1/2 top-[46%] h-28 w-28 -translate-x-1/2 -translate-y-1/2 opacity-[0.07]"
         />
-        <p className="relative text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-300">
-          {recapLabel}
+        <p className="relative text-center text-[11px] font-semibold tracking-[0.12em] text-violet-300">
+          Verified Founding User
         </p>
-        <p className="relative mt-10 text-center text-3xl font-bold leading-tight tracking-tight text-[#FAFAFA] sm:text-4xl">
-          {recapStat}
+        <p className="relative mt-6 text-center text-2xl font-bold leading-tight tracking-tight text-[#FAFAFA] sm:text-[1.7rem]">
+          1 OF FIRST 500
         </p>
-        <p className="relative mt-3 text-center text-xs font-medium tracking-wide text-zinc-400">
-          {recapSubLabel}
+        <p className="relative mt-2 text-center text-[11px] leading-4 text-zinc-400">
+          Joined pre-launch • TestFlight Verified
         </p>
-        <BadgeArcText pathId={pathId} />
       </div>
-    </BadgeShell>
+    </CoinShell>
   );
 }
 
@@ -149,13 +140,13 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function DigitalOGBadge({
-  title = "2026 Golf Obsessed",
-  established = "EST. 2026",
-  recapLabel = "Recap Verification",
-  recapStat = "73 Rounds Played",
-  recapSubLabel = "Sync: Plaid + HealthKit",
-}: DigitalOGBadgeProps) {
+const faceStyle = {
+  backfaceVisibility: "hidden" as const,
+  WebkitBackfaceVisibility: "hidden" as const,
+  transform: "translateZ(1px)",
+};
+
+export default function DigitalOGBadge() {
   const uid = useId().replace(/:/g, "");
   const [flipped, setFlipped] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -163,26 +154,17 @@ export default function DigitalOGBadge({
   const captureRef = useRef<HTMLDivElement>(null);
 
   const shareCopy = flipped
-    ? `${recapStat} — ${title}. Quanti Verified.`
-    : `${title} — Quanti Verified Badge.`;
-  const filename = flipped ? "quanti-og-recap.png" : "quanti-og-badge.png";
-
-  async function captureBadge() {
-    const node = captureRef.current;
-    if (!node) {
-      return null;
-    }
-    return toBlob(node, {
-      cacheBust: true,
-      pixelRatio: 2,
-      backgroundColor: "#09090B",
-    });
-  }
+    ? "1 of first 500 — Verified Founding User. Quanti Verified."
+    : "OG Founding Member — Quanti Verified Founder Status.";
+  const filename = flipped ? "quanti-og-founder-back.png" : "quanti-og-founder-front.png";
 
   async function shareActiveSide(channel: "story" | "x" | "instagram" | "imessage") {
     setSharing(true);
     try {
-      const blob = await captureBadge();
+      const node = captureRef.current;
+      const blob = node
+        ? await toBlob(node, { cacheBust: true, pixelRatio: 2, backgroundColor: "#09090B" })
+        : null;
       if (!blob) {
         return;
       }
@@ -206,7 +188,7 @@ export default function DigitalOGBadge({
 
       if (canShareFiles && typeof navigator.share === "function") {
         try {
-          await navigator.share({ files: [file], title, text: shareCopy });
+          await navigator.share({ files: [file], title: "OG Founding Member", text: shareCopy });
           return;
         } catch (error) {
           if (error instanceof DOMException && error.name === "AbortError") {
@@ -225,25 +207,21 @@ export default function DigitalOGBadge({
     const rect = event.currentTarget.getBoundingClientRect();
     const px = (event.clientX - rect.left) / rect.width - 0.5;
     const py = (event.clientY - rect.top) / rect.height - 0.5;
-    setTilt({ x: py * -12, y: px * 14 });
+    setTilt({ x: py * -10, y: px * 12 });
   }
 
   return (
     <section
       aria-labelledby="og-badge-heading"
-      className="mt-24 rounded-3xl border border-zinc-800/80 bg-zinc-900/60 px-6 py-12 text-center shadow-[0_0_40px_rgba(124,58,237,0.12)] backdrop-blur-md sm:px-10"
+      className="mt-16 rounded-xl border border-zinc-800 bg-zinc-900/80 px-4 py-8 text-center shadow-[0_0_20px_rgba(124,58,237,0.12)] backdrop-blur-md sm:px-8"
     >
-      <p className="text-xs font-medium uppercase tracking-[0.22em] text-violet-400">Unlock</p>
-      <h2 id="og-badge-heading" className="mt-3 text-3xl font-semibold tracking-tight text-[#FAFAFA]">
-        Your OG Verified Badge
+      <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-violet-400">Founder coin</p>
+      <h2 id="og-badge-heading" className="mt-1 text-lg font-semibold tracking-tight text-[#FAFAFA]">
+        OG Verified Badge
       </h2>
-      <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[#A1A1AA] sm:text-base">
-        Connect Plaid and HealthKit to mint a 3D collectible. Tap the badge to flip between status and recap —
-        then share the side you&apos;re on.
-      </p>
 
-      <div className="relative mt-10 flex flex-col items-center">
-        <div className="relative h-[320px] w-[280px] sm:h-[340px] sm:w-[300px]" style={{ perspective: "1000px" }}>
+      <div className="relative mt-6 flex flex-col items-center">
+        <div className="relative h-[280px] w-[280px] sm:h-[300px] sm:w-[300px]" style={{ perspective: "1000px" }}>
           <motion.div
             className="h-full w-full"
             animate={{ rotateX: tilt.x, rotateY: tilt.y }}
@@ -254,34 +232,25 @@ export default function DigitalOGBadge({
           >
             <motion.button
               type="button"
-              aria-label={flipped ? "Show badge front" : "Show recap back"}
+              aria-label={flipped ? "Show badge front" : "Show verification back"}
               aria-pressed={flipped}
               onClick={() => setFlipped((value) => !value)}
-              className="relative h-full w-full cursor-pointer rounded-[2.4rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/70"
+              className="relative h-full w-full cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500/70"
               animate={{ rotateY: flipped ? 180 : 0 }}
               transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               style={{ transformStyle: "preserve-3d" }}
             >
-              <div
-                className="absolute inset-0"
-                style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
-              >
-                <FrontFace title={title} established={established} pathId={`${uid}-front-arc`} />
+              <div className="absolute inset-0" style={faceStyle}>
+                <FrontFace pathId={`${uid}-front-arc`} />
               </div>
               <div
                 className="absolute inset-0"
                 style={{
-                  backfaceVisibility: "hidden",
-                  WebkitBackfaceVisibility: "hidden",
-                  transform: "rotateY(180deg)",
+                  ...faceStyle,
+                  transform: "rotateY(180deg) translateZ(1px)",
                 }}
               >
-                <BackFace
-                  recapLabel={recapLabel}
-                  recapStat={recapStat}
-                  recapSubLabel={recapSubLabel}
-                  pathId={`${uid}-back-arc`}
-                />
+                <BackFace pathId={`${uid}-back-arc`} />
               </div>
             </motion.button>
           </motion.div>
@@ -290,21 +259,12 @@ export default function DigitalOGBadge({
         <div
           ref={captureRef}
           aria-hidden
-          className="pointer-events-none absolute left-[-9999px] top-0 h-[340px] w-[300px]"
+          className="pointer-events-none absolute left-[-9999px] top-0 h-[300px] w-[300px]"
         >
-          {flipped ? (
-            <BackFace
-              recapLabel={recapLabel}
-              recapStat={recapStat}
-              recapSubLabel={recapSubLabel}
-              pathId={`${uid}-capture-back`}
-            />
-          ) : (
-            <FrontFace title={title} established={established} pathId={`${uid}-capture-front`} />
-          )}
+          {flipped ? <BackFace pathId={`${uid}-capture-back`} /> : <FrontFace pathId={`${uid}-capture-front`} />}
         </div>
 
-        <div className="mt-8 w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-900/80 p-3 shadow-[0_0_30px_rgba(124,58,237,0.2)]">
+        <div className="mt-6 w-full max-w-sm rounded-2xl border border-zinc-800 bg-zinc-950/50 p-3 shadow-[0_0_24px_rgba(124,58,237,0.18)]">
           <button
             type="button"
             disabled={sharing}
@@ -312,7 +272,7 @@ export default function DigitalOGBadge({
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#7C3AED] px-4 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(124,58,237,0.45)] transition hover:bg-violet-500 disabled:opacity-60"
           >
             <Share2 className="h-4 w-4" strokeWidth={2} />
-            {sharing ? "Preparing…" : "Share This State to Story"}
+            {sharing ? "Preparing…" : "Share OG Badge"}
           </button>
           <div className="mt-3 flex items-center justify-center gap-3">
             <button
