@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { HeartPulse, Share2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import DigitalOGBadge from "@/components/DigitalOGBadge";
+import BadgeShowcase from "@/components/BadgeShowcase";
 import Footer from "@/components/Footer";
 import FounderNote from "@/components/FounderNote";
 import Hero from "@/components/Hero";
@@ -71,7 +71,7 @@ export default function Home() {
 
         <InteractivePreview />
 
-        <DigitalOGBadge />
+        <BadgeShowcase />
 
         <motion.section
           initial="hidden"
