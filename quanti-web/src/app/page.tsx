@@ -5,6 +5,7 @@ import { HeartPulse, Share2, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import Footer from "@/components/Footer";
+import FounderNote from "@/components/FounderNote";
 import IPhoneMockup from "@/components/IPhoneMockup";
 import InteractivePreview from "@/components/InteractivePreview";
 import TrustSecurity from "@/components/TrustSecurity";
@@ -125,6 +126,8 @@ export default function Home() {
         </motion.section>
 
         <TrustSecurity />
+
+        <FounderNote />
 
         <motion.section
           id="waitlist"
