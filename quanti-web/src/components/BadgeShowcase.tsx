@@ -138,26 +138,31 @@ function FaceLayout({
   top,
   center,
   rim,
+  chip,
 }: {
   top: ReactNode;
   center: ReactNode;
   rim: "front" | "back";
+  chip?: ReactNode;
 }) {
   return (
     <div className="relative flex h-full w-full select-none flex-col items-center justify-between overflow-hidden p-4">
       <div className="z-10 w-full shrink-0 text-center text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
         {top}
       </div>
-      <div className="z-10 my-auto mb-6 flex min-h-0 w-full flex-col items-center justify-center px-2 text-center">
+      <div className="z-10 my-auto mb-2 flex min-h-0 w-full flex-col items-center justify-center px-2 text-center">
         {center}
       </div>
-      <p
-        className={`z-10 mb-1 w-full shrink-0 truncate text-center text-[9px] font-medium uppercase tracking-wider ${
-          rim === "front" ? "text-violet-400/80" : "text-zinc-500"
-        }`}
-      >
-        {rim === "front" ? FRONT_RIM : BACK_RIM}
-      </p>
+      <div className="z-10 flex w-full shrink-0 flex-col items-center">
+        {chip}
+        <p
+          className={`mb-1 w-full truncate text-center text-[9px] font-medium uppercase tracking-wider ${
+            rim === "front" ? "text-violet-400/80" : "text-zinc-500"
+          }`}
+        >
+          {rim === "front" ? FRONT_RIM : BACK_RIM}
+        </p>
+      </div>
     </div>
   );
 }
@@ -207,6 +212,11 @@ function BackFace({ badge }: { badge: ShowcaseBadge }) {
               {badge.backDetail}
             </p>
           </>
+        }
+        chip={
+          <span className="my-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-2 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider text-violet-300">
+            PERK ELIGIBLE
+          </span>
         }
       />
     </BadgeShell>
@@ -392,6 +402,15 @@ export default function BadgeShowcase() {
             }}
           />
         ))}
+      </div>
+
+      <div className="mx-auto my-6 max-w-2xl rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-center backdrop-blur-sm">
+        <p className="text-[11px] font-semibold font-mono uppercase tracking-widest text-violet-400">THE QUANTI VISION</p>
+        <p className="mt-1 text-sm font-medium text-zinc-200">From Verified Proof to Real-World Value</p>
+        <p className="mx-auto mt-1 max-w-lg text-xs text-zinc-400">
+          Today, badges give you proof of your lifestyle. As the Quanti network scales, holding verified badges will
+          turn into your passport for exclusive brand perks and VIP rewards.
+        </p>
       </div>
 
       <div

@@ -166,6 +166,10 @@ export default function WaitlistForm({ id }: { id?: string }) {
                   Revenue Pool once we cross 10,000 paid subscribers.
                 </p>
                 <p className="mt-2 text-xs text-zinc-400">Invite friends using your link to lock in your spot!</p>
+                <p className="mt-2 text-[11px] leading-4 text-zinc-500">
+                  Verified badges start as proof of your year. As Quanti scales, they become a passport for brand perks
+                  and VIP rewards.
+                </p>
               </div>
               <div className="shrink-0">
                 <OGFoundingBadge variant="compact" />
