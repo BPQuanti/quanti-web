@@ -1,6 +1,5 @@
-import { useMemo, useRef, useState } from 'react';
+import { useRef } from 'react';
 import {
-  Alert,
   Dimensions,
   ScrollView,
   StyleSheet,
@@ -12,44 +11,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ViewShot from 'react-native-view-shot';
 import { useAppContext } from '../context/AppContext';
 import { LogoFull } from '../components/Logo';
+import ForMeView from '../src/components/forme/ForMeView';
 import { shareStatCard } from '../utils/shareCard';
 import { colors, fonts, glow, radii } from './theme';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const RECAP_WIDTH = SCREEN_WIDTH - 48;
 const STAMP_WIDTH = (SCREEN_WIDTH - 52) / 2;
-const PERIODS = [
-  { id: 'weekly', label: 'Weekly Recap' },
-  { id: 'monthly', label: 'Monthly Recap' },
-  { id: 'yearly', label: 'Yearly Recap' },
-];
-
-function RecapStoryCard({ recap, shotRef }) {
-  return (
-    <ViewShot
-      ref={shotRef}
-      options={{ format: 'png', quality: 1, result: 'tmpfile' }}
-      collapsable={false}
-    >
-      <View style={styles.storyCard} collapsable={false}>
-        <Text style={styles.storyBrand}>QUANTI</Text>
-        <Text style={styles.storyPeriod}>{recap.period}</Text>
-        <Text style={styles.storyRange}>{recap.range}</Text>
-        <Text style={styles.storyEmoji}>{recap.emoji}</Text>
-        <Text style={styles.storyHeadline}>{recap.headline}</Text>
-        <View style={styles.percentileBadge}>
-          <Text style={styles.percentileText}>{recap.percentile}</Text>
-        </View>
-        {(recap.metrics || []).map((metric) => (
-          <Text key={metric} style={styles.storyMetric}>
-            {metric}
-          </Text>
-        ))}
-        <Text style={styles.verifiedMark}>Verified Social Ledger</Text>
-      </View>
-    </ViewShot>
-  );
-}
 
 function StampCard({ stamp, shotRef, onShare }) {
   return (
@@ -82,11 +49,8 @@ export default function ForMeScreen() {
     plaidData,
     stepGoal,
     connectPlaid,
-    recaps,
     savedStats,
   } = useAppContext();
-  const [period, setPeriod] = useState('weekly');
-  const recapRefs = useRef({});
   const stampRefs = useRef({});
 
   const progress = Math.min(healthData.steps / stepGoal, 1);
@@ -100,20 +64,6 @@ export default function ForMeScreen() {
       ? `${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)}`
       : 'GPS not synced';
 
-  const selectedRecap = useMemo(
-    () => recaps.find((item) => item.id === period) || recaps[0],
-    [recaps, period]
-  );
-
-  const shareRecap = async () => {
-    const ref = recapRefs.current[selectedRecap?.id];
-    if (!ref) {
-      Alert.alert('Share failed', 'Recap card is still rendering.');
-      return;
-    }
-    await shareStatCard({ current: ref });
-  };
-
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -121,38 +71,7 @@ export default function ForMeScreen() {
         <Text style={styles.title}>Today</Text>
         <Text style={styles.subtitle}>Fitness, finance, recaps, and verified stamps.</Text>
 
-        <Text style={styles.sectionTitle}>Recaps</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.periodRow}
-        >
-          {PERIODS.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[styles.periodChip, period === item.id && styles.periodChipActive]}
-              onPress={() => setPeriod(item.id)}
-            >
-              <Text style={[styles.periodChipText, period === item.id && styles.periodChipTextActive]}>
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {selectedRecap ? (
-          <View style={styles.recapBlock}>
-            <RecapStoryCard
-              recap={selectedRecap}
-              shotRef={(node) => {
-                recapRefs.current[selectedRecap.id] = node;
-              }}
-            />
-            <TouchableOpacity style={styles.shareSocial} onPress={shareRecap}>
-              <Text style={styles.shareSocialText}>Share to Socials</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
+        <ForMeView />
 
         <Text style={styles.sectionTitle}>Verified Stats Log</Text>
         <Text style={styles.sectionHint}>AI stamps saved from Quanti AI chats.</Text>

@@ -1,8 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
-  Dimensions,
-  Image,
   Modal,
   Pressable,
   RefreshControl,
@@ -19,6 +17,7 @@ import { IS_APP_REVIEW_DEMO } from '../lib/config/demoMode';
 import DeleteAccountModal from '../src/features/settings/DeleteAccountModal';
 import PaywallFooter from '../src/features/subscription/PaywallFooter';
 import PaywallModal from '../src/components/subscription/PaywallModal';
+import ProfileView from '../src/components/profile/ProfileView';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import EditProfileModal from '../components/EditProfileModal';
@@ -32,23 +31,6 @@ const DIVIDER = colors.border;
 const MUTED = colors.muted;
 const WHITE = colors.text;
 const ACCENT = colors.accent;
-const TILE = (Dimensions.get('window').width - 2) / 3;
-
-const SHARED_POSTS = [
-  { id: 'p1', title: 'Top 12% Walker', metric: 'Daily steps', tag: 'VERIFIED' },
-  { id: 'p2', title: 'Top 1% Coffee', metric: '4.2 cups/day', tag: 'NOTARIZED' },
-  { id: 'p3', title: '42 Golf Rounds', metric: '2026 YTD', tag: 'RECAP' },
-  { id: 'p4', title: 'Top 5% Fairways', metric: '78% accuracy', tag: 'VERIFIED' },
-  { id: 'p5', title: 'Deep Work', metric: '6.5 hrs/day', tag: 'BADGE' },
-  { id: 'p6', title: 'Weekly Focus', metric: '28 hrs locked in', tag: 'RECAP' },
-];
-
-const SAVED_RECAPS = [
-  { id: 's1', title: 'September Recap', metric: '124 cups', tag: 'SAVED' },
-  { id: 's2', title: 'YTD Fitness', metric: '214 active days', tag: 'MILESTONE' },
-  { id: 's3', title: 'Trail Streak', metric: '12 outdoor days', tag: 'SAVED' },
-];
-
 const PLAN_LABELS = {
   free: 'Quanti Free',
   pro: 'Quanti Pro',
@@ -75,7 +57,6 @@ export default function ProfileScreen() {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [contentTab, setContentTab] = useState('grid');
   const [tier, setTier] = useState('pro');
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -87,23 +68,6 @@ export default function ProfileScreen() {
     locationData.latitude != null && locationData.longitude != null
       ? `${locationData.city} · ${locationData.latitude.toFixed(4)}, ${locationData.longitude.toFixed(4)}`
       : locationData.city;
-
-  const metricBadges = useMemo(
-    () => [
-      { label: 'Top 12% Walker', value: `${Math.round(healthData.steps).toLocaleString()} steps` },
-      { label: 'Top 1% Coffee', value: '4.2 cups' },
-      {
-        label: plaidData.golfRounds ? `${plaidData.golfRounds} Golf Rounds` : '42 Golf Rounds',
-        value: '2026 YTD',
-      },
-      ...(healthData.workouts
-        ? [{ label: 'Workouts', value: `${healthData.workouts}` }]
-        : []),
-    ],
-    [healthData.steps, healthData.workouts, plaidData.golfRounds]
-  );
-
-  const feed = contentTab === 'grid' ? SHARED_POSTS : SAVED_RECAPS;
 
   const onRefreshProfile = async () => {
     setRefreshing(true);
@@ -134,6 +98,7 @@ export default function ProfileScreen() {
       </View>
 
       <ScrollView
+        contentContainerStyle={styles.profileScroll}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -144,39 +109,12 @@ export default function ProfileScreen() {
           />
         }
       >
-        <View style={styles.headerRow}>
-          <View style={styles.avatarRing}>
-            {userProfile.avatarUri ? (
-              <Image source={{ uri: userProfile.avatarUri }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {String(userProfile.name || 'Q')
-                    .split(' ')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((part) => part[0]?.toUpperCase())
-                    .join('') || 'Q'}
-                </Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.metricsRow}>
-            {metricBadges.map((badge) => (
-              <View key={badge.label} style={styles.metricCell}>
-                <Text style={styles.metricLabel}>{badge.label}</Text>
-                <Text style={styles.metricValue}>{badge.value}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.bioBlock}>
-          <Text style={styles.handle}>@{userProfile.username}</Text>
-          <Text style={styles.displayName}>{userProfile.name}</Text>
-          <Text style={styles.bio}>{userProfile.bio}</Text>
-          <Text style={styles.link}>quanti.app/{userProfile.username}</Text>
-        </View>
+        <ProfileView
+          name={userProfile.name}
+          handle={userProfile.username}
+          bio={userProfile.bio}
+          avatarUri={userProfile.avatarUri}
+        />
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionBtn} onPress={() => setEditOpen(true)}>
@@ -187,26 +125,6 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.profileTabs}>
-          <TouchableOpacity style={styles.profileTab} onPress={() => setContentTab('grid')}>
-            <Text style={[styles.tabIcon, contentTab === 'grid' && styles.tabIconActive]}>▦</Text>
-            {contentTab === 'grid' ? <View style={styles.tabUnderline} /> : <View style={styles.tabSpacer} />}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.profileTab} onPress={() => setContentTab('saved')}>
-            <Text style={[styles.tabIcon, contentTab === 'saved' && styles.tabIconActive]}>🔖</Text>
-            {contentTab === 'saved' ? <View style={styles.tabUnderline} /> : <View style={styles.tabSpacer} />}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.grid}>
-          {feed.map((item) => (
-            <View key={item.id} style={styles.tile}>
-              <Text style={styles.tileTag}>{item.tag}</Text>
-              <Text style={styles.tileTitle}>{item.title}</Text>
-              <Text style={styles.tileMetric}>{item.metric}</Text>
-            </View>
-          ))}
-        </View>
       </ScrollView>
 
       <Modal
@@ -420,6 +338,7 @@ const styles = StyleSheet.create({
   menuIcon: { color: colors.accentSoft, fontSize: 26, lineHeight: 28 },
   tabIcon: { color: MUTED, fontSize: 20, lineHeight: 22 },
   tabIconActive: { color: colors.glow },
+  profileScroll: { paddingBottom: 32 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
