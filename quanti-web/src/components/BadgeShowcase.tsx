@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { toBlob } from "html-to-image";
 import { Flame, Package, Share2, type LucideIcon } from "lucide-react";
-import { useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { useRef, useState, type PointerEvent, type ReactNode } from "react";
 
 type BadgeIcon = "golf" | "package" | "flame" | "takeout";
 
@@ -18,7 +18,8 @@ type ShowcaseBadge = {
   backKicker: string;
 };
 
-const BORDER_TEXT = "QUANTI VERIFIED BADGE";
+const FRONT_RIM = "QUANTI VERIFIED BADGE";
+const BACK_RIM = "SYNC VERIFIED";
 const SITE_URL = "https://quanti-app.com";
 
 const badges: ShowcaseBadge[] = [
@@ -123,30 +124,9 @@ function BadgeIconMark({ icon }: { icon: BadgeIcon }) {
   return <Icon className={className} strokeWidth={2.2} />;
 }
 
-function BadgeArcText({ pathId }: { pathId: string }) {
-  return (
-    <svg className="pointer-events-none absolute inset-1" viewBox="0 0 180 220" aria-hidden>
-      <defs>
-        <path id={pathId} d="M 22 148 A 68 68 0 0 0 158 148" fill="none" />
-      </defs>
-      <text
-        fill="#C084FC"
-        fontSize="7.5"
-        fontWeight="600"
-        letterSpacing="1.6"
-        className="[filter:drop-shadow(0_0_5px_rgba(124,58,237,0.85))]"
-      >
-        <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-          {BORDER_TEXT}
-        </textPath>
-      </text>
-    </svg>
-  );
-}
-
 function BadgeShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-violet-500/40 bg-gradient-to-b from-zinc-200/20 via-zinc-900 to-zinc-950 p-[2px] shadow-[0_0_16px_rgba(124,58,237,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]">
+    <div className="relative z-0 h-full w-full overflow-hidden rounded-xl border border-violet-500/40 bg-gradient-to-b from-zinc-200/20 via-zinc-900 to-zinc-950 p-[2px] shadow-[0_0_16px_rgba(124,58,237,0.22),inset_0_1px_0_rgba(255,255,255,0.28)]">
       <div className="relative h-full w-full overflow-hidden rounded-[10px] border border-zinc-800 bg-zinc-900/80 backdrop-blur-md">
         {children}
       </div>
@@ -154,45 +134,81 @@ function BadgeShell({ children }: { children: ReactNode }) {
   );
 }
 
-function FrontFace({ badge, pathId }: { badge: ShowcaseBadge; pathId: string }) {
+function FaceLayout({
+  top,
+  center,
+  rim,
+}: {
+  top: ReactNode;
+  center: ReactNode;
+  rim: "front" | "back";
+}) {
+  return (
+    <div className="relative flex h-full w-full select-none flex-col items-center justify-between overflow-hidden p-4">
+      <div className="z-10 w-full shrink-0 text-center text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+        {top}
+      </div>
+      <div className="z-10 my-auto mb-6 flex min-h-0 w-full flex-col items-center justify-center px-2 text-center">
+        {center}
+      </div>
+      <p
+        className={`z-10 mb-1 w-full shrink-0 truncate text-center text-[9px] font-medium uppercase tracking-wider ${
+          rim === "front" ? "text-violet-400/80" : "text-zinc-500"
+        }`}
+      >
+        {rim === "front" ? FRONT_RIM : BACK_RIM}
+      </p>
+    </div>
+  );
+}
+
+function FrontFace({ badge }: { badge: ShowcaseBadge }) {
   return (
     <BadgeShell>
-      <div className="flex h-full flex-col items-center px-2.5 pb-3 pt-3">
-        <p className="text-center text-[9px] font-semibold leading-tight tracking-[0.12em] text-violet-200">
-          {badge.frontTitle}
-        </p>
-        <div className="relative my-auto flex h-14 w-14 items-center justify-center">
-          <span className="absolute inset-0 rounded-full bg-[#7C3AED]/35 blur-xl" />
-          <span className="relative flex h-12 w-12 items-center justify-center rounded-full border border-violet-400/50 bg-gradient-to-b from-zinc-200 to-zinc-500 shadow-[0_0_18px_rgba(124,58,237,0.5)]">
-            <BadgeIconMark icon={badge.icon} />
-          </span>
-        </div>
-        <BadgeArcText pathId={pathId} />
-        <p className="text-[8px] font-semibold tracking-[0.16em] text-zinc-400">{badge.frontKicker}</p>
-      </div>
+      <FaceLayout
+        rim="front"
+        top={badge.frontKicker}
+        center={
+          <>
+            <div className="relative mb-2 flex h-12 w-12 items-center justify-center">
+              <span className="absolute inset-0 rounded-full bg-[#7C3AED]/35 blur-xl" />
+              <span className="relative flex h-11 w-11 items-center justify-center rounded-full border border-violet-400/50 bg-gradient-to-b from-zinc-200 to-zinc-500 shadow-[0_0_18px_rgba(124,58,237,0.5)]">
+                <BadgeIconMark icon={badge.icon} />
+              </span>
+            </div>
+            <p className="max-w-full truncate text-xs font-semibold tracking-tight text-[#FAFAFA]">{badge.frontTitle}</p>
+          </>
+        }
+      />
     </BadgeShell>
   );
 }
 
-function BackFace({ badge, pathId }: { badge: ShowcaseBadge; pathId: string }) {
+function BackFace({ badge }: { badge: ShowcaseBadge }) {
   return (
     <BadgeShell>
-      <div className="relative flex h-full flex-col items-center px-2.5 pb-3 pt-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo-mark.svg"
-          alt=""
-          width={88}
-          height={80}
-          className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 opacity-[0.08]"
-        />
-        <p className="relative text-center text-[11px] font-bold leading-tight tracking-tight text-[#FAFAFA]">
-          {badge.backHeadline}
-        </p>
-        <p className="relative mt-2 text-center text-[8px] leading-snug text-zinc-400">{badge.backDetail}</p>
-        <BadgeArcText pathId={pathId} />
-        <p className="relative mt-auto text-[8px] font-semibold tracking-[0.14em] text-violet-300">{badge.backKicker}</p>
-      </div>
+      <FaceLayout
+        rim="back"
+        top={badge.frontKicker}
+        center={
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo-mark.svg"
+              alt=""
+              width={64}
+              height={56}
+              className="pointer-events-none absolute h-14 w-14 opacity-[0.07]"
+            />
+            <p className="relative z-10 max-w-full truncate text-sm font-bold tracking-tight text-[#FAFAFA]">
+              {badge.backHeadline}
+            </p>
+            <p className="relative z-10 mt-1 line-clamp-2 max-w-full text-[10px] leading-snug text-zinc-400">
+              {badge.backDetail}
+            </p>
+          </>
+        }
+      />
     </BadgeShell>
   );
 }
@@ -210,14 +226,12 @@ function FlippableBadge({
   badge,
   flipped,
   active,
-  uid,
   onToggle,
   onHover,
 }: {
   badge: ShowcaseBadge;
   flipped: boolean;
   active: boolean;
-  uid: string;
   onToggle: () => void;
   onHover: () => void;
 }) {
@@ -260,7 +274,7 @@ function FlippableBadge({
             className="absolute inset-0"
             style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
           >
-            <FrontFace badge={badge} pathId={`${uid}-${badge.id}-front`} />
+            <FrontFace badge={badge} />
           </div>
           <div
             className="absolute inset-0"
@@ -270,7 +284,7 @@ function FlippableBadge({
               transform: "rotateY(180deg)",
             }}
           >
-            <BackFace badge={badge} pathId={`${uid}-${badge.id}-back`} />
+            <BackFace badge={badge} />
           </div>
         </motion.button>
       </motion.div>
@@ -279,7 +293,6 @@ function FlippableBadge({
 }
 
 export default function BadgeShowcase() {
-  const uid = useId().replace(/:/g, "");
   const [flipped, setFlipped] = useState<Record<string, boolean>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
@@ -369,7 +382,6 @@ export default function BadgeShowcase() {
           <FlippableBadge
             key={badge.id}
             badge={badge}
-            uid={uid}
             flipped={Boolean(flipped[badge.id])}
             active={activeId === badge.id}
             onToggle={() => toggleBadge(badge.id)}
@@ -438,9 +450,9 @@ export default function BadgeShowcase() {
       >
         {activeBadge ? (
           activeFlipped ? (
-            <BackFace badge={activeBadge} pathId={`${uid}-capture-back`} />
+            <BackFace badge={activeBadge} />
           ) : (
-            <FrontFace badge={activeBadge} pathId={`${uid}-capture-front`} />
+            <FrontFace badge={activeBadge} />
           )
         ) : null}
       </div>

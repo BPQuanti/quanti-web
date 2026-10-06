@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 import { toBlob } from "html-to-image";
 import { Share2 } from "lucide-react";
-import { useId, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { useRef, useState, type PointerEvent, type ReactNode } from "react";
 
 const SITE_URL = "https://quanti-app.com";
-const FRONT_RIM = "QUANTI VERIFIED FOUNDER STATUS";
-const BACK_RIM = "SYNC VERIFIED: PLAID + APPLE HEALTHKIT";
+const FRONT_RIM = "QUANTI VERIFIED BADGE";
+const BACK_RIM = "SYNC VERIFIED";
 
 function InstagramMark() {
   return (
@@ -35,58 +35,13 @@ function IMessageMark() {
   );
 }
 
-function RimText({
-  pathId,
-  text,
-  tone,
-  compact,
-}: {
-  pathId: string;
-  text: string;
-  tone: "front" | "back";
-  compact?: boolean;
-}) {
-  const isFront = tone === "front";
-  return (
-    <svg className="pointer-events-none absolute inset-0" viewBox="0 0 300 300" aria-hidden>
-      <defs>
-        <path id={pathId} d="M 54 232 A 118 118 0 0 0 246 232" fill="none" />
-      </defs>
-      <text
-        fill={isFront ? "#A78BFA" : "#71717A"}
-        fontSize={compact ? (isFront ? 7 : 6) : isFront ? 8.5 : 7.2}
-        fontWeight="600"
-        letterSpacing={compact ? 0.8 : isFront ? 1.8 : 1.1}
-        className={isFront ? "[filter:drop-shadow(0_0_4px_rgba(124,58,237,0.7))]" : "opacity-80"}
-      >
-        <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-          {text}
-        </textPath>
-      </text>
-    </svg>
-  );
-}
-
-function CoinShell({
-  children,
-  pathId,
-  rimText,
-  tone,
-  compact,
-}: {
-  children: ReactNode;
-  pathId: string;
-  rimText: string;
-  tone: "front" | "back";
-  compact?: boolean;
-}) {
+function CoinShell({ children, compact }: { children: ReactNode; compact?: boolean }) {
   return (
     <div
-      className={`relative h-full w-full overflow-hidden rounded-full border border-violet-500/40 bg-[linear-gradient(160deg,#d4d4d8_0%,#3f3f46_22%,#18181b_48%,#09090b_76%,#52525b_100%)] shadow-[0_0_40px_rgba(124,58,237,0.28),inset_0_1px_0_rgba(255,255,255,0.4)] ${
-        compact ? "p-[10px]" : "p-[18px]"
+      className={`relative z-0 h-full w-full overflow-hidden rounded-full border border-violet-500/40 bg-[linear-gradient(160deg,#d4d4d8_0%,#3f3f46_22%,#18181b_48%,#09090b_76%,#52525b_100%)] shadow-[0_0_40px_rgba(124,58,237,0.28),inset_0_1px_0_rgba(255,255,255,0.4)] ${
+        compact ? "p-[8px]" : "p-[14px]"
       }`}
     >
-      <RimText pathId={pathId} text={rimText} tone={tone} compact={compact} />
       <div className="relative h-full w-full overflow-hidden rounded-full border border-zinc-800/90 bg-[radial-gradient(ellipse_at_30%_18%,rgba(124,58,237,0.2),transparent_52%),linear-gradient(180deg,#18181B_0%,#09090B_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
         {children}
       </div>
@@ -94,84 +49,108 @@ function CoinShell({
   );
 }
 
-function FrontFace({ pathId, compact }: { pathId: string; compact?: boolean }) {
+function FaceLayout({
+  compact,
+  top,
+  center,
+  rim,
+}: {
+  compact?: boolean;
+  top: ReactNode;
+  center: ReactNode;
+  rim: "front" | "back";
+}) {
   return (
-    <CoinShell pathId={pathId} rimText={FRONT_RIM} tone="front" compact={compact}>
-      <div className={`flex h-full flex-col items-center ${compact ? "px-3 pb-6 pt-3" : "px-7 pb-10 pt-7"}`}>
-        <span
-          className={`rounded-full border border-violet-500/40 bg-[#7C3AED]/15 font-semibold tracking-[0.16em] text-violet-300 ${
-            compact ? "px-1.5 py-px text-[6px]" : "px-2.5 py-0.5 text-[8px] tracking-[0.2em]"
-          }`}
-        >
-          EARLY ACCESS
-        </span>
-        <p
-          className={`mt-1 text-center font-semibold tracking-[0.12em] text-[#FAFAFA] ${
-            compact ? "text-[7px] leading-3" : "mt-2 text-[11px] tracking-[0.16em]"
-          }`}
-        >
-          OG FOUNDING MEMBER
-        </p>
-        <div className={`relative my-auto flex items-center justify-center ${compact ? "h-12 w-12" : "h-24 w-24"}`}>
-          <span className="absolute inset-0 rounded-full bg-[#7C3AED]/35 blur-xl" />
-          <span
-            className={`relative flex items-center justify-center rounded-full border border-violet-400/60 bg-gradient-to-b from-zinc-200 to-zinc-600 shadow-[0_0_20px_rgba(124,58,237,0.5)] ${
-              compact ? "h-10 w-10" : "h-20 w-20 shadow-[0_0_32px_rgba(124,58,237,0.55)]"
-            }`}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-mark.svg"
-              alt=""
-              width={compact ? 22 : 44}
-              height={compact ? 20 : 40}
-              className={compact ? "h-5 w-5" : "h-10 w-10"}
-            />
-          </span>
-        </div>
+    <div
+      className={`relative flex h-full w-full select-none flex-col items-center justify-between overflow-hidden ${
+        compact ? "p-2.5" : "p-4"
+      }`}
+    >
+      <div className="z-10 w-full shrink-0 text-center text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+        {top}
       </div>
+      <div className="z-10 my-auto mb-6 flex min-h-0 w-full flex-col items-center justify-center px-2 text-center">
+        {center}
+      </div>
+      <p
+        className={`z-10 mb-1 w-full shrink-0 truncate text-center font-medium uppercase tracking-wider ${
+          compact ? "text-[7px]" : "text-[9px]"
+        } ${rim === "front" ? "text-violet-400/80" : "text-zinc-500"}`}
+      >
+        {rim === "front" ? FRONT_RIM : BACK_RIM}
+      </p>
+    </div>
+  );
+}
+
+function FrontFace({ compact }: { compact?: boolean }) {
+  return (
+    <CoinShell compact={compact}>
+      <FaceLayout
+        compact={compact}
+        rim="front"
+        top="EARLY ACCESS"
+        center={
+          <>
+            <div className={`relative mb-1.5 flex items-center justify-center ${compact ? "h-9 w-9" : "h-16 w-16"}`}>
+              <span className="absolute inset-0 rounded-full bg-[#7C3AED]/35 blur-xl" />
+              <span
+                className={`relative flex items-center justify-center rounded-full border border-violet-400/60 bg-gradient-to-b from-zinc-200 to-zinc-600 shadow-[0_0_20px_rgba(124,58,237,0.5)] ${
+                  compact ? "h-8 w-8" : "h-14 w-14"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/logo-mark.svg"
+                  alt=""
+                  width={compact ? 18 : 32}
+                  height={compact ? 16 : 28}
+                  className={compact ? "h-4 w-4" : "h-7 w-7"}
+                />
+              </span>
+            </div>
+            <p
+              className={`max-w-full truncate font-semibold tracking-tight text-[#FAFAFA] ${
+                compact ? "text-[8px]" : "text-xs"
+              }`}
+            >
+              OG FOUNDING MEMBER
+            </p>
+          </>
+        }
+      />
     </CoinShell>
   );
 }
 
-function BackFace({ pathId, compact }: { pathId: string; compact?: boolean }) {
+function BackFace({ compact }: { compact?: boolean }) {
   return (
-    <CoinShell pathId={pathId} rimText={BACK_RIM} tone="back" compact={compact}>
-      <div className={`relative flex h-full flex-col items-center ${compact ? "px-3 pb-6 pt-3" : "px-8 pb-10 pt-7"}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo-mark.svg"
-          alt=""
-          width={compact ? 72 : 160}
-          height={compact ? 64 : 140}
-          className={`pointer-events-none absolute left-1/2 top-[46%] -translate-x-1/2 -translate-y-1/2 opacity-[0.07] ${
-            compact ? "h-12 w-12" : "h-28 w-28"
-          }`}
-        />
-        <p
-          className={`relative text-center font-semibold tracking-[0.12em] text-violet-300 ${
-            compact ? "text-[6px] leading-3" : "text-[10px] tracking-[0.16em]"
-          }`}
-        >
-          10K MILESTONE REWARD
-        </p>
-        <p
-          className={`relative text-center font-bold tracking-tight text-[#FAFAFA] ${
-            compact ? "mt-1.5 text-[11px] leading-tight" : "mt-3 text-xl"
-          }`}
-        >
-          1 OF FIRST 500
-        </p>
-        <p
-          className={`relative text-center text-zinc-400 ${
-            compact ? "mt-1 text-[6.5px] leading-3" : "mt-3 text-[10px] leading-4"
-          }`}
-        >
-          {compact
-            ? "0.5% royalty pool + Lifetime VIP at 10k paid subs."
-            : "Unlocks 0.5% Founder Royalty Pool + Lifetime VIP Access once Quanti reaches 10,000 paid subscribers."}
-        </p>
-      </div>
+    <CoinShell compact={compact}>
+      <FaceLayout
+        compact={compact}
+        rim="back"
+        top="10K MILESTONE REWARD"
+        center={
+          <>
+            <p
+              className={`max-w-full truncate font-bold tracking-tight text-[#FAFAFA] ${
+                compact ? "text-[10px]" : "text-sm"
+              }`}
+            >
+              1 OF FIRST 500
+            </p>
+            <p
+              className={`mt-1 line-clamp-3 max-w-full text-zinc-400 ${
+                compact ? "text-[7px] leading-3" : "text-[10px] leading-4"
+              }`}
+            >
+              {compact
+                ? "0.5% royalty pool + Lifetime VIP at 10k paid subs."
+                : "Unlocks 0.5% Founder Royalty Pool + Lifetime VIP Access once Quanti reaches 10,000 paid subscribers."}
+            </p>
+          </>
+        }
+      />
     </CoinShell>
   );
 }
@@ -198,7 +177,6 @@ export default function OGFoundingBadge({
   variant?: "full" | "compact";
   className?: string;
 }) {
-  const uid = useId().replace(/:/g, "");
   const compact = variant === "compact";
   const [flipped, setFlipped] = useState(false);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -291,7 +269,7 @@ export default function OGFoundingBadge({
             style={{ transformStyle: "preserve-3d" }}
           >
             <div className="absolute inset-0" style={faceStyle}>
-              <FrontFace pathId={`${uid}-front-arc`} compact={compact} />
+              <FrontFace compact={compact} />
             </div>
             <div
               className="absolute inset-0"
@@ -300,7 +278,7 @@ export default function OGFoundingBadge({
                 transform: "rotateY(180deg) translateZ(1px)",
               }}
             >
-              <BackFace pathId={`${uid}-back-arc`} compact={compact} />
+              <BackFace compact={compact} />
             </div>
           </motion.button>
         </motion.div>
@@ -311,11 +289,7 @@ export default function OGFoundingBadge({
         aria-hidden
         className={`pointer-events-none absolute left-[-9999px] top-0 ${compact ? "h-[160px] w-[160px]" : "h-[280px] w-[280px]"}`}
       >
-        {flipped ? (
-          <BackFace pathId={`${uid}-capture-back`} compact={compact} />
-        ) : (
-          <FrontFace pathId={`${uid}-capture-front`} compact={compact} />
-        )}
+        {flipped ? <BackFace compact={compact} /> : <FrontFace compact={compact} />}
       </div>
 
       {compact ? null : (
