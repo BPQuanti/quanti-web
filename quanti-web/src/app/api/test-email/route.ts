@@ -5,15 +5,9 @@ import { getWelcomeEmailHtml } from "@/lib/email/templates";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
-  const to = new URL(request.url).searchParams.get("to")?.trim() || "";
-  if (!to) {
-    return NextResponse.json(
-      { error: "Please provide a ?to=email query parameter" },
-      { status: 400 },
-    );
-  }
+const TEST_RECIPIENT = "brianalan21@gmail.com";
 
+export async function GET() {
   const from = process.env.WAITLIST_FROM_EMAIL;
   if (!process.env.RESEND_API_KEY || !from) {
     return NextResponse.json(
@@ -25,12 +19,12 @@ export async function GET(request: Request) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const { error } = await resend.emails.send({
     from,
-    to,
+    to: TEST_RECIPIENT,
     subject: "Quanti waitlist test email",
     html: getWelcomeEmailHtml({
-      userEmail: to,
+      userEmail: TEST_RECIPIENT,
       currentRank: 42,
-      referralCode: "TEST01",
+      referralCode: "OGTEST",
       isTop500: true,
     }),
   });
@@ -42,7 +36,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     success: true,
-    message: "Test email dispatched via Resend",
-    sentTo: to,
+    message: "Welcome email dispatched to brianalan21@gmail.com",
+    sender: process.env.WAITLIST_FROM_EMAIL,
   });
 }
