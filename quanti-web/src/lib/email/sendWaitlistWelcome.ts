@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import { resend } from "@/lib/email/client";
 import { getWelcomeEmailHtml } from "@/lib/email/templates";
 
 export async function sendWaitlistWelcomeEmail({
@@ -12,14 +12,12 @@ export async function sendWaitlistWelcomeEmail({
   referralCode: string;
   isTop500: boolean;
 }) {
-  const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.WAITLIST_FROM_EMAIL;
-  if (!apiKey || !from) {
+  if (!process.env.RESEND_API_KEY || !from) {
     console.warn("Waitlist email skipped: RESEND_API_KEY or WAITLIST_FROM_EMAIL is not set.");
     return;
   }
 
-  const resend = new Resend(apiKey);
   const { error } = await resend.emails.send({
     from,
     to: userEmail,
