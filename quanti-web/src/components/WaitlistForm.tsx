@@ -6,12 +6,12 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import OGFoundingBadge from "@/components/OGFoundingBadge";
 import { BATCH_SIZE, JUMP_PER_BATCH, rankWaitlistPosition } from "@/lib/waitlist/rank";
+import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REF_STORAGE_KEY = "quanti_waitlist_ref";
 const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
 const SIGNUP_EVENT = "quanti-waitlist-updated";
-const SITE_ORIGIN = (process.env.NEXT_PUBLIC_APP_URL || "https://quanti.app").replace(/\/$/, "");
 
 type SignupState = {
   email: string;
@@ -92,7 +92,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const shareUrl = useMemo(
-    () => (signup?.referralToken ? `${SITE_ORIGIN}?ref=${encodeURIComponent(signup.referralToken)}` : ""),
+    () => (signup?.referralToken ? waitlistShareUrl(signup.referralToken) : ""),
     [signup],
   );
 
