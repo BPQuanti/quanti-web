@@ -1,23 +1,18 @@
 import { randomInt } from "crypto";
+import { supabaseAdmin } from "@/lib/supabase";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const CODE_LENGTH = 6;
-const SITE_ORIGIN = "https://quanti-app.com";
+const SITE_ORIGIN = "https://quanti.app";
+const TABLE = "waitlist_users";
 
-export type WaitlistEntry = {
+export type WaitlistUser = {
   email: string;
   referralCode: string;
   initialPosition: number;
   referralCount: number;
-  referredBy: string | null;
-};
-
-export type WaitlistStatus = {
-  currentRank: number;
-  totalJumps: number;
-  progressToNextJump: number;
-  isTop500: boolean;
+  referredByCode: string | null;
 };
 
 export type WaitlistSignupResult = {
@@ -26,181 +21,29 @@ export type WaitlistSignupResult = {
   referralCode: string;
   referralCount: number;
   currentRank: number;
-  totalJumps: number;
-  shareUrl: string;
   initialPosition: number;
-  progressToNextJump: number;
+  totalJumps: number;
   isTop500: boolean;
+  shareUrl: string;
+  progressToNextJump: number;
 };
 
-type Store = {
-  findByEmail(email: string): Promise<WaitlistEntry | null>;
-  findByCode(code: string): Promise<WaitlistEntry | null>;
-  count(): Promise<number>;
-  insert(entry: WaitlistEntry): Promise<WaitlistEntry>;
-  incrementReferralCount(code: string): Promise<WaitlistEntry | null>;
+type WaitlistUserRow = {
+  email: string;
+  referral_code: string;
+  initial_position: number;
+  referral_count: number;
+  referred_by_code: string | null;
 };
 
-type GlobalWaitlist = typeof globalThis & {
-  __quantiWaitlistEntries?: Map<string, WaitlistEntry>;
-};
-
-function memoryMaps() {
-  const globalStore = globalThis as GlobalWaitlist;
-  if (!globalStore.__quantiWaitlistEntries) {
-    globalStore.__quantiWaitlistEntries = new Map();
-  }
-  return globalStore.__quantiWaitlistEntries;
-}
-
-function supabaseConfig() {
-  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  return { url, serviceKey };
-}
-
-async function supabaseFetch(path: string, init: RequestInit = {}) {
-  const { url, serviceKey } = supabaseConfig();
-  if (!url || !serviceKey) {
-    return null;
-  }
-  return fetch(`${url}${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${serviceKey}`,
-      apikey: serviceKey,
-      "Content-Type": "application/json",
-      Prefer: "return=representation",
-      ...(init.headers || {}),
-    },
-  });
-}
-
-function rowToEntry(row: {
-  email?: string;
-  referral_code?: string;
-  initial_position?: number;
-  referral_count?: number;
-  referred_by?: string | null;
-}): WaitlistEntry {
+function rowToUser(row: WaitlistUserRow): WaitlistUser {
   return {
     email: String(row.email || "").toLowerCase(),
     referralCode: String(row.referral_code || "").toUpperCase(),
     initialPosition: Number(row.initial_position || 0),
     referralCount: Number(row.referral_count || 0),
-    referredBy: row.referred_by ? String(row.referred_by).toUpperCase() : null,
+    referredByCode: row.referred_by_code ? String(row.referred_by_code).toUpperCase() : null,
   };
-}
-
-const memoryStore: Store = {
-  async findByEmail(email) {
-    return memoryMaps().get(email) ?? null;
-  },
-  async findByCode(code) {
-    const needle = code.toUpperCase();
-    for (const entry of memoryMaps().values()) {
-      if (entry.referralCode === needle) {
-        return entry;
-      }
-    }
-    return null;
-  },
-  async count() {
-    return memoryMaps().size;
-  },
-  async insert(entry) {
-    memoryMaps().set(entry.email, entry);
-    return entry;
-  },
-  async incrementReferralCount(code) {
-    const referrer = await this.findByCode(code);
-    if (!referrer) {
-      return null;
-    }
-    const updated = { ...referrer, referralCount: referrer.referralCount + 1 };
-    memoryMaps().set(updated.email, updated);
-    return updated;
-  },
-};
-
-const supabaseStore: Store = {
-  async findByEmail(email) {
-    const response = await supabaseFetch(
-      `/rest/v1/waitlist_signups?email=eq.${encodeURIComponent(email)}&select=*`,
-    );
-    if (!response?.ok) {
-      return memoryStore.findByEmail(email);
-    }
-    const rows = (await response.json()) as Record<string, unknown>[];
-    return rows[0] ? rowToEntry(rows[0]) : null;
-  },
-  async findByCode(code) {
-    const response = await supabaseFetch(
-      `/rest/v1/waitlist_signups?referral_code=eq.${encodeURIComponent(code)}&select=*`,
-    );
-    if (!response?.ok) {
-      return memoryStore.findByCode(code);
-    }
-    const rows = (await response.json()) as Record<string, unknown>[];
-    return rows[0] ? rowToEntry(rows[0]) : null;
-  },
-  async count() {
-    const response = await supabaseFetch("/rest/v1/waitlist_signups?select=email", {
-      method: "GET",
-      headers: { Prefer: "count=exact" },
-    });
-    if (!response?.ok) {
-      return memoryStore.count();
-    }
-    const contentRange = response.headers.get("content-range");
-    const total = contentRange?.split("/")[1];
-    const parsed = Number(total);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
-    const rows = (await response.json()) as unknown[];
-    return Array.isArray(rows) ? rows.length : 0;
-  },
-  async insert(entry) {
-    const response = await supabaseFetch("/rest/v1/waitlist_signups", {
-      method: "POST",
-      body: JSON.stringify({
-        email: entry.email,
-        referral_code: entry.referralCode,
-        initial_position: entry.initialPosition,
-        referral_count: entry.referralCount,
-        referred_by: entry.referredBy,
-      }),
-    });
-    if (!response?.ok) {
-      return memoryStore.insert(entry);
-    }
-    const rows = (await response.json()) as Record<string, unknown>[];
-    return rows[0] ? rowToEntry(rows[0]) : entry;
-  },
-  async incrementReferralCount(code) {
-    const referrer = await this.findByCode(code);
-    if (!referrer) {
-      return null;
-    }
-    const nextCount = referrer.referralCount + 1;
-    const response = await supabaseFetch(
-      `/rest/v1/waitlist_signups?referral_code=eq.${encodeURIComponent(code)}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ referral_count: nextCount }),
-      },
-    );
-    if (!response?.ok) {
-      return memoryStore.incrementReferralCount(code);
-    }
-    return { ...referrer, referralCount: nextCount };
-  },
-};
-
-function store(): Store {
-  const { url, serviceKey } = supabaseConfig();
-  return url && serviceKey ? supabaseStore : memoryStore;
 }
 
 export function sanitizeEmail(value: string) {
@@ -211,15 +54,14 @@ export function isValidEmail(email: string) {
   return EMAIL_PATTERN.test(email);
 }
 
-export function calculateWaitlistStatus(initialPosition: number, referralCount: number): WaitlistStatus {
+export function calculateWaitlistStatus(initialPosition: number, referralCount: number) {
   const totalJumps = Math.floor(referralCount / 3) * 50;
   const currentRank = Math.max(1, initialPosition - totalJumps);
-  const progressToNextJump = referralCount % 3;
   return {
-    currentRank,
     totalJumps,
-    progressToNextJump,
+    currentRank,
     isTop500: currentRank <= 500,
+    progressToNextJump: referralCount % 3,
   };
 }
 
@@ -231,10 +73,44 @@ function generateReferralCode() {
   return code;
 }
 
+async function findByEmail(email: string) {
+  const { data, error } = await supabaseAdmin
+    .from(TABLE)
+    .select("email,referral_code,initial_position,referral_count,referred_by_code")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || "Unable to look up waitlist user.");
+  }
+  return data ? rowToUser(data as WaitlistUserRow) : null;
+}
+
+async function findByCode(code: string) {
+  const { data, error } = await supabaseAdmin
+    .from(TABLE)
+    .select("email,referral_code,initial_position,referral_count,referred_by_code")
+    .eq("referral_code", code)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message || "Unable to look up referral code.");
+  }
+  return data ? rowToUser(data as WaitlistUserRow) : null;
+}
+
+async function waitlistCount() {
+  const { count, error } = await supabaseAdmin.from(TABLE).select("id", { count: "exact", head: true });
+  if (error) {
+    throw new Error(error.message || "Unable to read waitlist size.");
+  }
+  return count ?? 0;
+}
+
 async function uniqueReferralCode() {
   for (let attempt = 0; attempt < 12; attempt += 1) {
     const code = generateReferralCode();
-    const existing = await store().findByCode(code);
+    const existing = await findByCode(code);
     if (!existing) {
       return code;
     }
@@ -242,19 +118,19 @@ async function uniqueReferralCode() {
   throw new Error("Unable to generate a unique referral code.");
 }
 
-function toSignupResult(entry: WaitlistEntry): WaitlistSignupResult {
-  const status = calculateWaitlistStatus(entry.initialPosition, entry.referralCount);
+function toSignupResult(user: WaitlistUser): WaitlistSignupResult {
+  const status = calculateWaitlistStatus(user.initialPosition, user.referralCount);
   return {
     success: true,
-    email: entry.email,
-    referralCode: entry.referralCode,
-    referralCount: entry.referralCount,
+    email: user.email,
+    referralCode: user.referralCode,
+    referralCount: user.referralCount,
     currentRank: status.currentRank,
+    initialPosition: user.initialPosition,
     totalJumps: status.totalJumps,
-    shareUrl: `${SITE_ORIGIN}/?ref=${encodeURIComponent(entry.referralCode)}`,
-    initialPosition: entry.initialPosition,
-    progressToNextJump: status.progressToNextJump,
     isTop500: status.isTop500,
+    shareUrl: `${SITE_ORIGIN}?ref=${encodeURIComponent(user.referralCode)}`,
+    progressToNextJump: status.progressToNextJump,
   };
 }
 
@@ -264,7 +140,7 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
     throw new Error("Enter a valid email address.");
   }
 
-  const existing = await store().findByEmail(email);
+  const existing = await findByEmail(email);
   if (existing) {
     return toSignupResult(existing);
   }
@@ -272,21 +148,42 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
   const referredBy = String(input.referredBy || "")
     .trim()
     .toUpperCase();
-  const referrer = referredBy ? await store().findByCode(referredBy) : null;
+  const referrer = referredBy ? await findByCode(referredBy) : null;
   const validReferrer = referrer && referrer.email !== email ? referrer : null;
 
-  const initialPosition = (await store().count()) + 1;
-  const entry = await store().insert({
-    email,
-    referralCode: await uniqueReferralCode(),
-    initialPosition,
-    referralCount: 0,
-    referredBy: validReferrer?.referralCode ?? null,
-  });
+  const initialPosition = (await waitlistCount()) + 1;
+  const { data, error } = await supabaseAdmin
+    .from(TABLE)
+    .insert({
+      email,
+      referral_code: await uniqueReferralCode(),
+      initial_position: initialPosition,
+      referral_count: 0,
+      referred_by_code: validReferrer?.referralCode ?? null,
+    })
+    .select("email,referral_code,initial_position,referral_count,referred_by_code")
+    .single();
 
-  if (validReferrer) {
-    await store().incrementReferralCount(validReferrer.referralCode);
+  if (error || !data) {
+    if (error?.code === "23505") {
+      const existingAfterConflict = await findByEmail(email);
+      if (existingAfterConflict) {
+        return toSignupResult(existingAfterConflict);
+      }
+    }
+    throw new Error(error?.message || "Unable to join the waitlist.");
   }
 
-  return toSignupResult(entry);
+  if (validReferrer) {
+    const { error: incrementError } = await supabaseAdmin
+      .from(TABLE)
+      .update({ referral_count: validReferrer.referralCount + 1 })
+      .eq("referral_code", validReferrer.referralCode);
+
+    if (incrementError) {
+      throw new Error(incrementError.message || "Unable to attribute referral.");
+    }
+  }
+
+  return toSignupResult(rowToUser(data as WaitlistUserRow));
 }

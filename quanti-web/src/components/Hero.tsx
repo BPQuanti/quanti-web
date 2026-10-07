@@ -1,8 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import Link from "next/link";
 import IPhoneMockup from "@/components/IPhoneMockup";
 import WaitlistForm from "@/components/WaitlistForm";
 
@@ -36,7 +35,9 @@ export default function Hero() {
           Track your real life, log AI-verified stats, and share recaps that actually mean something.
         </motion.p>
         <motion.div id="waitlist" variants={fadeUp} className="mt-8 w-full max-w-lg scroll-mt-24">
-          <WaitlistForm id="hero-waitlist" />
+          <Suspense fallback={<div className="h-[88px] rounded-2xl border border-zinc-800 bg-zinc-900/80" />}>
+            <WaitlistForm id="hero-waitlist" />
+          </Suspense>
         </motion.div>
         <motion.p variants={fadeUp} className="mt-4 text-sm text-zinc-400">
           Launching soon on iOS • quanti-app.com

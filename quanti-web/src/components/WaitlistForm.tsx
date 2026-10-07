@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, MessageCircle, Share2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import OGFoundingBadge from "@/components/OGFoundingBadge";
 import { BATCH_SIZE, JUMP_PER_BATCH, rankWaitlistPosition } from "@/lib/waitlist/rank";
@@ -10,13 +11,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REF_STORAGE_KEY = "quanti_waitlist_ref";
 const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
 const SIGNUP_EVENT = "quanti-waitlist-updated";
-const SITE_ORIGIN = "https://quanti-app.com";
+const SITE_ORIGIN = "https://quanti.app";
 
 type SignupState = {
   email: string;
   position: number;
   referralToken: string;
   referralCount: number;
+  currentRank?: number;
+  isTop500?: boolean;
 };
 
 function readStoredSignup(): SignupState | null {
@@ -34,6 +37,8 @@ function readStoredSignup(): SignupState | null {
       position: parsed.position,
       referralToken: parsed.referralToken,
       referralCount: parsed.referralCount ?? 0,
+      currentRank: parsed.currentRank,
+      isTop500: parsed.isTop500,
     };
   } catch {
     return null;
@@ -45,14 +50,10 @@ function persistSignup(signup: SignupState) {
   window.dispatchEvent(new Event(SIGNUP_EVENT));
 }
 
-function captureReferralCode() {
-  const params = new URLSearchParams(window.location.search);
-  const incoming = params.get("ref") || params.get("ref_id");
-  if (incoming) {
-    localStorage.setItem(REF_STORAGE_KEY, incoming);
-    return incoming;
+function persistReferralCode(code: string) {
+  if (code) {
+    localStorage.setItem(REF_STORAGE_KEY, code);
   }
-  return localStorage.getItem(REF_STORAGE_KEY) || "";
 }
 
 function InstagramMark() {
@@ -67,6 +68,7 @@ function InstagramMark() {
 
 export default function WaitlistForm({ id }: { id?: string }) {
   const fieldId = `${id || "waitlist"}-email`;
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -76,7 +78,9 @@ export default function WaitlistForm({ id }: { id?: string }) {
   const [signup, setSignup] = useState<SignupState | null>(null);
 
   useEffect(() => {
-    setReferredBy(captureReferralCode());
+    const fromUrl = searchParams.get("ref") || searchParams.get("ref_id") || "";
+    persistReferralCode(fromUrl);
+    setReferredBy(fromUrl || localStorage.getItem(REF_STORAGE_KEY) || "");
     setSignup(readStoredSignup());
 
     const sync = () => setSignup(readStoredSignup());
@@ -86,11 +90,11 @@ export default function WaitlistForm({ id }: { id?: string }) {
       window.removeEventListener(SIGNUP_EVENT, sync);
       window.removeEventListener("storage", sync);
     };
-  }, []);
+  }, [searchParams]);
 
   const emailValid = EMAIL_PATTERN.test(email.trim());
   const shareUrl = useMemo(
-    () => (signup?.referralToken ? `${SITE_ORIGIN}/?ref=${encodeURIComponent(signup.referralToken)}` : ""),
+    () => (signup?.referralToken ? `${SITE_ORIGIN}?ref=${encodeURIComponent(signup.referralToken)}` : ""),
     [signup],
   );
 
@@ -119,6 +123,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
         referralCount?: number;
         initialPosition?: number;
         currentRank?: number;
+        isTop500?: boolean;
         error?: string;
       };
       if (!response.ok) {
@@ -129,6 +134,8 @@ export default function WaitlistForm({ id }: { id?: string }) {
         position: payload.initialPosition ?? payload.currentRank ?? 1,
         referralToken: payload.referralCode || "",
         referralCount: payload.referralCount ?? 0,
+        currentRank: payload.currentRank,
+        isTop500: payload.isTop500,
       };
       persistSignup(nextSignup);
       setSignup(nextSignup);
@@ -153,7 +160,10 @@ export default function WaitlistForm({ id }: { id?: string }) {
   const rank = signup
     ? rankWaitlistPosition(signup.position, signup.referralCount)
     : null;
+  const currentRank = signup?.currentRank ?? rank?.currentRank ?? signup?.position;
+  const isTop500 = signup?.isTop500 ?? rank?.isTop500 ?? false;
   const invitedThisBatch = signup ? signup.referralCount % BATCH_SIZE : 0;
+  const progressRatio = invitedThisBatch / BATCH_SIZE;
 
   return (
     <div
@@ -171,8 +181,22 @@ export default function WaitlistForm({ id }: { id?: string }) {
             className="space-y-4"
           >
             <div>
-              <h3 className="text-xl font-semibold tracking-tight text-[#FAFAFA]">
-                You&apos;re #{rank?.currentRank ?? signup.position} in Line
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-violet-500/40 bg-violet-500/15 px-3 py-1 text-sm font-semibold text-violet-200">
+                  #{currentRank}
+                </span>
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] ${
+                    isTop500
+                      ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-300"
+                      : "border-amber-400/40 bg-amber-500/10 text-amber-200"
+                  }`}
+                >
+                  {isTop500 ? "🟢 TOP 500 LOCK" : "🟡 PROVISIONAL"}
+                </span>
+              </div>
+              <h3 className="mt-3 text-xl font-semibold tracking-tight text-[#FAFAFA]">
+                You&apos;re #{currentRank} in Line
               </h3>
               <p className="mt-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-sm leading-6 text-violet-200">
                 BOOST YOUR RANK: Jump {JUMP_PER_BATCH} spots for every {BATCH_SIZE} friends who sign up with your link.
@@ -188,6 +212,12 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 {invitedThisBatch} / {BATCH_SIZE} Friends Invited — {rank?.remainingForNextJump ?? BATCH_SIZE} More to
                 Jump {JUMP_PER_BATCH} Spots
               </p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-800">
+                <div
+                  className="h-full rounded-full bg-[#7C3AED] shadow-[0_0_10px_rgba(124,58,237,0.55)] transition-all"
+                  style={{ width: `${Math.max(progressRatio * 100, invitedThisBatch > 0 ? 8 : 0)}%` }}
+                />
+              </div>
               <div className="mt-3 flex gap-2">
                 {Array.from({ length: BATCH_SIZE }, (_, index) => (
                   <span
