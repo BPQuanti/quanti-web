@@ -1,68 +1,27 @@
 import { NextResponse } from "next/server";
+import { signupWaitlist } from "@/lib/waitlist/service";
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GETWAITLIST_SIGNUP_URL = "https://api.getwaitlist.com/api/v1/signup";
-const SITE_ORIGIN = "https://quanti-app.com";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { email?: string; referred_by?: string; waitlist_id?: string | number };
-    const email = String(body.email || "").trim().toLowerCase();
-    const referredBy = String(body.referred_by || "").trim();
+    const body = (await request.json()) as {
+      email?: string;
+      referredBy?: string;
+      referred_by?: string;
+    };
 
-    if (!EMAIL_PATTERN.test(email)) {
-      return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
-    }
-
-    const waitlistId = Number(
-      process.env.NEXT_PUBLIC_GETWAITLIST_ID || body.waitlist_id || process.env.GETWAITLIST_ID || "33110",
-    );
-    if (!Number.isFinite(waitlistId) || waitlistId <= 0) {
-      return NextResponse.json(
-        { error: "Waitlist is not configured yet. Add NEXT_PUBLIC_GETWAITLIST_ID to the server environment." },
-        { status: 503 },
-      );
-    }
-
-    const referralLink = referredBy
-      ? `${SITE_ORIGIN}/?ref_id=${encodeURIComponent(referredBy)}`
-      : `${SITE_ORIGIN}/`;
-
-    const waitlistResponse = await fetch(GETWAITLIST_SIGNUP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        waitlist_id: waitlistId,
-        referral_link: referralLink,
-        metadata: referredBy ? { referred_by: referredBy } : undefined,
-      }),
+    const result = await signupWaitlist({
+      email: body.email || "",
+      referredBy: body.referredBy || body.referred_by,
     });
 
-    const payload = (await waitlistResponse.json().catch(() => null)) as
-      | {
-          priority?: number;
-          referral_token?: string;
-          referral_link?: string;
-          amount_referred?: number;
-          detail?: string;
-          error?: string;
-        }
-      | null;
-
-    if (!waitlistResponse.ok || !payload) {
-      const detail = payload?.detail || payload?.error || "Waitlist provider rejected this email.";
-      return NextResponse.json({ error: detail }, { status: 502 });
-    }
-
-    return NextResponse.json({
-      email,
-      position: payload.priority ?? 0,
-      referralToken: payload.referral_token ?? "",
-      referralCount: payload.amount_referred ?? 0,
-    });
+    return NextResponse.json(result);
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to join the waitlist.";
+    const status = message.includes("email") ? 400 : 500;
     console.error("Waitlist error", error);
-    return NextResponse.json({ error: "Unable to join the waitlist." }, { status: 500 });
+    return NextResponse.json({ error: message }, { status });
   }
 }

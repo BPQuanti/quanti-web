@@ -11,7 +11,6 @@ const REF_STORAGE_KEY = "quanti_waitlist_ref";
 const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
 const SIGNUP_EVENT = "quanti-waitlist-updated";
 const SITE_ORIGIN = "https://quanti-app.com";
-const WAITLIST_ID = process.env.NEXT_PUBLIC_GETWAITLIST_ID || "33110";
 
 type SignupState = {
   email: string;
@@ -111,26 +110,28 @@ export default function WaitlistForm({ id }: { id?: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
-          referred_by: referredBy,
-          waitlist_id: WAITLIST_ID,
+          referredBy,
         }),
       });
-      const payload = (await response.json()) as SignupState & { error?: string };
+      const payload = (await response.json()) as {
+        email?: string;
+        referralCode?: string;
+        referralCount?: number;
+        initialPosition?: number;
+        currentRank?: number;
+        error?: string;
+      };
       if (!response.ok) {
         throw new Error(payload.error || "Unable to join the waitlist.");
       }
-      persistSignup({
-        email: payload.email,
-        position: payload.position,
-        referralToken: payload.referralToken,
+      const nextSignup = {
+        email: payload.email || email.trim().toLowerCase(),
+        position: payload.initialPosition ?? payload.currentRank ?? 1,
+        referralToken: payload.referralCode || "",
         referralCount: payload.referralCount ?? 0,
-      });
-      setSignup({
-        email: payload.email,
-        position: payload.position,
-        referralToken: payload.referralToken,
-        referralCount: payload.referralCount ?? 0,
-      });
+      };
+      persistSignup(nextSignup);
+      setSignup(nextSignup);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to join the waitlist.");
     } finally {
