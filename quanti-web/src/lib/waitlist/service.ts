@@ -1,10 +1,10 @@
 import { randomInt } from "crypto";
 import { supabaseAdmin } from "@/lib/supabase";
+import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const CODE_LENGTH = 6;
-const SITE_ORIGIN = "https://quanti.app";
 const TABLE = "waitlist_users";
 
 export type WaitlistUser = {
@@ -17,6 +17,7 @@ export type WaitlistUser = {
 
 export type WaitlistSignupResult = {
   success: true;
+  created: boolean;
   email: string;
   referralCode: string;
   referralCount: number;
@@ -118,10 +119,11 @@ async function uniqueReferralCode() {
   throw new Error("Unable to generate a unique referral code.");
 }
 
-function toSignupResult(user: WaitlistUser): WaitlistSignupResult {
+function toSignupResult(user: WaitlistUser, created: boolean): WaitlistSignupResult {
   const status = calculateWaitlistStatus(user.initialPosition, user.referralCount);
   return {
     success: true,
+    created,
     email: user.email,
     referralCode: user.referralCode,
     referralCount: user.referralCount,
@@ -129,7 +131,7 @@ function toSignupResult(user: WaitlistUser): WaitlistSignupResult {
     initialPosition: user.initialPosition,
     totalJumps: status.totalJumps,
     isTop500: status.isTop500,
-    shareUrl: `${SITE_ORIGIN}?ref=${encodeURIComponent(user.referralCode)}`,
+    shareUrl: waitlistShareUrl(user.referralCode),
     progressToNextJump: status.progressToNextJump,
   };
 }
@@ -142,7 +144,7 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
 
   const existing = await findByEmail(email);
   if (existing) {
-    return toSignupResult(existing);
+    return toSignupResult(existing, false);
   }
 
   const referredBy = String(input.referredBy || "")
@@ -168,7 +170,7 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
     if (error?.code === "23505") {
       const existingAfterConflict = await findByEmail(email);
       if (existingAfterConflict) {
-        return toSignupResult(existingAfterConflict);
+        return toSignupResult(existingAfterConflict, false);
       }
     }
     throw new Error(error?.message || "Unable to join the waitlist.");
@@ -185,5 +187,5 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
     }
   }
 
-  return toSignupResult(rowToUser(data as WaitlistUserRow));
+  return toSignupResult(rowToUser(data as WaitlistUserRow), true);
 }
