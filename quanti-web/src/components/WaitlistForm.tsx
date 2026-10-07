@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Check, Copy, MessageCircle, Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import OGFoundingBadge from "@/components/OGFoundingBadge";
+import { BATCH_SIZE, JUMP_PER_BATCH, rankWaitlistPosition } from "@/lib/waitlist/rank";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REF_STORAGE_KEY = "quanti_waitlist_ref";
@@ -16,6 +17,7 @@ type SignupState = {
   email: string;
   position: number;
   referralToken: string;
+  referralCount: number;
 };
 
 function readStoredSignup(): SignupState | null {
@@ -28,7 +30,12 @@ function readStoredSignup(): SignupState | null {
     if (!parsed?.referralToken) {
       return null;
     }
-    return parsed;
+    return {
+      email: parsed.email,
+      position: parsed.position,
+      referralToken: parsed.referralToken,
+      referralCount: parsed.referralCount ?? 0,
+    };
   } catch {
     return null;
   }
@@ -47,6 +54,16 @@ function captureReferralCode() {
     return incoming;
   }
   return localStorage.getItem(REF_STORAGE_KEY) || "";
+}
+
+function InstagramMark() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" aria-hidden>
+      <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="12" cy="12" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="17.2" cy="6.8" r="0.9" fill="currentColor" />
+    </svg>
+  );
 }
 
 export default function WaitlistForm({ id }: { id?: string }) {
@@ -106,11 +123,13 @@ export default function WaitlistForm({ id }: { id?: string }) {
         email: payload.email,
         position: payload.position,
         referralToken: payload.referralToken,
+        referralCount: payload.referralCount ?? 0,
       });
       setSignup({
         email: payload.email,
         position: payload.position,
         referralToken: payload.referralToken,
+        referralCount: payload.referralCount ?? 0,
       });
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to join the waitlist.");
@@ -128,8 +147,12 @@ export default function WaitlistForm({ id }: { id?: string }) {
     window.setTimeout(() => setCopied(false), 1600);
   }
 
-  const tweet = `Just joined the waitlist for @quanti_app — syncing bank & health metrics into wild yearly stats. Join here: ${shareUrl}`;
-  const message = `Check out Quanti, it connects your bank and Apple Health into crazy recap stats: ${shareUrl}`;
+  const tweet = `Just joined the waitlist for @quanti_app — jump 50 spots for every 3 friends. Join here: ${shareUrl}`;
+  const message = `Check out Quanti and jump the waitlist with me: ${shareUrl}`;
+  const rank = signup
+    ? rankWaitlistPosition(signup.position, signup.referralCount)
+    : null;
+  const invitedThisBatch = signup ? signup.referralCount % BATCH_SIZE : 0;
 
   return (
     <div
@@ -148,14 +171,35 @@ export default function WaitlistForm({ id }: { id?: string }) {
           >
             <div>
               <h3 className="text-xl font-semibold tracking-tight text-[#FAFAFA]">
-                You&apos;re #{signup.position} in Line
+                You&apos;re #{rank?.currentRank ?? signup.position} in Line
               </h3>
-              <p className="mt-2 text-sm leading-6 text-[#A1A1AA]">
-                First 500 signups unlock the exclusive &apos;OG Verified&apos; badge.
+              <p className="mt-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-sm leading-6 text-violet-200">
+                BOOST YOUR RANK: Jump {JUMP_PER_BATCH} spots for every {BATCH_SIZE} friends who sign up with your link.
               </p>
-              <p className="mt-2 text-sm leading-6 text-violet-400">
-                Share your link to jump the TestFlight line and lock in your OG status.
+              <p className="mt-3 text-sm leading-6 text-[#A1A1AA]">
+                The top 500 waitlist members receive a 48-hour VIP early access window &amp; OG Claim Code to lock in
+                the 500-capped OG Founder Pass.
               </p>
+            </div>
+
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-4">
+              <p className="text-sm font-medium text-[#FAFAFA]">
+                {invitedThisBatch} / {BATCH_SIZE} Friends Invited — {rank?.remainingForNextJump ?? BATCH_SIZE} More to
+                Jump {JUMP_PER_BATCH} Spots
+              </p>
+              <div className="mt-3 flex gap-2">
+                {Array.from({ length: BATCH_SIZE }, (_, index) => (
+                  <span
+                    key={index}
+                    className={`h-2 flex-1 rounded-full ${
+                      index < invitedThisBatch ? "bg-[#7C3AED] shadow-[0_0_10px_rgba(124,58,237,0.55)]" : "bg-zinc-800"
+                    }`}
+                  />
+                ))}
+              </div>
+              {rank && rank.totalJumps > 0 ? (
+                <p className="mt-2 text-xs text-zinc-500">You&apos;ve jumped {rank.totalJumps} spots so far.</p>
+              ) : null}
             </div>
 
             <div className="my-6 flex flex-col items-center gap-6 rounded-2xl border border-violet-500/30 bg-zinc-900/80 p-5 shadow-[0_0_25px_rgba(124,58,237,0.15)] md:flex-row">
@@ -207,14 +251,17 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 <MessageCircle className="h-3.5 w-3.5 text-violet-400" />
                 iMessage
               </a>
-              <a
-                href={`https://wa.me/?text=${encodeURIComponent(message)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => {
+                  void copyLink();
+                  window.open("https://www.instagram.com/", "_blank", "noopener,noreferrer");
+                }}
                 className="inline-flex h-10 items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-950/70 px-3 text-xs font-medium text-[#FAFAFA] transition hover:border-violet-500/40"
               >
-                WhatsApp
-              </a>
+                <InstagramMark />
+                Instagram
+              </button>
             </div>
           </motion.div>
         ) : (

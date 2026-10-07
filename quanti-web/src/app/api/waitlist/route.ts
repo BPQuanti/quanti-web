@@ -44,6 +44,7 @@ export async function POST(request: Request) {
           priority?: number;
           referral_token?: string;
           referral_link?: string;
+          amount_referred?: number;
           detail?: string;
           error?: string;
         }
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
       email,
       position: payload.priority ?? 0,
       referralToken: payload.referral_token ?? "",
+      referralCount: payload.amount_referred ?? 0,
     });
   } catch (error) {
     console.error("Waitlist error", error);
