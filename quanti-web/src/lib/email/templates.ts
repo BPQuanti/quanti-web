@@ -41,7 +41,7 @@ export function getWelcomeEmailHtml({
                 <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#8b5cf6;">Quanti Waitlist</p>
                 <h1 style="margin:0 0 12px;font-size:26px;line-height:1.25;color:#ffffff;">Thank you for jumping in early.</h1>
                 <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#e4e4e7;">
-                  ${escapeHtml(userEmail)}, we are genuinely grateful you are here. Quanti is being built with the people who show up first — and this waitlist is how we construct that future together.
+                  ${escapeHtml(userEmail)}, thank you for joining early. Quanti is an AI-powered analytics engine designed to give you limitless insight into your life—aggregating your financial data, investments, and personal metrics into a fun, high-impact quantitative dashboard so you can seamlessly optimize your wealth, productivity, and habits.
                 </p>
 
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
@@ -63,12 +63,6 @@ export function getWelcomeEmailHtml({
                       <p style="margin:0 0 12px;font-size:14px;line-height:1.7;color:#d4d4d8;">
                         <strong style="color:#ffffff;">48-hour priority access.</strong> The Top 500 receive a 48-hour launch window and a 6-digit in-app claim code to lock the OG Founder Pass.
                       </p>
-                      <p style="margin:0 0 12px;font-size:14px;line-height:1.7;color:#d4d4d8;">
-                        <strong style="color:#ffffff;">Roll-down rule.</strong> Unclaimed spots after 48 hours cascade to position #501 and below, in rank order.
-                      </p>
-                      <p style="margin:0 0 12px;font-size:14px;line-height:1.7;color:#d4d4d8;">
-                        <strong style="color:#ffffff;">Top 100 TestFlight.</strong> The first 100 spots get immediate pre-launch Apple TestFlight beta invites.
-                      </p>
                       <p style="margin:0;font-size:14px;line-height:1.7;color:#d4d4d8;">
                         <strong style="color:#ffffff;">0.5% revenue dividend pool.</strong> Verified OG Founders keep lifetime perks plus a share of a 0.5% company revenue pool reserved for this group.
                       </p>
@@ -78,7 +72,7 @@ export function getWelcomeEmailHtml({
 
                 <p style="margin:0 0 8px;font-size:16px;line-height:1.6;color:#ffffff;font-weight:700;">3 referrals = 50-spot rank jump</p>
                 <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#d4d4d8;">
-                  Every 3 friends who join with your link moves you 50 spots closer to OG, TestFlight, and the founder pool.
+                  Every 3 friends who join with your link moves you 50 spots closer to OG Founder status and the revenue pool.
                 </p>
                 <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8b5cf6;">Your referral link</p>
                 <p style="margin:0 0 16px;padding:14px 16px;background-color:#0a0a0a;border:1px solid #3f3f46;border-radius:12px;font-size:13px;line-height:1.5;color:#ffffff;word-break:break-all;">
