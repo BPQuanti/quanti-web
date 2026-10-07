@@ -1,4 +1,4 @@
-import { resend } from "@/lib/email/client";
+import { getResend } from "@/lib/email/client";
 import { getWelcomeEmailHtml } from "@/lib/email/templates";
 
 export async function sendWaitlistWelcomeEmail({
@@ -18,7 +18,7 @@ export async function sendWaitlistWelcomeEmail({
     return;
   }
 
-  const { error } = await resend.emails.send({
+  const { error } = await getResend().emails.send({
     from,
     to: userEmail,
     subject: `You're #${currentRank} on the Quanti waitlist`,

@@ -1,5 +1,5 @@
 import { randomInt } from "crypto";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -75,7 +75,7 @@ function generateReferralCode() {
 }
 
 async function findByEmail(email: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
     .select("email,referral_code,initial_position,referral_count,referred_by_code")
     .eq("email", email)
@@ -88,7 +88,7 @@ async function findByEmail(email: string) {
 }
 
 async function findByCode(code: string) {
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
     .select("email,referral_code,initial_position,referral_count,referred_by_code")
     .eq("referral_code", code)
@@ -101,7 +101,7 @@ async function findByCode(code: string) {
 }
 
 async function waitlistCount() {
-  const { count, error } = await supabaseAdmin.from(TABLE).select("id", { count: "exact", head: true });
+  const { count, error } = await getSupabaseAdmin().from(TABLE).select("id", { count: "exact", head: true });
   if (error) {
     throw new Error(error.message || "Unable to read waitlist size.");
   }
@@ -154,7 +154,7 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
   const validReferrer = referrer && referrer.email !== email ? referrer : null;
 
   const initialPosition = (await waitlistCount()) + 1;
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from(TABLE)
     .insert({
       email,
@@ -177,7 +177,7 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
   }
 
   if (validReferrer) {
-    const { error: incrementError } = await supabaseAdmin
+    const { error: incrementError } = await getSupabaseAdmin()
       .from(TABLE)
       .update({ referral_count: validReferrer.referralCount + 1 })
       .eq("referral_code", validReferrer.referralCode);
