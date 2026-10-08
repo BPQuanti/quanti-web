@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { getWelcomeEmailHtml } from "@/lib/email/templates";
+import {
+  getWelcomeEmailHtml,
+  getWelcomeEmailSubject,
+  getWelcomeEmailText,
+} from "@/lib/email/templates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,16 +21,19 @@ export async function GET() {
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
+  const payload = {
+    userEmail: TEST_RECIPIENT,
+    currentRank: 42,
+    referralCode: "OGTEST",
+    isTop500: true,
+  };
   const { error } = await resend.emails.send({
     from,
     to: TEST_RECIPIENT,
-    subject: "Quanti waitlist test email",
-    html: getWelcomeEmailHtml({
-      userEmail: TEST_RECIPIENT,
-      currentRank: 42,
-      referralCode: "OGTEST",
-      isTop500: true,
-    }),
+    replyTo: from.match(/<([^>]+)>/)?.[1] || from,
+    subject: getWelcomeEmailSubject(payload.currentRank),
+    html: getWelcomeEmailHtml(payload),
+    text: getWelcomeEmailText(payload),
   });
 
   if (error) {

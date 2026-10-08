@@ -8,6 +8,10 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
+export function getWelcomeEmailSubject(currentRank: number) {
+  return `You're on the list for Quanti 🎯 [Spot #${currentRank}]`;
+}
+
 export function getWelcomeEmailHtml({
   userEmail,
   currentRank,
@@ -20,8 +24,10 @@ export function getWelcomeEmailHtml({
   isTop500: boolean;
 }) {
   const referralUrl = waitlistShareUrl(referralCode);
-  const status = isTop500 ? "🟢 IN RANGE FOR OG FOUNDER PASS" : "🟡 PROVISIONAL";
-  const statusColor = isTop500 ? "#34d399" : "#fbbf24";
+  const spot = escapeHtml(String(currentRank));
+  const ogNote = isTop500
+    ? "You are inside the first 500 — reply BETA below to request TestFlight access and lock OG Founder pricing."
+    : "The first 500 waitlist members lock $49/yr OG Founder pricing. Reply BETA if you want in on the first TestFlight wave.";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -29,7 +35,7 @@ export function getWelcomeEmailHtml({
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <title>You're on the Quanti waitlist</title>
+    <title>${escapeHtml(getWelcomeEmailSubject(currentRank))}</title>
   </head>
   <body style="margin:0;padding:0;background-color:#0a0a0a;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0a0a0a;width:100%;">
@@ -39,54 +45,61 @@ export function getWelcomeEmailHtml({
             <tr>
               <td style="padding:28px 24px 32px;font-family:Arial,Helvetica,sans-serif;color:#ffffff;">
                 <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#8b5cf6;">Quanti Waitlist</p>
-                <h1 style="margin:0 0 12px;font-size:26px;line-height:1.25;color:#ffffff;">Thank you for jumping in early.</h1>
+                <h1 style="margin:0 0 12px;font-size:26px;line-height:1.25;color:#ffffff;">You're on the list.</h1>
                 <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#e4e4e7;">
-                  ${escapeHtml(userEmail)}, thank you for joining early. Quanti is an AI-powered analytics engine designed to give you limitless insight into your life—aggregating your financial data, investments, and personal metrics into a fun, high-impact quantitative dashboard so you can seamlessly optimize your wealth, productivity, and habits.
+                  Thanks for joining, ${escapeHtml(userEmail)}. Your official waitlist position is
+                  <strong style="color:#ffffff;">#${spot}</strong>.
                 </p>
 
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
                   <tr>
                     <td style="background-color:#1a1028;border:1px solid #8b5cf6;border-radius:16px;padding:20px;text-align:center;">
-                      <p style="margin:0 0 6px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#a78bfa;">Current Position</p>
-                      <p style="margin:0 0 12px;font-size:36px;line-height:1;font-weight:700;color:#ffffff;">#${escapeHtml(String(currentRank))}</p>
-                      <p style="margin:0;display:inline-block;padding:8px 14px;border-radius:999px;border:1px solid ${statusColor};background-color:#0a0a0a;color:${statusColor};font-size:11px;font-weight:700;letter-spacing:0.08em;">
-                        ${status}
+                      <p style="margin:0 0 6px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#a78bfa;">Official Spot</p>
+                      <p style="margin:0;font-size:36px;line-height:1;font-weight:700;color:#ffffff;">#${spot}</p>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:0 0 12px;font-size:14px;line-height:1.7;color:#d4d4d8;">
+                  Most apps are a <strong style="color:#ffffff;">Mirror</strong>: they show you charts of the past and leave you to guess what to do next.
+                  Quanti is a <strong style="color:#ffffff;">GPS</strong>: one daily directive from your money, health, and habits so you always know the next right move.
+                </p>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
+                  <tr>
+                    <td style="background-color:#0a0a0a;border:1px solid #8b5cf6;border-radius:16px;padding:20px;">
+                      <p style="margin:0 0 14px;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#8b5cf6;">Roadmap</p>
+                      <p style="margin:0 0 10px;font-size:14px;line-height:1.7;color:#d4d4d8;">
+                        <strong style="color:#ffffff;">1. Private TestFlight Beta</strong> — first 500 testers get the Action-First Engine on iOS.
+                      </p>
+                      <p style="margin:0;font-size:14px;line-height:1.7;color:#d4d4d8;">
+                        <strong style="color:#ffffff;">2. App Store Launch</strong> — public release after the beta hardens the daily GPS.
                       </p>
                     </td>
                   </tr>
                 </table>
+
+                <p style="margin:0 0 8px;font-size:16px;line-height:1.6;color:#ffffff;font-weight:700;">$49/yr OG Founder pricing</p>
+                <p style="margin:0 0 20px;font-size:14px;line-height:1.7;color:#d4d4d8;">
+                  The first 500 waitlist members lock in <strong style="color:#ffffff;">$49/yr OG Founder</strong> pricing for life.
+                  ${escapeHtml(ogNote)}
+                </p>
 
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
                   <tr>
-                    <td style="background-color:#0a0a0a;border:1px solid #8b5cf6;border-radius:16px;padding:20px;">
-                      <p style="margin:0 0 14px;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#8b5cf6;">OG Founder Mechanics</p>
-                      <p style="margin:0 0 12px;font-size:14px;line-height:1.7;color:#d4d4d8;">
-                        <strong style="color:#ffffff;">48-hour priority access.</strong> The Top 500 receive a 48-hour launch window and a 6-digit in-app claim code to lock the OG Founder Pass.
-                      </p>
+                    <td style="background-color:#1a1028;border:1px solid #34d399;border-radius:16px;padding:20px;">
+                      <p style="margin:0 0 8px;font-size:13px;letter-spacing:0.14em;text-transform:uppercase;color:#34d399;">Want TestFlight?</p>
                       <p style="margin:0;font-size:14px;line-height:1.7;color:#d4d4d8;">
-                        <strong style="color:#ffffff;">0.5% revenue dividend pool.</strong> Verified OG Founders keep lifetime perks plus a share of a 0.5% company revenue pool reserved for this group.
+                        Reply to this email with <strong style="color:#ffffff;">BETA</strong> if you want to join the first 500 TestFlight testers.
                       </p>
                     </td>
                   </tr>
                 </table>
 
-                <p style="margin:0 0 8px;font-size:16px;line-height:1.6;color:#ffffff;font-weight:700;">3 referrals = 50-spot rank jump</p>
-                <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:#d4d4d8;">
-                  Every 3 friends who join with your link moves you 50 spots closer to OG Founder status and the revenue pool.
-                </p>
-                <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8b5cf6;">Your referral link</p>
+                <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8b5cf6;">Share your unique link</p>
                 <p style="margin:0 0 16px;padding:14px 16px;background-color:#0a0a0a;border:1px solid #3f3f46;border-radius:12px;font-size:13px;line-height:1.5;color:#ffffff;word-break:break-all;">
                   ${escapeHtml(referralUrl)}
                 </p>
-                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 28px;">
-                  <tr>
-                    <td style="background-color:#8b5cf6;border-radius:12px;">
-                      <a href="${escapeHtml(referralUrl)}" style="display:inline-block;padding:14px 22px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;">
-                        Share your unique link
-                      </a>
-                    </td>
-                  </tr>
-                </table>
 
                 <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#71717a;">
                   © ${new Date().getFullYear()} Quanti Technologies LLC. All rights reserved.
@@ -106,4 +119,41 @@ export function getWelcomeEmailHtml({
     </table>
   </body>
 </html>`;
+}
+
+export function getWelcomeEmailText({
+  userEmail,
+  currentRank,
+  referralCode,
+  isTop500,
+}: {
+  userEmail: string;
+  currentRank: number;
+  referralCode: string;
+  isTop500: boolean;
+}) {
+  const referralUrl = waitlistShareUrl(referralCode);
+  const ogNote = isTop500
+    ? "You are inside the first 500 — reply BETA to request TestFlight access and lock OG Founder pricing."
+    : "The first 500 waitlist members lock $49/yr OG Founder pricing. Reply BETA if you want in on the first TestFlight wave.";
+
+  return [
+    `Thanks for joining, ${userEmail}. Your official waitlist position is #${currentRank}.`,
+    "",
+    "Most apps are a Mirror: they show you charts of the past and leave you to guess what to do next.",
+    "Quanti is a GPS: one daily directive from your money, health, and habits so you always know the next right move.",
+    "",
+    "Roadmap:",
+    "1. Private TestFlight Beta — first 500 testers get the Action-First Engine on iOS.",
+    "2. App Store Launch — public release after the beta hardens the daily GPS.",
+    "",
+    "$49/yr OG Founder pricing: the first 500 waitlist members lock this rate for life.",
+    ogNote,
+    "",
+    'Want TestFlight? Reply to this email with "BETA" if you want to join the first 500 TestFlight testers.',
+    "",
+    `Share your unique link: ${referralUrl}`,
+    "",
+    "quanti-app.com",
+  ].join("\n");
 }

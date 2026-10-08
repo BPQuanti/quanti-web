@@ -1,5 +1,14 @@
 import { getResend } from "@/lib/email/client";
-import { getWelcomeEmailHtml } from "@/lib/email/templates";
+import {
+  getWelcomeEmailHtml,
+  getWelcomeEmailSubject,
+  getWelcomeEmailText,
+} from "@/lib/email/templates";
+
+function replyToAddress(from: string) {
+  const match = from.match(/<([^>]+)>/);
+  return (match?.[1] || from).trim();
+}
 
 export async function sendWaitlistWelcomeEmail({
   userEmail,
@@ -18,19 +27,22 @@ export async function sendWaitlistWelcomeEmail({
     return;
   }
 
-  const { error } = await getResend().emails.send({
-    from,
-    to: userEmail,
-    subject: `You're #${currentRank} on the Quanti waitlist`,
-    html: getWelcomeEmailHtml({
-      userEmail,
-      currentRank,
-      referralCode,
-      isTop500,
-    }),
-  });
+  const payload = { userEmail, currentRank, referralCode, isTop500 };
 
-  if (error) {
-    console.error("Waitlist welcome email failed", error);
+  try {
+    const { error } = await getResend().emails.send({
+      from,
+      to: userEmail,
+      replyTo: replyToAddress(from),
+      subject: getWelcomeEmailSubject(currentRank),
+      html: getWelcomeEmailHtml(payload),
+      text: getWelcomeEmailText(payload),
+    });
+
+    if (error) {
+      console.error("Waitlist welcome email failed", error);
+    }
+  } catch (emailError) {
+    console.error("Waitlist welcome email failed", emailError);
   }
 }
