@@ -3,11 +3,10 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import BadgeShowcase from "@/components/BadgeShowcase";
+import DailyFocusCard from "@/components/DailyFocusCard";
 import Footer from "@/components/Footer";
 import FounderNote from "@/components/FounderNote";
 import Hero from "@/components/Hero";
-import InteractivePreview from "@/components/InteractivePreview";
 import MirrorVsGps from "@/components/MirrorVsGps";
 import RecapFlex from "@/components/RecapFlex";
 import TrustSecurity from "@/components/TrustSecurity";
@@ -45,13 +44,11 @@ export default function Home() {
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-8">
         <Hero />
 
-        <InteractivePreview />
-
         <MirrorVsGps />
 
-        <RecapFlex />
+        <DailyFocusCard />
 
-        <BadgeShowcase />
+        <RecapFlex />
 
         <TrustSecurity />
 
