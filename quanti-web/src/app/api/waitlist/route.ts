@@ -5,12 +5,18 @@ import { signupWaitlist } from "@/lib/waitlist/service";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ success: false, error: message }, { status });
+}
+
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as {
-      email?: string;
-      referredBy?: string;
-    };
+    let body: { email?: string; referredBy?: string } = {};
+    try {
+      body = (await request.json()) as { email?: string; referredBy?: string };
+    } catch {
+      return jsonError("Enter a valid email address.", 400);
+    }
 
     const result = await signupWaitlist({
       email: body.email || "",
@@ -46,6 +52,6 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Unable to join the waitlist.";
     const status = /email|valid/i.test(message) ? 400 : 500;
     console.error("Waitlist error", error);
-    return NextResponse.json({ error: message }, { status });
+    return jsonError(message, status);
   }
 }

@@ -137,7 +137,7 @@ function WaitlistCapture() {
         body: JSON.stringify({ email: nextEmail, referredBy }),
       });
       const payload = (await response.json()) as WaitlistApiResponse;
-      if (!response.ok) {
+      if (!response.ok || payload.success === false) {
         throw new Error(payload.error || "Unable to join the waitlist.");
       }
       localStorage.setItem(
@@ -145,6 +145,8 @@ function WaitlistCapture() {
         JSON.stringify({
           email: payload.email || nextEmail,
           referralToken: payload.referralCode || "",
+          position: 1,
+          referralCount: 0,
         }),
       );
       window.dispatchEvent(new Event(SIGNUP_EVENT));
