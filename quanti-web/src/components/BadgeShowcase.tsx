@@ -373,12 +373,12 @@ export default function BadgeShowcase() {
   return (
     <section
       aria-labelledby="badge-showcase-heading"
-      className="relative mt-16 rounded-xl border border-zinc-800 bg-zinc-900/80 p-4 shadow-[0_0_20px_rgba(124,58,237,0.12)] backdrop-blur-md"
+      className="relative mt-16 rounded-xl border border-slate-800 bg-slate-950 p-4 text-slate-50 shadow-[0_0_20px_rgba(99,102,241,0.12)] backdrop-blur-md"
     >
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-violet-400">Collectibles</p>
-          <h2 id="badge-showcase-heading" className="mt-1 text-lg font-semibold tracking-tight text-[#FAFAFA]">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-indigo-300">Collectibles</p>
+          <h2 id="badge-showcase-heading" className="mt-1 text-lg font-semibold tracking-tight">
             Flip a verified badge
           </h2>
         </div>

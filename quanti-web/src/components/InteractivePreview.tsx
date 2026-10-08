@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Activity, Landmark, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, Compass, Landmark, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Preview = {
@@ -124,16 +124,39 @@ export default function InteractivePreview() {
   return (
     <section
       aria-labelledby="behind-the-ai-heading"
-      className="mt-24 rounded-3xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-[0_0_30px_rgba(124,58,237,0.12)] backdrop-blur-md md:p-8"
+      className="mt-16 rounded-3xl border border-slate-800 bg-slate-950 p-6 text-slate-50 shadow-[0_0_30px_rgba(99,102,241,0.12)] backdrop-blur-md md:p-8"
     >
+      <div className="relative mb-8 overflow-hidden rounded-3xl border border-indigo-500/25 bg-slate-900/80 p-5">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              Daily Focus Card
+            </p>
+            <h3 className="mt-3 text-lg font-semibold tracking-tight">Today's priority</h3>
+            <p className="mt-3 max-w-xl text-base leading-6 text-slate-100">
+              5.2 hrs sleep detected → Protect budget from impulse delivery spending today.
+            </p>
+            <p className="mt-2 flex items-center gap-2 text-sm text-slate-400">
+              <Compass className="h-3.5 w-3.5 text-indigo-400" />
+              Cross-domain: sleep · DoorDash · late-night spend
+            </p>
+          </div>
+          <div className="shrink-0 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Momentum</p>
+            <p className="mt-0.5 text-2xl font-bold text-emerald-200">88/100</p>
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-violet-400">Behind the AI</p>
-        <h2 id="behind-the-ai-heading" className="mt-3 text-3xl font-semibold tracking-tight text-[#FAFAFA]">
-          Ask Quanti AI Anything About Your Year
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-indigo-300">Behind the AI</p>
+        <h2 id="behind-the-ai-heading" className="mt-3 text-3xl font-semibold tracking-tight">
+          Watch the engine correlate your year
         </h2>
-        <p className="mt-3 text-sm leading-6 text-[#A1A1AA] sm:text-base">
-          Select a question below to see how Quanti synthesizes Plaid bank streams &amp; Apple HealthKit metrics in
-          real time.
+        <p className="mt-3 text-sm leading-6 text-slate-400 sm:text-base">
+          Select a question to see how Quanti synthesizes Plaid bank streams and Apple HealthKit into one directive.
         </p>
       </div>
 

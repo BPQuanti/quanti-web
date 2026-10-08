@@ -8,12 +8,14 @@ import Footer from "@/components/Footer";
 import FounderNote from "@/components/FounderNote";
 import Hero from "@/components/Hero";
 import InteractivePreview from "@/components/InteractivePreview";
+import MirrorVsGps from "@/components/MirrorVsGps";
+import RecapFlex from "@/components/RecapFlex";
 import TrustSecurity from "@/components/TrustSecurity";
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(124,58,237,0.18),_transparent_55%)]" />
+    <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden bg-slate-950 text-slate-50">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.2),_transparent_55%)]" />
 
       <motion.header
         initial={{ opacity: 0, y: -12 }}
@@ -34,7 +36,7 @@ export default function Home() {
         </Link>
         <a
           href="#waitlist"
-          className="rounded-full border border-violet-500/40 bg-zinc-900 px-4 py-2 text-sm font-medium text-[#FAFAFA] transition hover:border-violet-500 hover:shadow-[0_0_20px_rgba(124,58,237,0.35)]"
+          className="rounded-full border border-indigo-400/40 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-50 transition hover:border-indigo-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] active:scale-95"
         >
           Join Waitlist
         </a>
@@ -44,6 +46,10 @@ export default function Home() {
         <Hero />
 
         <InteractivePreview />
+
+        <MirrorVsGps />
+
+        <RecapFlex />
 
         <BadgeShowcase />
 
