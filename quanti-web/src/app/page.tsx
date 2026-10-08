@@ -56,7 +56,7 @@ export default function Home() {
             href="#waitlist"
             className="inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 px-6 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.4)] transition hover:bg-indigo-400 active:scale-95"
           >
-            Get TestFlight Access
+            Join the Exclusive Waitlist
           </a>
           <p className="mt-3 text-xs text-slate-400">First 500 waitlist members lock in $49/yr OG Founder pricing.</p>
         </section>

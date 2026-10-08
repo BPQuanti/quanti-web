@@ -2,12 +2,16 @@
 
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, CheckCircle2, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle2, Copy, Share2, Sparkles, Zap } from "lucide-react";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REF_STORAGE_KEY = "quanti_waitlist_ref";
 const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
 const SIGNUP_EVENT = "quanti-waitlist-updated";
+const SITE_URL = "https://quanti-app.com";
+const SHARE_TITLE = "Quanti - The Action-First Engine";
+const SHARE_TEXT =
+  "Check out Quanti—it connects your bank, health, and habit data to give you 1 priority action item every morning. First 500 get Founder pricing!";
 
 interface WaitlistApiResponse {
   success?: boolean;
@@ -29,6 +33,7 @@ function WaitlistCapture() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [referredBy, setReferredBy] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fromUrl = searchParams.get("ref") || searchParams.get("ref_id") || "";
@@ -82,6 +87,24 @@ function WaitlistCapture() {
     }
   }
 
+  async function shareQuanti() {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : SITE_URL;
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: shareUrl });
+        return;
+      }
+    } catch (shareError) {
+      if (shareError instanceof DOMException && shareError.name === "AbortError") {
+        return;
+      }
+    }
+
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  }
+
   if (submitted) {
     return (
       <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-4 text-left shadow-[0_0_28px_rgba(16,185,129,0.12)]">
@@ -93,6 +116,14 @@ function WaitlistCapture() {
           Lock in <span className="font-semibold text-slate-50">$49/yr OG Founder Pricing</span> when we open
           TestFlight. We'll send your invite and claim window to your inbox.
         </p>
+        <button
+          type="button"
+          onClick={() => void shareQuanti()}
+          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 text-sm font-medium text-slate-200 transition hover:bg-slate-800 active:scale-95 sm:w-auto"
+        >
+          {copied ? <Copy className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+          {copied ? "Link Copied!" : "Share Quanti"}
+        </button>
       </div>
     );
   }
@@ -119,7 +150,7 @@ function WaitlistCapture() {
           disabled={loading}
           className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-500 px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.4)] transition hover:bg-indigo-400 active:scale-95 disabled:cursor-wait disabled:opacity-70"
         >
-          {loading ? "Joining…" : "Get TestFlight Access"}
+          {loading ? "Joining…" : "Join the Exclusive Waitlist"}
           {!loading ? <ArrowRight className="h-4 w-4" /> : null}
         </button>
       </div>
