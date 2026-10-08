@@ -39,7 +39,7 @@ export default function TrustSecurity() {
       whileInView="show"
       viewport={{ once: true, amount: 0.2 }}
       transition={{ staggerChildren: 0.12 }}
-      className="mt-20 text-slate-50"
+      className="mt-16 text-slate-50"
     >
       <motion.div variants={fadeUp} className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Trust & Security</p>

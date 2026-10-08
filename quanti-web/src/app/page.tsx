@@ -8,7 +8,6 @@ import Footer from "@/components/Footer";
 import FounderNote from "@/components/FounderNote";
 import Hero from "@/components/Hero";
 import MirrorVsGps from "@/components/MirrorVsGps";
-import RecapFlex from "@/components/RecapFlex";
 import TrustSecurity from "@/components/TrustSecurity";
 
 export default function Home() {
@@ -48,11 +47,19 @@ export default function Home() {
 
         <DailyFocusCard />
 
-        <RecapFlex />
-
         <TrustSecurity />
 
         <FounderNote />
+
+        <section className="mt-16 mb-8 text-center">
+          <a
+            href="#waitlist"
+            className="inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 px-6 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.4)] transition hover:bg-indigo-400 active:scale-95"
+          >
+            Get TestFlight Access
+          </a>
+          <p className="mt-3 text-xs text-slate-400">First 500 waitlist members lock in $49/yr OG Founder pricing.</p>
+        </section>
       </main>
 
       <Footer />

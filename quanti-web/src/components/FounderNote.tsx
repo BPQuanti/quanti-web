@@ -1,7 +1,7 @@
 export default function FounderNote() {
   return (
-    <section aria-label="Founder note" className="pb-4">
-      <div className="relative mx-auto my-16 max-w-3xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center shadow-[0_0_40px_rgba(99,102,241,0.1)] backdrop-blur-md md:p-10">
+    <section aria-label="Founder note" className="mt-16">
+      <div className="relative mx-auto max-w-3xl overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/60 p-8 text-center shadow-[0_0_40px_rgba(99,102,241,0.1)] backdrop-blur-md md:p-10">
         <div className="pointer-events-none absolute -left-10 top-0 h-28 w-28 rounded-full bg-indigo-500/15 blur-3xl" />
         <p className="text-5xl font-serif leading-none text-indigo-400/50" aria-hidden>
           “
