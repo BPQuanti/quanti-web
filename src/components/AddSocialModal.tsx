@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, Check, Search, Share2, Swords, UserPlus, X } from 'lucide-react-native';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { fonts } from '../../constants/theme';
 import { useAppContext } from '../../context/AppContext';
 import { type DuelDuration, useDuels } from '../../hooks/useDuels';
@@ -121,7 +121,7 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
             <View style={styles.sheetHeader}>
               <Text style={styles.sheetTitle}>{mode === 'friend' ? 'Add a friend' : 'Create a duel'}</Text>
               <Pressable style={styles.close} onPress={onClose} accessibilityLabel="Close">
-                <X color="#94A3B8" size={18} />
+                <Ionicons name="close" color="#94A3B8" size={18} />
               </Pressable>
             </View>
 
@@ -133,7 +133,7 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
                   setNotice(null);
                 }}
               >
-                <UserPlus color={mode === 'friend' ? '#E0E7FF' : '#64748B'} size={16} />
+                <Ionicons name="person-add" color={mode === 'friend' ? '#E0E7FF' : '#64748B'} size={16} />
                 <Text style={[styles.toggleText, mode === 'friend' && styles.toggleTextOn]}>Add Friend</Text>
               </Pressable>
               <Pressable
@@ -143,14 +143,14 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
                   setNotice(null);
                 }}
               >
-                <Swords color={mode === 'duel' ? '#FFE4E6' : '#64748B'} size={16} />
+                <MaterialCommunityIcons name="sword-cross" color={mode === 'duel' ? '#FFE4E6' : '#64748B'} size={16} />
                 <Text style={[styles.toggleText, mode === 'duel' && styles.toggleTextOn]}>Create Duel</Text>
               </Pressable>
             </View>
 
             {notice ? (
               <View style={styles.banner}>
-                <Check color="#818CF8" size={16} />
+                <Ionicons name="checkmark" color="#818CF8" size={16} />
                 <Text style={styles.bannerText}>{notice}</Text>
               </View>
             ) : null}
@@ -158,7 +158,7 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
             {mode === 'friend' ? (
               <View>
                 <View style={styles.field}>
-                  <Search color="#64748B" size={16} />
+                  <Ionicons name="search" color="#64748B" size={16} />
                   <TextInput
                     value={username}
                     onChangeText={setUsername}
@@ -193,7 +193,7 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
                     <ActivityIndicator color="#E0E7FF" />
                   ) : (
                     <>
-                      <Share2 color="#E0E7FF" size={16} />
+                      <Ionicons name="share-social-outline" color="#E0E7FF" size={16} />
                       <Text style={styles.secondaryText}>Share Invite Link</Text>
                     </>
                   )}
@@ -228,7 +228,7 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
                         style={[styles.duration, selected && styles.durationOn]}
                         onPress={() => setDuration(days)}
                       >
-                        <Calendar color={selected ? '#FFE4E6' : '#64748B'} size={14} />
+                        <Ionicons name="calendar-outline" color={selected ? '#FFE4E6' : '#64748B'} size={14} />
                         <Text style={[styles.durationText, selected && styles.durationTextOn]}>{days} days</Text>
                       </Pressable>
                     );
@@ -269,7 +269,7 @@ function FriendChoice({
         <Text style={styles.friendName}>@{friend.username || 'friend'}</Text>
         <Text style={styles.friendMeta}>Momentum {friend.momentumScore}</Text>
       </View>
-      {selected ? <Check color="#818CF8" size={18} /> : null}
+      {selected ? <Ionicons name="checkmark" color="#818CF8" size={18} /> : null}
     </Pressable>
   );
 }

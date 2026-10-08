@@ -1,5 +1,5 @@
 /**
- * Mirrors supabase/migrations/20261008110600_add_friends_and_duels.sql.
+ * Mirrors the applied social and device-habit schema.
  * Replace this file after the project is linked:
  * npx supabase gen types typescript --project-id <project-id> > types/supabase.ts
  */
@@ -89,6 +89,57 @@ export type Database = {
           start_date?: string;
           end_date?: string;
           winner_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      device_habit_logs: {
+        Row: {
+          id: string;
+          user_id: string;
+          log_date: string;
+          total_screen_minutes: number | null;
+          social_minutes: number | null;
+          shopping_minutes: number | null;
+          entertainment_minutes: number | null;
+          late_night_screen_minutes: number | null;
+          phone_pickups: number | null;
+          notifications_received: number | null;
+          daylight_minutes: number | null;
+          avg_noise_exposure_db: number | null;
+          focus_mode_minutes: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          log_date?: string;
+          total_screen_minutes?: number | null;
+          social_minutes?: number | null;
+          shopping_minutes?: number | null;
+          entertainment_minutes?: number | null;
+          late_night_screen_minutes?: number | null;
+          phone_pickups?: number | null;
+          notifications_received?: number | null;
+          daylight_minutes?: number | null;
+          avg_noise_exposure_db?: number | null;
+          focus_mode_minutes?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          log_date?: string;
+          total_screen_minutes?: number | null;
+          social_minutes?: number | null;
+          shopping_minutes?: number | null;
+          entertainment_minutes?: number | null;
+          late_night_screen_minutes?: number | null;
+          phone_pickups?: number | null;
+          notifications_received?: number | null;
+          daylight_minutes?: number | null;
+          avg_noise_exposure_db?: number | null;
+          focus_mode_minutes?: number | null;
           created_at?: string;
         };
         Relationships: [];
