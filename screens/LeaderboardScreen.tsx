@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
 import { fonts } from '../constants/theme';
+import { useDuels } from '../hooks/useDuels';
+import { useFriends } from '../hooks/useFriends';
 
 type Recap = {
   id?: string;
@@ -13,17 +15,11 @@ type Recap = {
   metrics?: string[];
 };
 
-const FRIENDS = [
-  { id: 'alex', name: 'Alex V.', score: 91 },
-  { id: 'jordan', name: 'Jordan', score: 74 },
-  { id: 'sam', name: 'Sam', score: 66 },
-];
-
 const GLOBAL = [
-  { id: 'mina', name: 'Mina', score: 98 },
-  { id: 'chris', name: 'Chris', score: 95 },
-  { id: 'alex', name: 'Alex V.', score: 91 },
-  { id: 'priya', name: 'Priya', score: 88 },
+  { id: 'mina', name: 'Mina', score: 98, you: false as const },
+  { id: 'chris', name: 'Chris', score: 95, you: false as const },
+  { id: 'alex', name: 'Alex V.', score: 91, you: false as const },
+  { id: 'priya', name: 'Priya', score: 88, you: false as const },
 ];
 
 function finite(value: unknown) {
@@ -44,12 +40,24 @@ export default function LeaderboardScreen() {
     userProfile?: { name?: string | null } | null;
     stepGoal?: number;
   };
+  const { friends, loading: friendsLoading, error: friendsError } = useFriends();
+  const { duels, loading: duelsLoading, error: duelsError } = useDuels();
   const [board, setBoard] = useState<'friends' | 'global'>('friends');
   const you = yourScore(finite(healthData?.steps), finite(stepGoal) || 10000, Boolean(plaidData?.isConnected));
   const youName = String(userProfile?.name || 'You').split(/\s+/)[0] || 'You';
-  const rows = [...(board === 'friends' ? FRIENDS : GLOBAL), { id: 'you', name: youName, score: you, you: true }].sort(
+  const friendRows = [
+    { id: 'you', name: youName, score: you, you: true as const },
+    ...friends.map((friend) => ({
+      id: friend.userId,
+      name: friend.username || 'Friend',
+      score: friend.momentumScore,
+      you: false as const,
+    })),
+  ].sort((a, b) => b.score - a.score);
+  const globalRows = [...GLOBAL, { id: 'you', name: youName, score: you, you: true as const }].sort(
     (a, b) => b.score - a.score,
   );
+  const rows = board === 'friends' ? friendRows : globalRows;
   const cards = Array.isArray(recaps) ? recaps : [];
 
   return (
@@ -70,11 +78,34 @@ export default function LeaderboardScreen() {
           })}
         </View>
 
+        {board === 'friends' && friendsLoading ? <Text style={styles.meta}>Loading friends…</Text> : null}
+        {board === 'friends' && friendsError ? <Text style={styles.meta}>{friendsError}</Text> : null}
+        {board === 'friends' && !friendsLoading && friends.length === 0 && !friendsError ? (
+          <Text style={styles.meta}>No accepted friends yet.</Text>
+        ) : null}
         {rows.map((row, index) => (
-          <View key={row.id} style={[styles.rank, 'you' in row && row.you && styles.rankYou]}>
+          <View key={row.id} style={[styles.rank, row.you && styles.rankYou]}>
             <Text style={styles.place}>{index + 1}</Text>
             <Text style={styles.name}>{row.name}</Text>
             <Text style={styles.score}>{row.score}</Text>
+          </View>
+        ))}
+
+        <Text style={styles.section}>Duels</Text>
+        {duelsLoading ? <Text style={styles.meta}>Loading duels…</Text> : null}
+        {duelsError ? <Text style={styles.meta}>{duelsError}</Text> : null}
+        {!duelsLoading && duels.length === 0 && !duelsError ? (
+          <Text style={styles.meta}>No pending or active duels.</Text>
+        ) : null}
+        {duels.map((duel) => (
+          <View key={duel.id} style={styles.rank}>
+            <View style={styles.duelCopy}>
+              <Text style={styles.name}>{duel.status === 'active' ? 'Active duel' : 'Pending duel'}</Text>
+              <Text style={styles.duelDates}>
+                {duel.startDate} – {duel.endDate}
+              </Text>
+            </View>
+            <Text style={styles.score}>{duel.status}</Text>
           </View>
         ))}
 
@@ -135,6 +166,9 @@ const styles = StyleSheet.create({
   place: { width: 22, color: '#818CF8', fontFamily: fonts.bold, fontSize: 16 },
   name: { flex: 1, color: '#F8FAFC', fontFamily: fonts.semibold, fontSize: 15 },
   score: { color: '#E0E7FF', fontFamily: fonts.bold, fontSize: 16 },
+  meta: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 13, marginBottom: 10 },
+  duelCopy: { flex: 1 },
+  duelDates: { color: '#64748B', fontFamily: fonts.regular, fontSize: 12, marginTop: 2 },
   section: { color: '#94A3B8', fontFamily: fonts.semibold, fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 18, marginBottom: 10 },
   recapRow: { gap: 12, paddingRight: 8 },
   recap: {
