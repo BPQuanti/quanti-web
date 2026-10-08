@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
 import { fonts } from '../constants/theme';
+import AddSocialModal from '../src/components/AddSocialModal';
 import { useDuels } from '../hooks/useDuels';
 import { useFriends } from '../hooks/useFriends';
 
@@ -40,9 +41,10 @@ export default function LeaderboardScreen() {
     userProfile?: { name?: string | null } | null;
     stepGoal?: number;
   };
-  const { friends, loading: friendsLoading, error: friendsError } = useFriends();
-  const { duels, loading: duelsLoading, error: duelsError } = useDuels();
+  const { friends, loading: friendsLoading, error: friendsError, refresh: refreshFriends } = useFriends();
+  const { duels, loading: duelsLoading, error: duelsError, refresh: refreshDuels } = useDuels();
   const [board, setBoard] = useState<'friends' | 'global'>('friends');
+  const [modalVisible, setModalVisible] = useState(false);
   const you = yourScore(finite(healthData?.steps), finite(stepGoal) || 10000, Boolean(plaidData?.isConnected));
   const youName = String(userProfile?.name || 'You').split(/\s+/)[0] || 'You';
   const friendRows = [
@@ -63,8 +65,15 @@ export default function LeaderboardScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.kicker}>Momentum</Text>
-        <Text style={styles.title}>Leaderboard</Text>
+        <View style={styles.header}>
+          <View style={styles.headerCopy}>
+            <Text style={styles.kicker}>Momentum</Text>
+            <Text style={styles.title}>Leaderboard</Text>
+          </View>
+          <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
+            <Text style={styles.addButtonText}>Add / Duel</Text>
+          </Pressable>
+        </View>
         <Text style={styles.subtitle}>Friends and the wider board, plus this week’s recap.</Text>
 
         <View style={styles.toggle}>
@@ -126,6 +135,14 @@ export default function LeaderboardScreen() {
           )}
         </ScrollView>
       </ScrollView>
+      <AddSocialModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onChanged={() => {
+          void refreshFriends();
+          void refreshDuels();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -133,6 +150,18 @@ export default function LeaderboardScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#020617' },
   scroll: { padding: 20, paddingBottom: 36 },
+  header: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  headerCopy: { flex: 1 },
+  addButton: {
+    marginTop: 18,
+    backgroundColor: '#0F172A',
+    borderWidth: 1,
+    borderColor: '#818CF8',
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  addButtonText: { color: '#E0E7FF', fontFamily: fonts.semibold, fontSize: 13 },
   kicker: { color: '#818CF8', fontFamily: fonts.semibold, fontSize: 12, letterSpacing: 1.4, textTransform: 'uppercase' },
   title: { color: '#F8FAFC', fontFamily: fonts.bold, fontSize: 28, marginTop: 6 },
   subtitle: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 14, marginTop: 6 },
