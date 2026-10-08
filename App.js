@@ -17,7 +17,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import BootScreen from './components/BootScreen';
 import AuthScreen from './screens/AuthScreen';
-import ForMeScreen from './screens/ForMeScreen';
+import DashboardScreen from './screens/DashboardScreen';
 import ForYouScreen from './screens/ForYouScreen';
 import QuantiAiScreen from './screens/QuantiAiScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -60,7 +60,7 @@ function MainTabs() {
       >
         <Tab.Screen
           name="ForMe"
-          component={ForMeScreen}
+          component={DashboardScreen}
           options={{
             title: 'For Me',
             tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} />,
