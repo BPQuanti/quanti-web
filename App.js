@@ -11,14 +11,19 @@ import {
   Geist_700Bold,
 } from '@expo-google-fonts/geist';
 import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { AppProvider } from './context/AppContext';
 import BootScreen from './components/BootScreen';
 import AuthScreen from './screens/AuthScreen';
 import DashboardScreen from './screens/DashboardScreen';
+import TrendsScreen from './screens/TrendsScreen';
+import LeaderboardScreen from './screens/LeaderboardScreen';
+import HubScreen from './screens/HubScreen';
 import ForYouScreen from './screens/ForYouScreen';
+import ForMeScreen from './screens/ForMeScreen';
 import QuantiAiScreen from './screens/QuantiAiScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import { colors, fonts } from './screens/theme';
@@ -33,63 +38,68 @@ const navTheme = {
   colors: {
     ...DefaultTheme.colors,
     background: colors.bg,
-    card: colors.tab,
+    card: '#020617',
     text: colors.white,
     border: colors.border,
     primary: colors.tabActive,
   },
 };
 
-function TabIcon({ emoji, focused }) {
-  return <Text style={[styles.tabIcon, focused && styles.tabIconActive]}>{emoji}</Text>;
-}
+const hiddenTab = {
+  tabBarButton: () => null,
+  tabBarItemStyle: { display: 'none', width: 0, maxWidth: 0, height: 0 },
+};
 
 function MainTabs() {
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator
-        initialRouteName="ForMe"
+        initialRouteName="Focus"
         screenOptions={{
           headerShown: false,
           unmountOnBlur: false,
           tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: colors.tabActive,
-          tabBarInactiveTintColor: colors.inactive,
+          tabBarActiveTintColor: '#818CF8',
+          tabBarInactiveTintColor: '#64748B',
           tabBarLabelStyle: styles.tabLabel,
         }}
       >
         <Tab.Screen
-          name="ForMe"
+          name="Focus"
           component={DashboardScreen}
           options={{
-            title: 'For Me',
-            tabBarIcon: ({ focused }) => <TabIcon emoji="📊" focused={focused} />,
+            title: 'Focus',
+            tabBarIcon: ({ color, size }) => <Ionicons name="flash" color={color} size={size} />,
           }}
         />
         <Tab.Screen
-          name="ForYou"
-          component={ForYouScreen}
+          name="Trends"
+          component={TrendsScreen}
           options={{
-            title: 'For You',
-            tabBarIcon: ({ focused }) => <TabIcon emoji="🔥" focused={focused} />,
+            title: 'Trends',
+            tabBarIcon: ({ color, size }) => <Ionicons name="trending-up" color={color} size={size} />,
           }}
         />
         <Tab.Screen
-          name="QuantiAI"
-          component={QuantiAiScreen}
+          name="Momentum"
+          component={LeaderboardScreen}
           options={{
-            title: 'Quanti AI',
-            tabBarIcon: ({ focused }) => <TabIcon emoji="🤖" focused={focused} />,
+            title: 'Momentum',
+            tabBarIcon: ({ color, size }) => <Ionicons name="trophy" color={color} size={size} />,
           }}
         />
         <Tab.Screen
-          name="Profile"
-          component={ProfileScreen}
+          name="Hub"
+          component={HubScreen}
           options={{
-            title: 'Profile',
-            tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} />,
+            title: 'Hub',
+            tabBarIcon: ({ color, size }) => <Ionicons name="options" color={color} size={size} />,
           }}
         />
+        <Tab.Screen name="Profile" component={ProfileScreen} options={hiddenTab} />
+        <Tab.Screen name="QuantiAI" component={QuantiAiScreen} options={hiddenTab} />
+        <Tab.Screen name="ForYou" component={ForYouScreen} options={hiddenTab} />
+        <Tab.Screen name="ForMeLedger" component={ForMeScreen} options={hiddenTab} />
       </Tab.Navigator>
     </NavigationContainer>
   );
@@ -137,8 +147,8 @@ export default function App() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: colors.tab,
-    borderTopColor: colors.border,
+    backgroundColor: '#020617',
+    borderTopColor: '#1E293B',
     borderTopWidth: 1,
     height: 64,
     paddingTop: 6,
@@ -148,16 +158,5 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semibold,
     fontSize: 11,
     fontWeight: '600',
-  },
-  tabIcon: {
-    fontSize: 18,
-    color: colors.inactive,
-    opacity: 1,
-  },
-  tabIconActive: {
-    color: colors.tabActive,
-    opacity: 1,
-    textShadowColor: colors.glow,
-    textShadowRadius: 8,
   },
 });
