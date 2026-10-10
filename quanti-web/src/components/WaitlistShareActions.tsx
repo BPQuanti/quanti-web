@@ -49,7 +49,7 @@ export default function WaitlistShareActions({
           <Share2 className="h-3.5 w-3.5 text-indigo-300" />
           Share on X
         </a>
-        <a href={`sms:&body=${encodeURIComponent(message)}`} className={chip}>
+        <a href={`sms:?body=${encodeURIComponent(message)}`} className={chip}>
           <MessageCircle className="h-3.5 w-3.5 text-indigo-300" />
           iMessage
         </a>

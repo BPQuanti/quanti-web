@@ -3,14 +3,22 @@
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2, Sparkles, Zap } from "lucide-react";
+import WaitlistErrorBoundary from "@/components/WaitlistErrorBoundary";
 import WaitlistShareActions from "@/components/WaitlistShareActions";
+import {
+  REF_STORAGE_KEY,
+  SIGNUP_EVENT,
+  SIGNUP_STORAGE_KEY,
+  copyText,
+  friendlyWaitlistError,
+  parseJsonResponse,
+  readStorage,
+  writeStorage,
+} from "@/lib/waitlist/clientStorage";
 import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
 import { waitlistViralRuleCopy } from "@/lib/waitlist/rank";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const REF_STORAGE_KEY = "quanti_waitlist_ref";
-const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
-const SIGNUP_EVENT = "quanti-waitlist-updated";
 
 type SignupState = {
   email: string;
@@ -31,34 +39,34 @@ interface WaitlistApiResponse {
 
 function persistReferralCode(code: string) {
   if (code) {
-    localStorage.setItem(REF_STORAGE_KEY, code);
+    writeStorage(REF_STORAGE_KEY, code);
   }
 }
 
 function readStoredSignup(): SignupState | null {
-  try {
-    const raw = localStorage.getItem(SIGNUP_STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw) as Partial<SignupState> & { position?: number };
-    if (!parsed?.referralToken) {
-      return null;
-    }
-    return {
-      email: parsed.email || "",
-      referralToken: parsed.referralToken,
-      currentRank: parsed.currentRank ?? parsed.position ?? 0,
-      referralCount: parsed.referralCount ?? 0,
-    };
-  } catch {
+  const raw = readStorage(SIGNUP_STORAGE_KEY);
+  if (!raw) {
     return null;
   }
+  const parsed = parseJsonResponse<Partial<SignupState> & { position?: number }>(raw);
+  if (!parsed?.referralToken) {
+    return null;
+  }
+  return {
+    email: parsed.email || "",
+    referralToken: parsed.referralToken,
+    currentRank: parsed.currentRank ?? parsed.position ?? 0,
+    referralCount: parsed.referralCount ?? 0,
+  };
 }
 
 function persistSignup(signup: SignupState) {
-  localStorage.setItem(SIGNUP_STORAGE_KEY, JSON.stringify(signup));
-  window.dispatchEvent(new Event(SIGNUP_EVENT));
+  writeStorage(SIGNUP_STORAGE_KEY, JSON.stringify(signup));
+  try {
+    window.dispatchEvent(new Event(SIGNUP_EVENT));
+  } catch {
+    /* ignore */
+  }
 }
 
 function signupFromPayload(payload: WaitlistApiResponse, fallbackEmail: string): SignupState | null {
@@ -84,37 +92,41 @@ function WaitlistCapture() {
   const [signup, setSignup] = useState<SignupState | null>(null);
 
   useEffect(() => {
-    const fromUrl = searchParams.get("ref") || searchParams.get("ref_id") || "";
-    persistReferralCode(fromUrl);
-    setReferredBy(fromUrl || localStorage.getItem(REF_STORAGE_KEY) || "");
-    const stored = readStoredSignup();
-    if (stored) {
-      setSignup(stored);
-    }
-
-    async function refreshRank(existing: SignupState) {
-      if (!existing.email) {
-        return;
+    try {
+      const fromUrl = searchParams.get("ref") || searchParams.get("ref_id") || "";
+      persistReferralCode(fromUrl);
+      setReferredBy(fromUrl || readStorage(REF_STORAGE_KEY) || "");
+      const stored = readStoredSignup();
+      if (stored) {
+        setSignup(stored);
       }
-      try {
-        const response = await fetch("/api/waitlist", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: existing.email, referredBy: fromUrl }),
-        });
-        const payload = (await response.json()) as WaitlistApiResponse;
-        const next = signupFromPayload(payload, existing.email);
-        if (response.ok && payload.success !== false && next) {
-          persistSignup(next);
-          setSignup(next);
+
+      async function refreshRank(existing: SignupState) {
+        if (!existing.email) {
+          return;
         }
-      } catch {
-        /* keep cached rank if refresh fails */
+        try {
+          const response = await fetch("/api/waitlist", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: existing.email, referredBy: fromUrl }),
+          });
+          const payload = parseJsonResponse<WaitlistApiResponse>(await response.text());
+          const next = payload ? signupFromPayload(payload, existing.email) : null;
+          if (next) {
+            persistSignup(next);
+            setSignup(next);
+          }
+        } catch {
+          /* keep cached rank if refresh fails */
+        }
       }
-    }
 
-    if (stored?.email) {
-      void refreshRank(stored);
+      if (stored?.email) {
+        void refreshRank(stored);
+      }
+    } catch (bootError) {
+      console.error("Waitlist boot failed", bootError);
     }
   }, [searchParams]);
 
@@ -134,18 +146,16 @@ function WaitlistCapture() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: nextEmail, referredBy }),
       });
-      const payload = (await response.json()) as WaitlistApiResponse;
-      if (!response.ok || payload.success === false) {
-        throw new Error(payload.error || "Unable to join the waitlist.");
-      }
+      const payload = parseJsonResponse<WaitlistApiResponse>(await response.text()) || {};
       const next = signupFromPayload(payload, nextEmail);
-      if (!next) {
-        throw new Error("Unable to join the waitlist.");
+      if (next) {
+        persistSignup(next);
+        setSignup(next);
+        return;
       }
-      persistSignup(next);
-      setSignup(next);
+      setError(friendlyWaitlistError(payload.error) || "Something went wrong. Please try again.");
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Unable to join the waitlist.");
+      setError(friendlyWaitlistError(submitError instanceof Error ? submitError.message : "") || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -155,7 +165,11 @@ function WaitlistCapture() {
     if (!signup?.referralToken) {
       return;
     }
-    await navigator.clipboard.writeText(waitlistShareUrl(signup.referralToken));
+    const ok = await copyText(waitlistShareUrl(signup.referralToken));
+    if (!ok) {
+      setError("Could not copy the link. Long-press it to copy.");
+      return;
+    }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   }
@@ -172,6 +186,7 @@ function WaitlistCapture() {
         <div className="mt-4">
           <WaitlistShareActions shareUrl={shareUrl} copied={copied} onCopy={copyLink} />
         </div>
+        {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
       </div>
     );
   }
@@ -228,9 +243,11 @@ export default function Hero() {
             Quanti links Screen Time, Health, and Spending into ONE daily Focus Directive—zero manual logging required.
           </p>
           <div id="waitlist" className="mt-8 w-full max-w-lg scroll-mt-24">
-            <Suspense fallback={<div className="h-12 rounded-xl border border-slate-800 bg-slate-900/80" />}>
-              <WaitlistCapture />
-            </Suspense>
+            <WaitlistErrorBoundary>
+              <Suspense fallback={<div className="h-12 rounded-xl border border-slate-800 bg-slate-900/80" />}>
+                <WaitlistCapture />
+              </Suspense>
+            </WaitlistErrorBoundary>
           </div>
           <p className="mt-4 inline-flex max-w-lg items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1.5 text-left text-xs leading-5 text-emerald-200">
             <Sparkles className="h-3.5 w-3.5 shrink-0" />

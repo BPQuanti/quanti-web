@@ -167,13 +167,11 @@ export async function signupWaitlist(input: { email: string; referredBy?: string
     .single();
 
   if (error || !data) {
-    if (error?.code === "23505") {
-      const existingAfterConflict = await findByEmail(email);
-      if (existingAfterConflict) {
-        return toSignupResult(existingAfterConflict, false);
-      }
+    const existingAfterConflict = await findByEmail(email);
+    if (existingAfterConflict) {
+      return toSignupResult(existingAfterConflict, false);
     }
-    throw new Error(error?.message || "Unable to join the waitlist.");
+    throw new Error("Unable to join the waitlist.");
   }
 
   if (validReferrer) {

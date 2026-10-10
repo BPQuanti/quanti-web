@@ -52,8 +52,9 @@ export async function POST(request: Request) {
       isTop500: result.isTop500,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to join the waitlist.";
-    const status = /email|valid/i.test(message) ? 400 : 500;
+    const raw = error instanceof Error ? error.message : "Unable to join the waitlist.";
+    const message = /email|valid/i.test(raw) ? "Enter a valid email address." : "Something went wrong. Please try again.";
+    const status = /email|valid/i.test(raw) ? 400 : 500;
     console.error("Waitlist error", error);
     return jsonError(message, status);
   }
