@@ -7,11 +7,9 @@ import OGFoundingBadge from "@/components/OGFoundingBadge";
 import WaitlistShareActions from "@/components/WaitlistShareActions";
 import { JUMP_PER_REFERRAL, rankWaitlistPosition, waitlistViralRuleCopy } from "@/lib/waitlist/rank";
 import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
+import { REF_STORAGE_KEY, SIGNUP_EVENT, SIGNUP_STORAGE_KEY, copyText, readStorage, writeStorage } from "@/lib/waitlist/clientStorage";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const REF_STORAGE_KEY = "quanti_waitlist_ref";
-const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
-const SIGNUP_EVENT = "quanti-waitlist-updated";
 
 type SignupState = {
   email: string;
@@ -24,7 +22,7 @@ type SignupState = {
 
 function readStoredSignup(): SignupState | null {
   try {
-    const raw = localStorage.getItem(SIGNUP_STORAGE_KEY);
+    const raw = readStorage(SIGNUP_STORAGE_KEY);
     if (!raw) {
       return null;
     }
@@ -46,13 +44,17 @@ function readStoredSignup(): SignupState | null {
 }
 
 function persistSignup(signup: SignupState) {
-  localStorage.setItem(SIGNUP_STORAGE_KEY, JSON.stringify(signup));
-  window.dispatchEvent(new Event(SIGNUP_EVENT));
+  writeStorage(SIGNUP_STORAGE_KEY, JSON.stringify(signup));
+  try {
+    window.dispatchEvent(new Event(SIGNUP_EVENT));
+  } catch {
+    /* ignore */
+  }
 }
 
 function persistReferralCode(code: string) {
   if (code) {
-    localStorage.setItem(REF_STORAGE_KEY, code);
+    writeStorage(REF_STORAGE_KEY, code);
   }
 }
 
@@ -70,7 +72,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
   useEffect(() => {
     const fromUrl = searchParams.get("ref") || searchParams.get("ref_id") || "";
     persistReferralCode(fromUrl);
-    setReferredBy(fromUrl || localStorage.getItem(REF_STORAGE_KEY) || "");
+    setReferredBy(fromUrl || readStorage(REF_STORAGE_KEY) || "");
     setSignup(readStoredSignup());
 
     const sync = () => setSignup(readStoredSignup());
@@ -140,7 +142,11 @@ export default function WaitlistForm({ id }: { id?: string }) {
     if (!shareUrl) {
       return;
     }
-    await navigator.clipboard.writeText(shareUrl);
+    const ok = await copyText(shareUrl);
+    if (!ok) {
+      setError("Could not copy the link. Long-press it to copy.");
+      return;
+    }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }
