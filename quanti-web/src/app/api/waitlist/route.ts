@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     try {
       body = (await request.json()) as { email?: string; referredBy?: string };
     } catch {
-      return jsonError("Enter a valid email address.", 400);
+      return jsonError("Something went wrong. Please try again.", 400);
     }
 
     const result = await signupWaitlist({
@@ -53,8 +53,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const raw = error instanceof Error ? error.message : "Unable to join the waitlist.";
-    const message = /email|valid/i.test(raw) ? "Enter a valid email address." : "Something went wrong. Please try again.";
-    const status = /email|valid/i.test(raw) ? 400 : 500;
+    const isBadEmail = raw === "Enter a valid email address.";
+    const message = isBadEmail ? raw : "Something went wrong. Please try again.";
+    const status = isBadEmail ? 400 : 500;
     console.error("Waitlist error", error);
     return jsonError(message, status);
   }
