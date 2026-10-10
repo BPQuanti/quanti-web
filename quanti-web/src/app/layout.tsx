@@ -14,16 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti — Intelligent Financial Analytics",
-  description: "Track, analyze, and optimize your personal finances with Quanti.",
+  title: "Quanti — The GPS Engine for your day",
+  description:
+    "Stop filling out habit charts like a second job. Quanti links Screen Time, Health, and Spending into one daily Focus Directive.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti — Intelligent Financial Analytics",
-    description: "Track, analyze, and optimize your personal finances with Quanti.",
+    title: "Quanti — The GPS Engine for your day",
+    description:
+      "Stop filling out habit charts like a second job. Quanti links Screen Time, Health, and Spending into one daily Focus Directive.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -39,8 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti — Intelligent Financial Analytics",
-    description: "Track, analyze, and optimize your personal finances with Quanti.",
+    title: "Quanti — The GPS Engine for your day",
+    description:
+      "Stop filling out habit charts like a second job. Quanti links Screen Time, Health, and Spending into one daily Focus Directive.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

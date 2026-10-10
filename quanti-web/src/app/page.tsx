@@ -58,7 +58,7 @@ export default function Home() {
           >
             Join the Exclusive Waitlist
           </a>
-          <p className="mt-3 text-xs text-slate-400">First 500 waitlist members lock in $49/yr OG Founder pricing.</p>
+          <p className="mt-3 text-xs text-slate-400">OG Founder Tier: $49/yr forever before public launch at $99/yr.</p>
         </section>
       </main>
 

@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { sendWaitlistWelcomeEmail } from "@/lib/email/sendWaitlistWelcome";
+import { waitlistViralRuleCopy } from "@/lib/waitlist/rank";
 import { signupWaitlist } from "@/lib/waitlist/service";
 
 export const runtime = "nodejs";
@@ -46,6 +47,8 @@ export async function POST(request: Request) {
       currentRank: result.currentRank,
       initialPosition: result.initialPosition,
       totalJumps: result.totalJumps,
+      shareUrl: result.shareUrl,
+      positionRule: waitlistViralRuleCopy(),
       isTop500: result.isTop500,
     });
   } catch (error) {

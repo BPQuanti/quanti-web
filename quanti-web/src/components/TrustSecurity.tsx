@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Activity, Fingerprint, Landmark, ShieldCheck } from "lucide-react";
+import { Activity, Fingerprint, Landmark, Lock } from "lucide-react";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 18 },
@@ -10,23 +10,23 @@ const fadeUp = {
 
 const pillars = [
   {
-    title: "Bank-Level 256-bit Encryption",
-    body: "Financial streams are protected with AES-256 at rest and in transit. Credentials never sit on Quanti servers.",
-    icon: ShieldCheck,
+    title: "On-Device Tokenization",
+    body: "Sensitive telemetry is tokenized on-device. Raw Screen Time, health samples, and bank credentials stay local—Quanti works from summaries, not a surveillance feed.",
+    icon: Lock,
   },
   {
-    title: "Powered by Plaid",
-    body: "Read-only connections to 12,000+ institutions. Quanti never sees or stores your bank login.",
+    title: "Read-Only Financial Access",
+    body: "Plaid links are ingest-only across 12,000+ institutions. Quanti never stores your bank login, never moves money, and never sells financial data for ads.",
     icon: Landmark,
   },
   {
     title: "Apple HealthKit",
-    body: "Health metrics stay on-device first. We don't sell, broker, or ship biometric data to advertisers.",
+    body: "Health metrics stay on-device first. Biometrics are never sold, brokered, or used for advertising.",
     icon: Activity,
   },
   {
-    title: "Read-Only Biometric Access",
-    body: "HealthKit and bank links are ingest-only. Quanti can read signals to generate a directive—it cannot move money or change health records.",
+    title: "Read-Only by Design",
+    body: "HealthKit and bank links generate a directive. They cannot change health records, post on your behalf, or become an ad graph.",
     icon: Fingerprint,
   },
 ];
@@ -44,7 +44,7 @@ export default function TrustSecurity() {
       <motion.div variants={fadeUp} className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Trust & Security</p>
         <h2 id="trust-security-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Bank-grade rails. Read-only by design.
+          Tokenized on-device. Read-only. Never sold.
         </h2>
       </motion.div>
 
@@ -68,7 +68,7 @@ export default function TrustSecurity() {
         variants={fadeUp}
         className="mx-auto mt-8 w-fit max-w-full rounded-full border border-slate-800 bg-slate-900/70 px-4 py-2 text-center text-[11px] font-medium tracking-wide text-slate-400"
       >
-        256-bit encryption • Verified Plaid • HealthKit on-device • Zero data selling
+        On-device tokenization • Read-only Plaid & HealthKit • Never sold for ads
       </motion.p>
     </motion.section>
   );

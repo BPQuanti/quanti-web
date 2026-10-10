@@ -2,21 +2,30 @@
 
 import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, CheckCircle2, Copy, Share2, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle2, Sparkles, Zap } from "lucide-react";
+import WaitlistShareActions from "@/components/WaitlistShareActions";
+import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
+import { waitlistViralRuleCopy } from "@/lib/waitlist/rank";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const REF_STORAGE_KEY = "quanti_waitlist_ref";
 const SIGNUP_STORAGE_KEY = "quanti_waitlist_signup";
 const SIGNUP_EVENT = "quanti-waitlist-updated";
-const SITE_URL = "https://quanti-app.com";
-const SHARE_TITLE = "Quanti - The Action-First Engine";
-const SHARE_TEXT =
-  "Check out Quanti—it connects your bank, health, and habit data to give you 1 priority action item every morning. First 500 get Founder pricing!";
+
+type SignupState = {
+  email: string;
+  referralToken: string;
+  currentRank: number;
+  referralCount: number;
+};
 
 interface WaitlistApiResponse {
   success?: boolean;
   email?: string;
   referralCode?: string;
+  currentRank?: number;
+  initialPosition?: number;
+  referralCount?: number;
   error?: string;
 }
 
@@ -26,26 +35,86 @@ function persistReferralCode(code: string) {
   }
 }
 
+function readStoredSignup(): SignupState | null {
+  try {
+    const raw = localStorage.getItem(SIGNUP_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw) as Partial<SignupState> & { position?: number };
+    if (!parsed?.referralToken) {
+      return null;
+    }
+    return {
+      email: parsed.email || "",
+      referralToken: parsed.referralToken,
+      currentRank: parsed.currentRank ?? parsed.position ?? 0,
+      referralCount: parsed.referralCount ?? 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function persistSignup(signup: SignupState) {
+  localStorage.setItem(SIGNUP_STORAGE_KEY, JSON.stringify(signup));
+  window.dispatchEvent(new Event(SIGNUP_EVENT));
+}
+
+function signupFromPayload(payload: WaitlistApiResponse, fallbackEmail: string): SignupState | null {
+  const referralToken = payload.referralCode || "";
+  if (!referralToken) {
+    return null;
+  }
+  return {
+    email: payload.email || fallbackEmail,
+    referralToken,
+    currentRank: payload.currentRank ?? payload.initialPosition ?? 1,
+    referralCount: payload.referralCount ?? 0,
+  };
+}
+
 function WaitlistCapture() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [referredBy, setReferredBy] = useState("");
   const [copied, setCopied] = useState(false);
+  const [signup, setSignup] = useState<SignupState | null>(null);
 
   useEffect(() => {
     const fromUrl = searchParams.get("ref") || searchParams.get("ref_id") || "";
     persistReferralCode(fromUrl);
     setReferredBy(fromUrl || localStorage.getItem(REF_STORAGE_KEY) || "");
-    try {
-      const raw = localStorage.getItem(SIGNUP_STORAGE_KEY);
-      if (raw && JSON.parse(raw)?.referralToken) {
-        setSubmitted(true);
+    const stored = readStoredSignup();
+    if (stored) {
+      setSignup(stored);
+    }
+
+    async function refreshRank(existing: SignupState) {
+      if (!existing.email) {
+        return;
       }
-    } catch {
-      /* ignore */
+      try {
+        const response = await fetch("/api/waitlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: existing.email, referredBy: fromUrl }),
+        });
+        const payload = (await response.json()) as WaitlistApiResponse;
+        const next = signupFromPayload(payload, existing.email);
+        if (response.ok && payload.success !== false && next) {
+          persistSignup(next);
+          setSignup(next);
+        }
+      } catch {
+        /* keep cached rank if refresh fails */
+      }
+    }
+
+    if (stored?.email) {
+      void refreshRank(stored);
     }
   }, [searchParams]);
 
@@ -69,17 +138,12 @@ function WaitlistCapture() {
       if (!response.ok || payload.success === false) {
         throw new Error(payload.error || "Unable to join the waitlist.");
       }
-      localStorage.setItem(
-        SIGNUP_STORAGE_KEY,
-        JSON.stringify({
-          email: payload.email || nextEmail,
-          referralToken: payload.referralCode || "",
-          position: 1,
-          referralCount: 0,
-        }),
-      );
-      window.dispatchEvent(new Event(SIGNUP_EVENT));
-      setSubmitted(true);
+      const next = signupFromPayload(payload, nextEmail);
+      if (!next) {
+        throw new Error("Unable to join the waitlist.");
+      }
+      persistSignup(next);
+      setSignup(next);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Unable to join the waitlist.");
     } finally {
@@ -87,43 +151,27 @@ function WaitlistCapture() {
     }
   }
 
-  async function shareQuanti() {
-    const shareUrl = typeof window !== "undefined" ? window.location.href : SITE_URL;
-    try {
-      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-        await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: shareUrl });
-        return;
-      }
-    } catch (shareError) {
-      if (shareError instanceof DOMException && shareError.name === "AbortError") {
-        return;
-      }
+  async function copyLink() {
+    if (!signup?.referralToken) {
+      return;
     }
-
-    await navigator.clipboard.writeText(shareUrl);
+    await navigator.clipboard.writeText(waitlistShareUrl(signup.referralToken));
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   }
 
-  if (submitted) {
+  if (signup) {
+    const shareUrl = waitlistShareUrl(signup.referralToken);
     return (
       <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-4 text-left shadow-[0_0_28px_rgba(16,185,129,0.12)]">
         <p className="flex items-center gap-2 text-sm font-semibold text-emerald-200">
           <CheckCircle2 className="h-4 w-4" />
-          You're on the list.
+          You are #{signup.currentRank} on the waitlist.
         </p>
-        <p className="mt-2 text-sm leading-6 text-slate-300">
-          Lock in <span className="font-semibold text-slate-50">$49/yr OG Founder Pricing</span> when we open
-          TestFlight. We'll send your invite and claim window to your inbox.
-        </p>
-        <button
-          type="button"
-          onClick={() => void shareQuanti()}
-          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-800 bg-slate-900 px-4 text-sm font-medium text-slate-200 transition hover:bg-slate-800 active:scale-95 sm:w-auto"
-        >
-          {copied ? <Copy className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-          {copied ? "Link Copied!" : "Share Quanti"}
-        </button>
+        <p className="mt-2 text-sm leading-6 text-slate-300">{waitlistViralRuleCopy()}</p>
+        <div className="mt-4">
+          <WaitlistShareActions shareUrl={shareUrl} copied={copied} onCopy={copyLink} />
+        </div>
       </div>
     );
   }
@@ -168,17 +216,16 @@ export default function Hero() {
       <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center">
           <p className="mb-5 inline-flex items-center gap-1.5 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-indigo-300">
             <Zap className="h-3.5 w-3.5" />
-            The Action-First Engine
+            The GPS Engine
           </p>
           <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-50 sm:text-5xl sm:leading-[1.08] lg:text-6xl">
-            Stop staring at charts.{" "}
+            Stop filling out habit charts like a second job.{" "}
             <span className="bg-gradient-to-r from-indigo-300 via-violet-300 to-cyan-300 bg-clip-text text-transparent">
-              Start making the right moves.
+              Let telemetry navigate your day.
             </span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
-            Quanti connects your bank, health, and habit data into 1 daily priority action every morning. No data
-            fatigue—just clarity and real momentum.
+            Quanti links Screen Time, Health, and Spending into ONE daily Focus Directive—zero manual logging required.
           </p>
           <div id="waitlist" className="mt-8 w-full max-w-lg scroll-mt-24">
             <Suspense fallback={<div className="h-12 rounded-xl border border-slate-800 bg-slate-900/80" />}>
@@ -187,7 +234,7 @@ export default function Hero() {
           </div>
           <p className="mt-4 inline-flex max-w-lg items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-500/10 px-3 py-1.5 text-left text-xs leading-5 text-emerald-200">
             <Sparkles className="h-3.5 w-3.5 shrink-0" />
-            First 500 waitlist members lock in $49/yr OG Founder pricing.
+            OG Founder Tier: lock $49/yr forever before public launch at $99/yr.
           </p>
       </div>
     </section>

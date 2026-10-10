@@ -7,9 +7,8 @@ export default function FounderNote() {
           “
         </p>
         <blockquote className="mt-2 text-xl font-medium leading-relaxed tracking-tight text-slate-50 md:text-2xl">
-          You generate millions of data points every year across your health, spend, and habits—and drowning in raw
-          charts won&apos;t help you build a better life. Quanti turns that noise into one clear, high-leverage move
-          every single morning.
+          Self-improvement shouldn&apos;t be a second job. You already generate the telemetry—Screen Time, health,
+          spend. Quanti turns that noise into one high-leverage move every morning, without another checkbox.
         </blockquote>
         <p className="mt-5 font-mono text-sm uppercase tracking-wider text-slate-400">— Brian, Founder @ Quanti</p>
       </div>
