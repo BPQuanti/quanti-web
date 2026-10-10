@@ -3,15 +3,37 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 let browserClient: SupabaseClient | null = null;
 let adminClient: SupabaseClient | null = null;
 
-function resolveSupabaseUrl() {
-  let url = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
-  url = url.replace(/^['"]+|['"]+$/g, "");
-  url = url.replace(/\/+$/, "");
-  url = url.replace(/\/rest\/v1.*$/i, "");
-  url = url.replace(/\/auth\/v1.*$/i, "");
-  url = url.replace(/\/graphql\/v1.*$/i, "");
-  url = url.replace(/\/storage\/v1.*$/i, "");
-  return url || "https://placeholder.supabase.co";
+export function resolveSupabaseUrl() {
+  let raw = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "").trim();
+  raw = raw.replace(/^['"]+|['"]+$/g, "").split(/\s+/)[0] || "";
+  if (!raw) {
+    return "https://placeholder.supabase.co";
+  }
+
+  if (/^[a-z0-9]{15,}$/i.test(raw) && !raw.includes(".")) {
+    return `https://${raw}.supabase.co`;
+  }
+
+  if (!/^https?:\/\//i.test(raw)) {
+    raw = `https://${raw}`;
+  }
+
+  try {
+    const parsed = new URL(raw);
+    const dashboard = parsed.pathname.match(/\/project\/([a-z0-9]+)/i);
+    if (parsed.hostname.endsWith("supabase.com") && dashboard?.[1]) {
+      return `https://${dashboard[1]}.supabase.co`;
+    }
+
+    let host = parsed.hostname.replace(/^db\./i, "");
+    if (host.endsWith(".supabase.co") || host.endsWith(".supabase.net")) {
+      return `https://${host}`;
+    }
+
+    return parsed.origin.replace(/\/+$/, "");
+  } catch {
+    return raw.replace(/\/rest\/v1.*$/i, "").replace(/\/+$/, "") || "https://placeholder.supabase.co";
+  }
 }
 
 export function getSupabase(): SupabaseClient {

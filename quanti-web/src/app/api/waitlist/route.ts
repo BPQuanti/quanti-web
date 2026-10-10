@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { sendWaitlistWelcomeEmail } from "@/lib/email/sendWaitlistWelcome";
+import { resolveSupabaseUrl } from "@/lib/supabase";
 import { waitlistViralRuleCopy } from "@/lib/waitlist/rank";
 import { signupWaitlist } from "@/lib/waitlist/service";
 
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     const isBadEmail = raw === "Enter a valid email address.";
     const message = isBadEmail ? raw : "Something went wrong. Please try again.";
     const status = isBadEmail ? 400 : 500;
-    console.error("Waitlist error", error);
+    console.error("Waitlist error", error, { supabaseHost: resolveSupabaseUrl() });
     return jsonError(message, status);
   }
 }
