@@ -49,6 +49,7 @@ export function getWelcomeEmailHtml({
                 <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#e4e4e7;">
                   Thanks for joining, ${escapeHtml(userEmail)}. Your official waitlist position is
                   <strong style="color:#ffffff;">#${spot}</strong>.
+                  Every friend who signs up with your link moves you up 20 spots.
                 </p>
 
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 20px;">
@@ -96,6 +97,9 @@ export function getWelcomeEmailHtml({
                   </tr>
                 </table>
 
+                <p style="margin:0 0 8px;font-size:14px;line-height:1.7;color:#d4d4d8;">
+                  Share your unique link: every friend who signs up moves you up <strong style="color:#ffffff;">20 spots</strong>.
+                </p>
                 <p style="margin:0 0 8px;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8b5cf6;">Share your unique link</p>
                 <p style="margin:0 0 16px;padding:14px 16px;background-color:#0a0a0a;border:1px solid #3f3f46;border-radius:12px;font-size:13px;line-height:1.5;color:#ffffff;word-break:break-all;">
                   ${escapeHtml(referralUrl)}
@@ -139,6 +143,7 @@ export function getWelcomeEmailText({
 
   return [
     `Thanks for joining, ${userEmail}. Your official waitlist position is #${currentRank}.`,
+    "Share your unique link: every friend who signs up moves you up 20 spots.",
     "",
     "Most apps are a Mirror: they show you charts of the past and leave you to guess what to do next.",
     "Quanti is a GPS: one daily directive from your money, health, and habits so you always know the next right move.",
@@ -153,6 +158,9 @@ export function getWelcomeEmailText({
     'Want TestFlight? Reply to this email with "BETA" if you want to join the first 500 TestFlight testers.',
     "",
     `Share your unique link: ${referralUrl}`,
+    "",
+    "Privacy Policy: https://quanti-app.com/privacy",
+    "Terms of Service: https://quanti-app.com/terms",
     "",
     "quanti-app.com",
   ].join("\n");

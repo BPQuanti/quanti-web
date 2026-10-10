@@ -1,6 +1,7 @@
 import { randomInt } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabase";
 import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
+import { rankWaitlistPosition } from "@/lib/waitlist/rank";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -56,13 +57,12 @@ export function isValidEmail(email: string) {
 }
 
 export function calculateWaitlistStatus(initialPosition: number, referralCount: number) {
-  const totalJumps = Math.floor(referralCount / 3) * 50;
-  const currentRank = Math.max(1, initialPosition - totalJumps);
+  const status = rankWaitlistPosition(initialPosition, referralCount);
   return {
-    totalJumps,
-    currentRank,
-    isTop500: currentRank <= 500,
-    progressToNextJump: referralCount % 3,
+    totalJumps: status.totalJumps,
+    currentRank: status.currentRank,
+    isTop500: status.isTop500,
+    progressToNextJump: status.progressToNextJump,
   };
 }
 

@@ -11,7 +11,7 @@ export default function DailyFocusCard() {
           One card. One move.
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          Quanti correlates sleep, spend, and habits into a single morning directive—not another dashboard.
+          Sleep, Screen Time, and spend become one morning directive—no habit charts, no homework.
         </p>
       </div>
 
