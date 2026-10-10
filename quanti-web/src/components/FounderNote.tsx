@@ -7,8 +7,9 @@ export default function FounderNote() {
           “
         </p>
         <blockquote className="mt-2 text-xl font-medium leading-relaxed tracking-tight text-slate-50 md:text-2xl">
-          Self-improvement shouldn&apos;t be a second job. You already generate the telemetry—Screen Time, health,
-          spend. Quanti turns that noise into one high-leverage move every morning, without another checkbox.
+          Your digital footprint already holds the answers to your focus. Quanti continuously connects those signals
+          in the background—transforming daily noise into a single clear direction, so you can execute without the
+          overhead.
         </blockquote>
         <p className="mt-5 font-mono text-sm uppercase tracking-wider text-slate-400">— Brian, Founder @ Quanti</p>
       </div>
