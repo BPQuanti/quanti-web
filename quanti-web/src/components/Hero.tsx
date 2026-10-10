@@ -9,6 +9,7 @@ import {
   REF_STORAGE_KEY,
   SIGNUP_EVENT,
   SIGNUP_STORAGE_KEY,
+  clearStorage,
   copyText,
   friendlyWaitlistError,
   parseJsonResponse,
@@ -174,6 +175,14 @@ function WaitlistCapture() {
     window.setTimeout(() => setCopied(false), 1800);
   }
 
+  function startOver() {
+    clearStorage(SIGNUP_STORAGE_KEY);
+    setSignup(null);
+    setEmail("");
+    setError("");
+    setCopied(false);
+  }
+
   if (signup) {
     const shareUrl = waitlistShareUrl(signup.referralToken);
     return (
@@ -187,6 +196,13 @@ function WaitlistCapture() {
           <WaitlistShareActions shareUrl={shareUrl} copied={copied} onCopy={copyLink} />
         </div>
         {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
+        <button
+          type="button"
+          onClick={startOver}
+          className="mt-3 text-xs text-slate-500 underline-offset-2 transition hover:text-slate-300 hover:underline"
+        >
+          Use a different email
+        </button>
       </div>
     );
   }

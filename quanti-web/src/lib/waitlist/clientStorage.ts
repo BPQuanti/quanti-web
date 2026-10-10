@@ -19,6 +19,14 @@ export function writeStorage(key: string, value: string) {
   }
 }
 
+export function clearStorage(key: string) {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
 export async function copyText(value: string) {
   try {
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
