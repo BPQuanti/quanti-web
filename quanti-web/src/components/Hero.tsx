@@ -200,6 +200,9 @@ function WaitlistCapture() {
           <WaitlistShareActions shareUrl={shareUrl} copied={copied} onCopy={copyLink} />
         </div>
         {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
+        <p className="mt-3 text-xs leading-5 text-slate-500">
+          We sent a confirmation to your inbox. If you don&apos;t see it, check Promotions or Spam.
+        </p>
         <button
           type="button"
           onClick={startOver}
