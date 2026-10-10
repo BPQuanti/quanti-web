@@ -49,7 +49,11 @@ function rowToUser(row: WaitlistUserRow): WaitlistUser {
 }
 
 export function sanitizeEmail(value: string) {
-  return String(value || "").trim().toLowerCase();
+  return String(value || "")
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .trim()
+    .toLowerCase();
 }
 
 export function isValidEmail(email: string) {

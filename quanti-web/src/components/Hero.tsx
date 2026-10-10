@@ -134,7 +134,11 @@ function WaitlistCapture() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    const nextEmail = email.trim().toLowerCase();
+    const nextEmail = email
+      .normalize("NFKC")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim()
+      .toLowerCase();
     if (!EMAIL_PATTERN.test(nextEmail)) {
       setError("Enter a valid email address.");
       return;
