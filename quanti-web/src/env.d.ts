@@ -6,5 +6,9 @@ declare namespace NodeJS {
     SUPABASE_SERVICE_ROLE_KEY?: string;
     RESEND_API_KEY?: string;
     WAITLIST_FROM_EMAIL?: string;
+    CRON_SECRET?: string;
+    XAI_API_KEY?: string;
+    GROK_API_KEY?: string;
+    XAI_MODEL?: string;
   }
 }
