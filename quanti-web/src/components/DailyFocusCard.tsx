@@ -1,8 +1,16 @@
-"use client";
+import { Activity, Clock, Landmark, Moon } from "lucide-react";
 
-import { Compass, Sparkles } from "lucide-react";
+const PROTOCOL = [
+  "Limit high-cognitive work to a 9:30 AM – 11:30 AM deep work window.",
+  "Hard cutoff for caffeine at 12:00 PM.",
+  "Schedule a 20-minute NSDR (Non-Sleep Deep Rest) session at 2:00 PM to offset circadian lag.",
+];
 
-const DIRECTIVE = "5.2 hrs sleep detected → Protect budget from impulse delivery spending today.";
+const SOURCES = [
+  { label: "HealthKit", detail: "HRV: 32ms | -38%", icon: Activity },
+  { label: "Screen Time", detail: "1h 20m after 1 AM", icon: Clock },
+  { label: "Plaid", detail: "$34.50 Late-Night Order", icon: Landmark },
+];
 
 function LockScreenWidget() {
   return (
@@ -16,17 +24,21 @@ function LockScreenWidget() {
           <p className="text-center text-[44px] font-semibold leading-none tracking-tight text-slate-50">9:41</p>
 
           <div className="mt-6 rounded-[22px] border border-white/10 bg-slate-900/75 p-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Quanti · Focus</p>
-              <p className="text-[9px] font-semibold text-emerald-300">1,240</p>
+              <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wide text-amber-200">
+                Recovery
+              </span>
             </div>
-            <p className="mt-2 text-[13px] font-semibold leading-snug text-slate-50">Protect the budget today</p>
+            <p className="mt-2 text-[13px] font-semibold leading-snug text-slate-50">Circadian Phase Delay</p>
             <p className="mt-1.5 text-[10px] leading-4 text-slate-400">
-              5.2h sleep · skip impulse delivery orders
+              Melatonin delayed 2.2h · deep sleep −55%
             </p>
-            <div className="mt-2.5 flex items-center justify-between">
-              <p className="text-[9px] text-slate-500">14-day streak · +24 tomorrow</p>
-              <span className="rounded-full bg-indigo-500 px-2 py-0.5 text-[8px] font-semibold text-white">Do this</span>
+            <div className="mt-2.5 flex items-center justify-between gap-2">
+              <p className="text-[9px] leading-3 text-slate-500">NSDR at 2:00 PM · caffeine cutoff 12 PM</p>
+              <span className="shrink-0 rounded-full bg-indigo-500 px-2 py-0.5 text-[8px] font-semibold text-white">
+                Do this
+              </span>
             </div>
           </div>
 
@@ -46,37 +58,59 @@ export default function DailyFocusCard() {
           One card. One move. On your Lock Screen.
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          Sleep, Screen Time, and spend become one morning directive—delivered as an iPhone widget, not another dashboard.
+          HealthKit, Screen Time, and Plaid become one morning directive—delivered as an iPhone widget, not another
+          dashboard.
         </p>
       </div>
 
-      <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_auto]">
-        <div className="relative overflow-hidden rounded-3xl border border-indigo-500/25 bg-slate-900/80 p-6 shadow-[0_0_48px_rgba(99,102,241,0.16)]">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-indigo-500/20 blur-3xl" />
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
-                <Sparkles className="h-3.5 w-3.5" />
-                Daily Focus Card
-              </p>
-              <h3 className="mt-3 text-lg font-semibold tracking-tight">Today&apos;s priority</h3>
-              <p className="mt-3 max-w-xl text-base leading-7 text-slate-100">{DIRECTIVE}</p>
-              <p className="mt-2 flex items-center gap-2 text-sm text-slate-400">
-                <Compass className="h-3.5 w-3.5 text-indigo-400" />
-                Cross-domain: sleep · spending · late-night orders
-              </p>
-            </div>
-            <div className="shrink-0 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Momentum</p>
-              <p className="mt-0.5 text-2xl font-bold tabular-nums text-emerald-200">1,240</p>
-              <p className="mt-1 text-[10px] leading-4 text-emerald-100/80">uncapped</p>
-            </div>
+      <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_auto]">
+        <article className="relative overflow-hidden rounded-3xl border border-indigo-500/25 bg-slate-900/80 p-5 shadow-[0_0_48px_rgba(99,102,241,0.16)] sm:p-6">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-amber-500/10 blur-3xl" />
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-200">
+              <Moon className="h-3.5 w-3.5" strokeWidth={1.75} />
+              RECOVERY DEFICIT DETECTED
+            </span>
           </div>
-          <p className="mt-5 text-xs leading-5 text-slate-500">
-            Streak 14 · next day +24. Completing the directive compounds your score with no ceiling—misses decay it,
-            the way real momentum works.
+
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {SOURCES.map((source) => {
+              const Icon = source.icon;
+              return (
+                <li
+                  key={source.label}
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-700 bg-slate-950/70 px-2.5 py-1 text-[11px] font-medium text-slate-300"
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0 text-indigo-300" strokeWidth={1.75} />
+                  <span className="text-slate-200">{source.label}</span>
+                  <span className="text-slate-500">·</span>
+                  <span className="truncate text-slate-400">{source.detail}</span>
+                </li>
+              );
+            })}
+          </ul>
+
+          <h3 className="mt-5 text-xl font-semibold tracking-tight sm:text-2xl">Circadian Phase Delay</h3>
+          <p className="mt-3 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+            Late-night digestive load combined with high-arousal screen exposure delayed melatonin synthesis by 2.2
+            hours, reducing deep sleep by 55%.
           </p>
-        </div>
+
+          <div className="mt-6 rounded-2xl border border-indigo-400/30 bg-indigo-500/10 p-4 sm:p-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
+              Recommended Protocol for Today
+            </p>
+            <ul className="mt-3 space-y-2.5">
+              {PROTOCOL.map((item) => (
+                <li key={item} className="flex gap-2.5 text-sm leading-6 text-slate-100">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-300" aria-hidden />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </article>
 
         <div className="flex flex-col items-center">
           <LockScreenWidget />
