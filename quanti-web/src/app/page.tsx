@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import FounderNote from "@/components/FounderNote";
 import Hero from "@/components/Hero";
 import MirrorVsGps from "@/components/MirrorVsGps";
+import PrivacyPipeline from "@/components/PrivacyPipeline";
 import TrustSecurity from "@/components/TrustSecurity";
 
 export default function Home() {
@@ -46,6 +47,8 @@ export default function Home() {
         <MirrorVsGps />
 
         <DailyFocusCard />
+
+        <PrivacyPipeline />
 
         <TrustSecurity />
 
