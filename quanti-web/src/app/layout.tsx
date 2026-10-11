@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti — The GPS Engine for your day",
+  title: "Quanti — Find the late-night habit destroying your morning focus",
   description:
-    "Stop filling out habit charts like a second job. Quanti links Screen Time, Health, and Spending into one daily Focus Directive.",
+    "Quanti passively correlates HealthKit, Screen Time, and Plaid into a single daily action. Zero manual logging.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti — The GPS Engine for your day",
+    title: "Quanti — Find the late-night habit destroying your morning focus",
     description:
-      "Stop filling out habit charts like a second job. Quanti links Screen Time, Health, and Spending into one daily Focus Directive.",
+      "Quanti passively correlates HealthKit, Screen Time, and Plaid into a single daily action. Zero manual logging.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti — The GPS Engine for your day",
+    title: "Quanti — Find the late-night habit destroying your morning focus",
     description:
-      "Stop filling out habit charts like a second job. Quanti links Screen Time, Health, and Spending into one daily Focus Directive.",
+      "Quanti passively correlates HealthKit, Screen Time, and Plaid into a single daily action. Zero manual logging.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

@@ -3,13 +3,12 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import DailyFocusCard from "@/components/DailyFocusCard";
+import ArchitectureBanner from "@/components/ArchitectureBanner";
+import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
-import FounderNote from "@/components/FounderNote";
+import FooterCta from "@/components/FooterCta";
 import Hero from "@/components/Hero";
-import MirrorVsGps from "@/components/MirrorVsGps";
-import PrivacyPipeline from "@/components/PrivacyPipeline";
-import TrustSecurity from "@/components/TrustSecurity";
+import HowItWorks from "@/components/HowItWorks";
 
 export default function Home() {
   return (
@@ -35,37 +34,28 @@ export default function Home() {
         </Link>
         <a
           href="#waitlist"
-          className="rounded-full border border-indigo-400/40 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-50 transition hover:border-indigo-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] active:scale-95"
+          className="rounded-full border border-indigo-400/40 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-50 transition hover:border-indigo-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] active:scale-95 sm:px-4 sm:text-sm"
         >
-          Join Waitlist
+          Request Early Access
         </a>
       </motion.header>
 
-      <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-8">
+      <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
-
-        <MirrorVsGps />
-
-        <DailyFocusCard />
-
-        <PrivacyPipeline />
-
-        <TrustSecurity />
-
-        <FounderNote />
-
-        <section className="mt-16 mb-8 text-center">
-          <a
-            href="#waitlist"
-            className="inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 px-6 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.4)] transition hover:bg-indigo-400 active:scale-95"
-          >
-            Join the Exclusive Waitlist
-          </a>
-          <p className="mt-3 text-xs text-slate-400">OG Founder Tier: $49/yr forever before public launch at $99/yr.</p>
-        </section>
+        <ArchitectureBanner />
+        <HowItWorks />
+        <Faq />
+        <FooterCta />
       </main>
 
       <Footer />
+
+      <a
+        href="#waitlist"
+        className="fixed inset-x-4 bottom-4 z-30 inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 text-sm font-semibold text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] lg:hidden"
+      >
+        Request Early Access
+      </a>
     </div>
   );
 }
