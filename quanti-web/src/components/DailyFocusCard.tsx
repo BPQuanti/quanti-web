@@ -26,20 +26,12 @@ function LockScreenWidget() {
           <div className="mt-6 rounded-[22px] border border-white/10 bg-slate-900/75 p-3.5 shadow-[0_8px_32px_rgba(0,0,0,0.35)] backdrop-blur-xl">
             <div className="flex items-center justify-between gap-2">
               <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Quanti · Focus</p>
-              <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-1.5 py-0.5 text-[7px] font-semibold uppercase tracking-wide text-amber-200">
-                Recovery
-              </span>
+              <p className="text-[9px] font-semibold tabular-nums text-emerald-300">1,240</p>
             </div>
-            <p className="mt-2 text-[13px] font-semibold leading-snug text-slate-50">Circadian Phase Delay</p>
+            <p className="mt-2 text-[13px] font-semibold leading-snug text-slate-50">NSDR at 2:00 PM</p>
             <p className="mt-1.5 text-[10px] leading-4 text-slate-400">
-              Melatonin delayed 2.2h · deep sleep −55%
+              20-minute Non-Sleep Deep Rest to offset last night
             </p>
-            <div className="mt-2.5 flex items-center justify-between gap-2">
-              <p className="text-[9px] leading-3 text-slate-500">NSDR at 2:00 PM · caffeine cutoff 12 PM</p>
-              <span className="shrink-0 rounded-full bg-indigo-500 px-2 py-0.5 text-[8px] font-semibold text-white">
-                Do this
-              </span>
-            </div>
           </div>
 
           <div className="mx-auto mt-8 h-1 w-24 rounded-full bg-white/25" />
@@ -67,11 +59,16 @@ export default function DailyFocusCard() {
         <article className="relative overflow-hidden rounded-3xl border border-indigo-500/25 bg-slate-900/80 p-5 shadow-[0_0_48px_rgba(99,102,241,0.16)] sm:p-6">
           <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-amber-500/10 blur-3xl" />
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-amber-200">
-              <Moon className="h-3.5 w-3.5" strokeWidth={1.75} />
-              RECOVERY DEFICIT DETECTED
+          <div className="flex items-start justify-between gap-3">
+            <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-amber-400/35 bg-amber-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-amber-200 sm:px-3 sm:text-[11px] sm:tracking-[0.14em]">
+              <Moon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
+              <span className="whitespace-nowrap leading-tight">RECOVERY DEFICIT DETECTED</span>
             </span>
+            <div className="shrink-0 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-center">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Momentum</p>
+              <p className="mt-0.5 text-2xl font-bold tabular-nums text-emerald-200">1,240</p>
+              <p className="mt-1 text-[10px] leading-4 text-emerald-100/80">uncapped</p>
+            </div>
           </div>
 
           <ul className="mt-4 flex flex-wrap gap-2">
@@ -115,7 +112,7 @@ export default function DailyFocusCard() {
         <div className="flex flex-col items-center">
           <LockScreenWidget />
           <p className="mt-4 max-w-[240px] text-center text-xs leading-5 text-slate-500">
-            The same Focus Directive, as a Lock Screen widget—one tap, before you open another app.
+            Today&apos;s move on the Lock Screen. Open the app for the pattern behind it.
           </p>
         </div>
       </div>
