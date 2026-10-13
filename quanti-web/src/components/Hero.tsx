@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Lock } from "lucide-react";
 import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
-import TraceSignalCard from "@/components/TraceSignalCard";
 import WaitlistCapture from "@/components/WaitlistCapture";
 
 export default function Hero() {
@@ -57,10 +56,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5">
-          <IPhoneFocusFrame arc={arc} onArcChange={setArc} />
-          <TraceSignalCard />
-        </div>
+        <IPhoneFocusFrame arc={arc} />
       </div>
     </section>
   );
