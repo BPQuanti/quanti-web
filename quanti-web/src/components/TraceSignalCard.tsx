@@ -18,9 +18,9 @@ const ARC_TRACES: Record<
     label: "Recovery",
     directive: "Restrict Slack & high-stimulus inputs after 8:30 PM. Target HRV recovery peak.",
     signals: [
+      "HealthKit: HRV down 18% vs 7-day baseline",
       "Screen Time: Slack + social after 10:12 PM",
-      "HealthKit Response: HRV down 18% vs 7-day baseline",
-      "Deep Sleep Impact: −22% reduction",
+      "Plaid: Late checkout after the recovery window",
     ],
     impact: "Protecting tonight's HRV peak by cutting high-stimulus inputs before the recovery window.",
   },
@@ -28,9 +28,9 @@ const ARC_TRACES: Record<
     label: "Deep Work",
     directive: "Shift last caloric intake 45 mins earlier → Reclaim 15ms HRV | Cap caffeine at 11:30 AM",
     signals: [
-      "Plaid Signal: Late delivery ($45.80 at 10:15 PM)",
-      "HealthKit Response: Delayed core cooling by 2.1 hrs",
-      "Deep Sleep Impact: −35% reduction",
+      "HealthKit: Delayed core cooling by 2.1 hrs",
+      "Plaid: Late delivery ($45.80 at 10:15 PM)",
+      "Screen Time: High-stimulus apps after 10:00 PM",
     ],
     impact: "Protecting tomorrow's 9:00 AM flow state window by preventing circadian drift tonight.",
   },
@@ -38,9 +38,9 @@ const ARC_TRACES: Record<
     label: "Capital",
     directive: "Block impulse delivery spend after 9:00 PM. Route surplus to the 9:00 AM decision window.",
     signals: [
-      "Plaid Signal: Impulse delivery ($45.80 at 10:15 PM)",
+      "Plaid: Impulse delivery ($45.80 at 10:15 PM)",
       "Screen Time: Checkout flows after 9:40 PM",
-      "HealthKit Response: Late arousal delayed sleep onset",
+      "HealthKit: Late arousal delayed sleep onset",
     ],
     impact: "Keeping surplus capital aligned with tomorrow's 9:00 AM decision window instead of late-night spend.",
   },
@@ -49,9 +49,10 @@ const ARC_TRACES: Record<
 type TraceSignalCardProps = {
   arc?: FocusArcId;
   compact?: boolean;
+  dateLabel?: string;
 };
 
-export default function TraceSignalCard({ arc = "deep-work", compact = false }: TraceSignalCardProps) {
+export default function TraceSignalCard({ arc = "deep-work", compact = false, dateLabel = "Oct 12" }: TraceSignalCardProps) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const scene = ARC_TRACES[arc];
@@ -64,12 +65,12 @@ export default function TraceSignalCard({ arc = "deep-work", compact = false }: 
     >
       {compact ? (
         <div className="font-mono font-semibold uppercase tracking-[0.12em] text-indigo-300">
-          <p className="text-[9px] leading-4">Daily Focus Card // Oct 12</p>
+          <p className="text-[9px] leading-4">Daily Focus Card // {dateLabel}</p>
           <p className="mt-0.5 text-[9px] leading-4">Active Arc: {scene.label}</p>
         </div>
       ) : (
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-300">
-          Daily Focus Card // Oct 12 • Active Arc: {scene.label}
+          Daily Focus Card // {dateLabel} • Active Arc: {scene.label}
         </p>
       )}
       <p

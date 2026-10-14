@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useState, type PointerEvent } from "react";
 import TraceSignalCard from "@/components/TraceSignalCard";
 
 export type FocusArcId = "recovery" | "deep-work" | "capital";
@@ -13,10 +13,31 @@ export const ARC_OPTIONS: { id: FocusArcId; label: string; glyph: string }[] = [
 
 type IPhoneFocusFrameProps = {
   arc: FocusArcId;
+  onArcChange?: (arc: FocusArcId) => void;
 };
 
-export default function IPhoneFocusFrame({ arc }: IPhoneFocusFrameProps) {
+function formatLockscreenDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
+function formatLockscreenTime(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+export default function IPhoneFocusFrame({ arc, onArcChange }: IPhoneFocusFrameProps) {
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   const handlePointerMove = useCallback((event: PointerEvent<HTMLDivElement>) => {
     if (window.matchMedia("(pointer: coarse)").matches) {
@@ -49,8 +70,12 @@ export default function IPhoneFocusFrame({ arc }: IPhoneFocusFrameProps) {
 
                 <div className="mt-8 flex items-start justify-between gap-3 px-1">
                   <div>
-                    <p className="text-[10px] font-medium tracking-wide text-zinc-400">Tue, Oct 13</p>
-                    <p className="text-[12px] font-semibold text-zinc-200">7:12 AM</p>
+                    <p className="text-[10px] font-medium tracking-wide text-zinc-400" suppressHydrationWarning>
+                      {now ? formatLockscreenDate(now) : "\u00a0"}
+                    </p>
+                    <p className="text-[12px] font-semibold text-zinc-200" suppressHydrationWarning>
+                      {now ? formatLockscreenTime(now) : "\u00a0"}
+                    </p>
                   </div>
                   <div className="flex min-w-0 flex-col items-end">
                     <p className="inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
@@ -67,10 +92,31 @@ export default function IPhoneFocusFrame({ arc }: IPhoneFocusFrameProps) {
                 </div>
 
                 <div className="mt-4 min-h-0 flex-1 overflow-y-auto pb-2">
-                  <TraceSignalCard arc={arc} compact />
+                  <TraceSignalCard arc={arc} compact dateLabel={now ? formatLockscreenDate(now) : undefined} />
                 </div>
 
-                <div className="mx-auto mt-auto h-1 w-24 rounded-full bg-white/20" />
+                <div className="mt-2 grid grid-cols-3 gap-1.5">
+                  {ARC_OPTIONS.map((option) => {
+                    const active = option.id === arc;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => onArcChange?.(option.id)}
+                        className={`rounded-full px-1 py-1.5 text-[8px] font-semibold uppercase tracking-wide transition ${
+                          active
+                            ? "border border-indigo-300/40 bg-indigo-500/25 text-indigo-100 shadow-[0_0_16px_rgba(99,102,241,0.35)]"
+                            : "border border-white/10 bg-black/30 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
+                        }`}
+                      >
+                        {option.id === "deep-work" ? "Deep Work" : option.id === "capital" ? "Capital" : "Recovery"}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="mx-auto mt-3 h-1 w-24 rounded-full bg-white/20" />
               </div>
             </div>
           </div>
