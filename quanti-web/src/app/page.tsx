@@ -5,10 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import ArchitectureBanner from "@/components/ArchitectureBanner";
 import Faq from "@/components/Faq";
+import FocusDemoSection from "@/components/FocusDemoSection";
 import Footer from "@/components/Footer";
 import FooterCta from "@/components/FooterCta";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
+import SiloPsychologySection from "@/components/SiloPsychologySection";
 
 export default function Home() {
   return (
@@ -42,6 +44,8 @@ export default function Home() {
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
+        <SiloPsychologySection />
+        <FocusDemoSection />
         <ArchitectureBanner />
         <HowItWorks />
         <Faq />
