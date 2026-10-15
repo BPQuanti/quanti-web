@@ -3,11 +3,9 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import ArchitectureBanner from "@/components/ArchitectureBanner";
-import Faq from "@/components/Faq";
-import FocusDemoSection from "@/components/FocusDemoSection";
+import EnginePreview from "@/components/EnginePreview";
+import FAQAndCTA from "@/components/FAQAndCTA";
 import Footer from "@/components/Footer";
-import FooterCta from "@/components/FooterCta";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
 import SiloPsychologySection from "@/components/SiloPsychologySection";
@@ -38,18 +36,16 @@ export default function Home() {
           href="#waitlist"
           className="rounded-full border border-indigo-400/40 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-50 transition hover:border-indigo-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] active:scale-95 sm:px-4 sm:text-sm"
         >
-          Request Early Access
+          Join the Waitlist
         </a>
       </motion.header>
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
         <SiloPsychologySection />
-        <FocusDemoSection />
-        <ArchitectureBanner />
+        <EnginePreview />
         <HowItWorks />
-        <Faq />
-        <FooterCta />
+        <FAQAndCTA />
       </main>
 
       <Footer />
@@ -58,7 +54,7 @@ export default function Home() {
         href="#waitlist"
         className="fixed inset-x-4 bottom-4 z-30 inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 text-sm font-semibold text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] lg:hidden"
       >
-        Request Early Access
+        Join the Waitlist
       </a>
     </div>
   );

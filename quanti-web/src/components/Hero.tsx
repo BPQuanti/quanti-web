@@ -11,12 +11,11 @@ export default function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-left sm:text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-5xl sm:leading-[1.08] lg:text-[2.85rem] xl:text-[3.15rem]">
-          Turn your health, money, and screen time data into a single daily directive.
+          Your health, money, and screen time live in silos. You shouldn&apos;t have to be the processing layer.
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
-          Quanti automatically correlates your biometrics, financial habits, and phone usage to uncover hidden patterns.
-          Select your focus arc—Recovery, Deep Work, or Capital—and get one high-intent execution rule delivered every
-          morning. Zero manual logging.
+          Quanti correlates biometrics, Screen Time, and spend into one high-intent daily directive. Cross-domain
+          telemetry. Zero manual logging.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Join the Waitlist" />
