@@ -2,23 +2,23 @@ import { Compass, Mic, Shield } from "lucide-react";
 
 const ANCHORS = [
   {
-    title: "Self-awareness",
+    title: "Name how you feel",
     kicker: "Interoception",
-    body: "Fifteen seconds to name fatigue or stress. That pause lowers background anxiety and keeps you present—not on autopilot.",
+    body: "Speaking for 15 seconds names your emotional state, instantly lowering amygdala stress and bringing you into the present moment.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-200",
   },
   {
-    title: "Intention over overload",
+    title: "Eliminate decision fatigue",
     kicker: "One 1% rule",
-    body: "Complex graphs become one daily anchor for energy and attention. Decision fatigue drops. Clarity stays.",
+    body: "Cold dashboards give you raw graphs and leave you guilty. Quanti distills the noise into a single rule tailored to your real capacity.",
     icon: Compass,
     tone: "border-indigo-400/25 text-indigo-200",
   },
   {
     title: "Pre-commitment & presence",
     kicker: "Hold your ground",
-    body: "Set a realistic boundary while you're clear. Speed bumps later remind you of that promise when fatigue hits.",
+    body: "Set a realistic boundary in the morning. Smart speed bumps protect your focus in the afternoon when willpower runs low.",
     icon: Shield,
     tone: "border-emerald-400/25 text-emerald-200",
   },
@@ -31,19 +31,13 @@ export default function Psychology() {
       aria-labelledby="psychology-heading"
     >
       <div className="pointer-events-none absolute -left-16 top-8 h-56 w-56 rounded-full bg-indigo-500/15 blur-3xl" />
-      <div className="pointer-events-none absolute -right-10 bottom-0 h-64 w-64 rounded-full bg-rose-500/10 blur-3xl" />
-
       <div className="relative mx-auto max-w-5xl text-center">
         <p className="inline-flex rounded-full border border-slate-600/80 bg-slate-950/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300">
-          The Psychology
+          The Why
         </p>
         <h2 id="psychology-heading" className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
           Built on behavioral science, not brute force.
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-          Voice checks and 1% directives build self-awareness, sharpen intention, and keep you present—so you stay in
-          control of your day.
-        </p>
       </div>
 
       <div className="relative mx-auto mt-10 grid max-w-5xl gap-3 lg:grid-cols-3">

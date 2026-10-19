@@ -2,20 +2,20 @@ import WaitlistCapture from "@/components/WaitlistCapture";
 
 const QUESTIONS = [
   {
-    q: "Is my data safe?",
-    a: "Yes. Sleep, screens, calendar, spend, location, and voice stay in the iOS sandbox. We never sell data. Integrations are read-only.",
+    q: "Is my data processed on-device?",
+    a: "Yes. Sleep, screens, calendar, spend, location, and voice stay in the iOS sandbox. We never sell data.",
   },
   {
-    q: "How does on-device processing work?",
-    a: "Correlation runs on your phone. Location and voice never leave the device. Raw health and bank samples are not dumped into a cloud you don't control.",
+    q: "How is voice processing secured?",
+    a: "The 15-second voice check is processed on your phone. Voice never leaves the device. It is not used to train models in a cloud you don't control.",
+  },
+  {
+    q: "Are integrations read-only?",
+    a: "Yes. HealthKit, Screen Time, calendar, and Plaid are read-only. Quanti cannot move money or lock your apps.",
   },
   {
     q: "Does Quanti lock my apps or force my calendar?",
-    a: "No. You get skippable 5-second pauses and one morning rule. Never forced lockouts.",
-  },
-  {
-    q: "Am I stuck with three presets?",
-    a: "No. You name the season—Founder Sprint, Creative Flow, Parenting Presence, or your own.",
+    a: "No. You get skippable speed bumps and one morning rule. Never forced lockouts.",
   },
   {
     q: "When does TestFlight open?",
