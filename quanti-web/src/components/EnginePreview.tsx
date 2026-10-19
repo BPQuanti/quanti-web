@@ -16,10 +16,11 @@ export default function EnginePreview() {
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The Mirror Card</p>
           <h2 id="engine-preview-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Low sleep. Heavy calendar. One gentle rule.
+            Grounded this morning. Present all day.
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            A tired voice note plus the day you actually lived—turned into one energy defense, not a lecture.
+            Low sleep, a packed calendar, a tired voice note—turned into one gentle rule that keeps you in the
+            driver&apos;s seat.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2" role="tablist" aria-label="Example seasons">
             {ARC_OPTIONS.map((option) => {

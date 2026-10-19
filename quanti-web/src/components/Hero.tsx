@@ -13,8 +13,9 @@ export default function Hero() {
           Finally, an app that actually gets you.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Quanti connects your physical recovery, calendar, spending, and 15-second voice checks to give you one gentle,
-          actionable rule each morning.
+          Most mornings start in reaction mode—checking notifications, absorbing stress, and losing control of your day
+          before it begins. Quanti pairs your physical signals with a 15-second voice check to ground your morning,
+          giving you one simple rule to stay present and intentional all day.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Claim Early Access" />

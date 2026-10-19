@@ -10,13 +10,13 @@ const STEPS = [
   {
     number: "02",
     title: "Speak for 15 seconds",
-    body: "Each morning: how you feel, what landed, what you’re proud of.",
+    body: "Your morning anchor—before email and feeds. Name your state. Instant clarity.",
     icon: Mic,
   },
   {
     number: "03",
     title: "Get your 1% + speed bumps",
-    body: "One daily directive. Gentle pauses you can skip—never a lock.",
+    body: "One intention for the day. Afternoon reminders of the promise you made—never a lock.",
     icon: Pause,
   },
 ];
@@ -27,7 +27,7 @@ export default function HowItWorks() {
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">How It Works</p>
         <h2 id="how-it-works-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Three steps. One morning rule.
+          Three steps. One grounded morning.
         </h2>
       </div>
 

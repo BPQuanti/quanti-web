@@ -3,7 +3,7 @@ import { Activity, Calendar, CreditCard, MapPin, Mic, Sparkles } from "lucide-re
 const SIGNALS = [
   {
     title: "🧬 Physical",
-    body: "Sleep & HRV recovery.",
+    body: "Sleep & HRV recovery—the body you woke up in.",
     icon: Activity,
     tone: "border-sky-400/25 text-sky-300",
   },
@@ -25,12 +25,6 @@ const SIGNALS = [
     icon: MapPin,
     tone: "border-amber-400/25 text-amber-200",
   },
-  {
-    title: "🎙️ Voice Check",
-    body: "15-second daily audio confession space. How you feel, paired with the numbers—no audience, no judgment.",
-    icon: Mic,
-    tone: "border-rose-400/25 text-rose-300",
-  },
 ] as const;
 
 export default function SignalsGrid() {
@@ -44,22 +38,18 @@ export default function SignalsGrid() {
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Five Signals</p>
           <h2 id="signals-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            One picture of you. Not five apps.
+            One picture of you. Grounded before the noise.
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            Cold data plus a private voice check—so the morning rule can actually get you.
+            Physical signals plus a morning voice check—so the 1% rule defends presence, not just productivity.
           </p>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {SIGNALS.map((signal) => {
             const Icon = signal.icon;
-            const wide = signal.title.includes("Voice");
             return (
-              <article
-                key={signal.title}
-                className={`rounded-2xl border bg-slate-950/80 p-5 ${signal.tone} ${wide ? "sm:col-span-2 lg:col-span-1" : ""}`}
-              >
+              <article key={signal.title} className={`rounded-2xl border bg-slate-950/80 p-5 ${signal.tone}`}>
                 <span className={`inline-flex h-10 w-10 items-center justify-center rounded-full border ${signal.tone}`}>
                   <Icon className="h-5 w-5" strokeWidth={1.75} />
                 </span>
@@ -70,6 +60,23 @@ export default function SignalsGrid() {
           })}
         </div>
 
+        <article className="mt-3 rounded-2xl border border-rose-400/25 bg-rose-500/10 p-5 sm:p-6">
+          <div className="flex items-start gap-3">
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rose-400/30 bg-rose-400/10 text-rose-200">
+              <Mic className="h-5 w-5" strokeWidth={1.75} />
+            </span>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-200/80">🎙️ Voice Check</p>
+              <h3 className="mt-1 text-lg font-semibold tracking-tight text-slate-50">Your 15-second morning anchor</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-300">
+                Before you jump into emails or social feeds, speak freely for 15 seconds. Naming your state brings
+                instant clarity, transforming your voice into the ground truth Quanti uses to defend your focus and
+                presence.
+              </p>
+            </div>
+          </div>
+        </article>
+
         <article className="mt-3 rounded-2xl border border-indigo-400/30 bg-indigo-500/10 p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-indigo-400/30 bg-indigo-400/10 text-indigo-300">
@@ -78,7 +85,7 @@ export default function SignalsGrid() {
             <div>
               <h3 className="text-lg font-semibold tracking-tight">You name the season</h3>
               <p className="mt-1 text-sm leading-6 text-slate-300">
-                Founder Sprint, Creative Flow, Parenting Presence—or your own. The 1% rule orients around this chapter,
+                Founder Sprint, Creative Flow, Parenting Presence—or your own. Intention orients around this chapter,
                 not three hardcoded presets.
               </p>
             </div>
