@@ -24,10 +24,9 @@ export default function Hero() {
         <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-5xl sm:leading-[1.08] lg:text-[2.85rem] xl:text-[3.15rem]">
           Finally, an app that actually gets you.
         </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg font-semibold leading-7 text-slate-100">
-          Quanti turns your daily noise into one clear rule each morning. It pairs your passive signals—sleep, screen
-          habits, calendar, and spending—with a 15-second voice check so you&apos;re deeply understood without having to
-          explain yourself.
+        <p className="mx-auto mt-5 max-w-2xl text-lg font-medium leading-7 text-slate-100">
+          Quanti turns your daily noise into one clear rule each morning. It pairs your passive biometrics, calendar, and
+          spending with a quick 15-second voice check that captures how you actually feel.
         </p>
         <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-400">
           Built for whatever season you&apos;re in. Select your focus—from high-output sprints to recovery resets—and
