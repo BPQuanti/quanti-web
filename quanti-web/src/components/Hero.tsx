@@ -10,16 +10,17 @@ export default function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-left sm:text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-5xl sm:leading-[1.08] lg:text-[2.85rem] xl:text-[3.15rem]">
-          Stop letting bad days run your life.
+          Finally, an app that actually gets you.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Quanti connects your sleep, screen time, schedule, spending, and voice checks to give you one simple rule each
-          morning—keeping you in the driver&apos;s seat when willpower dips.
+          Most tools see pieces of your life—your steps, your budget, or your calendar. Quanti connects your physical
+          recovery, schedule, spending, and 15-second voice notes to understand how you actually feel and what you
+          actually need.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Join the Waitlist" />
           <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
-            🔒 On-Device Location &amp; Voice Processing • Zero Data Sales • Read-Only Integrations
+            🔒 100% Private &amp; On-Device • Your Safe Space • Read-Only Integrations
           </p>
         </div>
       </div>

@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti — Stop Letting Bad Days Run Your Life",
+  title: "Quanti | The Operating System That Truly Sees You",
   description:
-    "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks into one simple morning rule—keeping you in the driver's seat when willpower dips.",
+    "Stop letting fragmented data and burnout run your life. Quanti connects your biometrics, schedule, spending, and voice checks to give you one empathetic, actionable rule each morning.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti — Stop Letting Bad Days Run Your Life",
+    title: "Quanti | The Operating System That Truly Sees You",
     description:
-      "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks into one simple morning rule—keeping you in the driver's seat when willpower dips.",
+      "Stop letting fragmented data and burnout run your life. Quanti connects your biometrics, schedule, spending, and voice checks to give you one empathetic, actionable rule each morning.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti — Stop Letting Bad Days Run Your Life",
+    title: "Quanti | The Operating System That Truly Sees You",
     description:
-      "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks into one simple morning rule—keeping you in the driver's seat when willpower dips.",
+      "Stop letting fragmented data and burnout run your life. Quanti connects your biometrics, schedule, spending, and voice checks to give you one empathetic, actionable rule each morning.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

@@ -3,12 +3,14 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import EmpathyComparison from "@/components/EmpathyComparison";
 import EnginePreview from "@/components/EnginePreview";
 import FAQAndCTA from "@/components/FAQAndCTA";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
 import SiloPsychologySection from "@/components/SiloPsychologySection";
+import VoiceFeature from "@/components/VoiceFeature";
 
 export default function Home() {
   return (
@@ -42,6 +44,8 @@ export default function Home() {
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
+        <EmpathyComparison />
+        <VoiceFeature />
         <SiloPsychologySection />
         <EnginePreview />
         <HowItWorks />
