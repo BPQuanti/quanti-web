@@ -1,18 +1,21 @@
-import { Lock } from "lucide-react";
 import WaitlistCapture from "@/components/WaitlistCapture";
 
 const QUESTIONS = [
   {
     q: "How is my financial and biometric data secured?",
-    a: "On-device and read-only. Apple Health, Screen Time, and Plaid stay in the iOS sandbox. We never store, sell, or train models on raw health or bank data.",
+    a: "On-device and read-only. Apple Health, Screen Time, Plaid, and voice reflections stay in the iOS sandbox. We never store, sell, or train models on raw health, bank, or voice data in a central cloud you don't control.",
+  },
+  {
+    q: "Does Quanti lock my apps or force my calendar?",
+    a: "No. Quanti uses smart friction: 5-second pause screens, suggested blocks, and pre-commitment nudges. You keep the last move. Never forced lockouts or rigid auto-scheduling.",
+  },
+  {
+    q: "Am I stuck with Recovery, Deep Work, and Capital?",
+    a: "No. Agency Arcs are yours to name—Founder Sprint, Creative Flow, Parenting Presence, or whatever season you're in. They adapt. They are not a hardcoded set of three.",
   },
   {
     q: "When does TestFlight open?",
     a: "Closed TestFlight is rolling out from the waitlist. Join now—spot order is based on signup plus referrals.",
-  },
-  {
-    q: "Do I have to log habits or meals?",
-    a: "Zero manual tracking. Quanti correlates the telemetry you already generate and delivers one daily directive. No journals, no checkboxes, no second job.",
   },
 ];
 
@@ -22,13 +25,13 @@ export default function FAQAndCTA() {
       <div className="overflow-hidden rounded-[28px] border border-indigo-400/25 bg-slate-950/80 px-5 py-10 shadow-[0_0_40px_rgba(99,102,241,0.16)] sm:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <p className="inline-flex rounded-full border border-slate-600/80 bg-slate-900/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300">
-            Automated Behavioral GPS
+            Privacy-First Behavioral OS
           </p>
           <h2 id="faq-cta-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 sm:text-4xl sm:leading-[1.12]">
-            One morning rule. Whatever arc you&apos;re in.
+            One 1% directive. Smart friction. Your agency.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            Privacy, TestFlight, and tracking—then claim your spot.
+            Voice telemetry, on-device processing, then claim your spot.
           </p>
         </div>
 
@@ -60,12 +63,8 @@ export default function FAQAndCTA() {
             submitLabel="Join the Waitlist"
             refreshOnMount={false}
           />
-          <p className="mt-3 flex items-start justify-center gap-2 text-center text-sm font-semibold leading-6 text-emerald-100">
-            <Lock className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" strokeWidth={2} />
-            <span>
-              <span aria-hidden>🔒 </span>
-              100% On-Device Processing. We never store, transmit, or sell your raw health or bank data.
-            </span>
+          <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
+            🔒 On-Device Processing • Zero Data Sales • Read-Only Integrations
           </p>
         </div>
       </div>

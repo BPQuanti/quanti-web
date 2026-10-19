@@ -26,7 +26,7 @@ export function rankWaitlistPosition(initialPosition: number, referralCount: num
 }
 
 export function waitlistShareMessage(referralUrl: string) {
-  return `I just joined the waitlist for Quanti—the anti-homework habit engine that automates behavioral changes. Lock in OG Founder pricing here: ${referralUrl}`;
+  return `I just joined the waitlist for Quanti—a privacy-first behavioral OS with 15-second voice telemetry and smart friction, not app locks. Skip the line here: ${referralUrl}`;
 }
 
 export function waitlistViralRuleCopy() {

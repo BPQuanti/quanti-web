@@ -4,7 +4,7 @@ import { useState } from "react";
 import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
 
 export default function FocusDemoSection() {
-  const [arc, setArc] = useState<FocusArcId>("deep-work");
+  const [arc, setArc] = useState<FocusArcId>("founder-sprint");
 
   return (
     <section
@@ -18,11 +18,11 @@ export default function FocusDemoSection() {
         <div className="max-w-xl text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Live Engine Preview</p>
           <h2 id="focus-demo-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            One daily directive. Switch the Arc. Watch the telemetry move.
+            Name the season. Watch the 1% daily rule move.
           </h2>
           <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
-            Recovery, Deep Work, or Capital. The Daily Focus Card reorients HealthKit, Screen Time, and Plaid around the
-            arc you&apos;re actually in.
+            Example Agency Arcs you define—Founder Sprint, Creative Flow, Parenting Presence. The 1% rule and smart
+            friction reorient around the season you&apos;re in.
           </p>
           <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Arc selector">
             {ARC_OPTIONS.map((option) => {

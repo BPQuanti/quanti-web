@@ -9,9 +9,9 @@ const MIRROR = [
 ];
 
 const GPS = [
-  { title: "Passive on-device telemetry", description: "Screen Time, HealthKit, and Plaid stream in—no journaling required." },
-  { title: "Predictive friction detection", description: "Cross-domain signals catch the stall before it becomes a spiral." },
-  { title: "ONE daily Focus Directive", description: "A single next move every morning from the full picture." },
+  { title: "On-device four-stream telemetry", description: "HealthKit, Screen Time, read-only Plaid, and 15-second voice logs." },
+  { title: "Smart friction, not lockouts", description: "5-second pauses and choice-based nudges when willpower falters." },
+  { title: "ONE 1% daily directive", description: "A single next move every morning from the full picture." },
 ];
 
 export default function MirrorVsGps() {

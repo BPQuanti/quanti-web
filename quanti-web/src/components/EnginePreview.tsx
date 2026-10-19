@@ -1,29 +1,39 @@
 "use client";
 
 import { useState } from "react";
-import { Radio, Shield, Sparkles } from "lucide-react";
+import { Activity, CreditCard, Mic, Shield, Smartphone } from "lucide-react";
 import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
 
 const PILLARS = [
   {
-    title: "Telemetry",
-    body: "Read-only sync across Apple Health, Screen Time & Plaid.",
-    icon: Radio,
+    title: "Physical",
+    body: "HealthKit / wearables: sleep efficiency and HRV.",
+    icon: Activity,
   },
   {
-    title: "Noise Filter",
-    body: "AI filters 99% of raw graphs into 1 daily rule.",
-    icon: Sparkles,
+    title: "Digital",
+    body: "Screen Time APIs: pickups and doomscroll loops.",
+    icon: Smartphone,
+  },
+  {
+    title: "Capital",
+    body: "Plaid read-only: outflow velocity and impulse categories.",
+    icon: CreditCard,
+  },
+  {
+    title: "Emotional",
+    body: "15-second voice telemetry: the why behind the numbers.",
+    icon: Mic,
   },
   {
     title: "Privacy",
-    body: "On-device local processing & enterprise encryption.",
+    body: "On-device local processing. Zero data sales. Read-only integrations.",
     icon: Shield,
   },
 ] as const;
 
 export default function EnginePreview() {
-  const [arc, setArc] = useState<FocusArcId>("deep-work");
+  const [arc, setArc] = useState<FocusArcId>("founder-sprint");
 
   return (
     <section
@@ -37,13 +47,18 @@ export default function EnginePreview() {
         <div className="text-center lg:text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Interactive Engine Preview</p>
           <h2 id="engine-preview-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Switch the Arc. Watch the 1% daily rule move.
+            Name the season. Watch the 1% daily rule move.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base lg:mx-0">
-            Recovery, Deep Work, or Capital. The Daily Focus Card reorients HealthKit, Screen Time, and Plaid around the
-            arc you&apos;re actually in—not another dashboard.
+            These are example Agency Arcs you could define—Founder Sprint, Creative Flow, Parenting Presence. Quanti
+            reorients the directive, voice context, and smart friction around the season you&apos;re in. You are not
+            locked to three presets.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start" role="tablist" aria-label="Arc selector">
+          <div
+            className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start"
+            role="tablist"
+            aria-label="Example Agency Arcs"
+          >
             {ARC_OPTIONS.map((option) => {
               const active = option.id === arc;
               return (
@@ -60,7 +75,7 @@ export default function EnginePreview() {
                   }`}
                 >
                   <span aria-hidden>{option.glyph}</span>
-                  {option.label.replace(" Arc", "")}
+                  {option.label}
                 </button>
               );
             })}
@@ -69,7 +84,7 @@ export default function EnginePreview() {
 
         <div className="mt-10 grid items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
           <IPhoneFocusFrame arc={arc} onArcChange={setArc} />
-          <ul className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             {PILLARS.map((pillar) => {
               const Icon = pillar.icon;
               return (

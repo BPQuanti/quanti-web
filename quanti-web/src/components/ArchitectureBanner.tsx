@@ -2,13 +2,13 @@ import { Compass, Radio, Shield } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "Choose Your Arc",
-    body: "Recovery, Deep Work, or Capital. Quanti orients the Daily Focus Card to the arc you're actually in—not a generic habit board.",
+    title: "Dynamic Agency Arcs",
+    body: "You name the season—Founder Sprint, Creative Flow, Parenting Presence, or your own. The 1% rule orients around it.",
     icon: Compass,
   },
   {
     title: "Cross-Domain Telemetry",
-    body: "HealthKit + Screen Time + Plaid, correlated on-device into one directive. No journals. No checkboxes.",
+    body: "HealthKit, Screen Time, read-only Plaid, and 15-second voice logs—correlated on-device into one directive.",
     icon: Radio,
   },
   {
@@ -25,7 +25,7 @@ export default function ArchitectureBanner() {
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Value Pillars</p>
         <h2 id="architecture-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Arc. Telemetry. On-device.
+          Agency. Telemetry. On-device.
         </h2>
       </div>
 

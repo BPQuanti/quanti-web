@@ -8,14 +8,12 @@ function escapeHtml(value: string) {
     .replace(/"/g, "&quot;");
 }
 
-export function getWelcomeEmailSubject(currentRank: number) {
-  return `You're on the Quanti waitlist — spot #${currentRank}`;
+export function getWelcomeEmailSubject(_currentRank: number) {
+  return "You're on the list for Quanti [Early Access Queue]";
 }
 
 export function getWelcomeEmailHtml({
-  currentRank,
   referralCode,
-  isTop500,
 }: {
   userEmail: string;
   currentRank: number;
@@ -23,10 +21,6 @@ export function getWelcomeEmailHtml({
   isTop500: boolean;
 }) {
   const referralUrl = waitlistShareUrl(referralCode);
-  const spot = escapeHtml(String(currentRank));
-  const ogLine = isTop500
-    ? "You're in the first 500, so OG Founder pricing at $49/yr is reserved for you before public launch at $99/yr."
-    : "The first 500 lock OG Founder pricing at $49/yr before public launch at $99/yr.";
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -34,7 +28,7 @@ export function getWelcomeEmailHtml({
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
-    <title>${escapeHtml(getWelcomeEmailSubject(currentRank))}</title>
+    <title>${escapeHtml(getWelcomeEmailSubject(0))}</title>
   </head>
   <body style="margin:0;padding:0;background-color:#0b0712;">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#0b0712;width:100%;">
@@ -44,28 +38,24 @@ export function getWelcomeEmailHtml({
             <tr>
               <td style="padding:32px 28px 36px;font-family:Arial,Helvetica,sans-serif;color:#f8fafc;">
                 <p style="margin:0 0 20px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#a5b4fc;">Quanti</p>
-                <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;font-weight:600;color:#f8fafc;">You're confirmed.</h1>
+                <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;font-weight:600;color:#f8fafc;">Welcome to the Quanti waitlist.</h1>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  This is your waitlist confirmation. Your spot is
-                  <strong style="color:#f8fafc;">#${spot}</strong>.
+                  Most health and productivity tools act like vitamins—showing you raw graphs after the damage is done. Quanti is built differently.
                 </p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  Quanti reads Screen Time, Health, and Spending in the background and turns that into one daily Focus Directive—so you don't have to log it yourself.
-                </p>
-                <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  ${escapeHtml(ogLine)}
-                </p>
-                <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  If you want the private TestFlight, reply to this email with BETA.
+                  By combining your physical biometrics, screen time, and finances with 15-second voice reflections, Quanti detects behavioral domino effects before burnout happens. Instead of locking your apps or forcing calendar changes, Quanti provides smart friction, ambient directives, and choice-based guardrails that respect your agency.
                 </p>
                 <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  Your page, if you want to share it: every friend who joins moves you up 20 spots.
+                  Your referral link to skip the line:
                 </p>
-                <p style="margin:0 0 28px;font-size:14px;line-height:1.6;color:#818cf8;word-break:break-all;">
+                <p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:#818cf8;word-break:break-all;">
                   <a href="${escapeHtml(referralUrl)}" style="color:#818cf8;text-decoration:none;">${escapeHtml(referralUrl)}</a>
                 </p>
-                <p style="margin:0 0 4px;font-size:15px;line-height:1.6;color:#f8fafc;">Brian</p>
-                <p style="margin:0 0 28px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Founder, Quanti</p>
+                <p style="margin:0 0 28px;font-size:15px;line-height:1.7;color:#94a3b8;">
+                  Share with 3 friends to unlock early beta access and direct founder feedback.
+                </p>
+                <p style="margin:0 0 4px;font-size:15px;line-height:1.6;color:#f8fafc;">The Quanti Team</p>
+                <p style="margin:0 0 28px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Privacy-first behavioral OS</p>
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">
                   <a href="https://quanti-app.com" style="color:#818cf8;text-decoration:none;">quanti-app.com</a>
                   &nbsp;·&nbsp;
@@ -84,9 +74,7 @@ export function getWelcomeEmailHtml({
 }
 
 export function getWelcomeEmailText({
-  currentRank,
   referralCode,
-  isTop500,
 }: {
   userEmail: string;
   currentRank: number;
@@ -94,26 +82,20 @@ export function getWelcomeEmailText({
   isTop500: boolean;
 }) {
   const referralUrl = waitlistShareUrl(referralCode);
-  const ogLine = isTop500
-    ? "You're in the first 500, so OG Founder pricing at $49/yr is reserved for you before public launch at $99/yr."
-    : "The first 500 lock OG Founder pricing at $49/yr before public launch at $99/yr.";
 
   return [
-    "You're confirmed on the Quanti waitlist.",
-    `Your spot is #${currentRank}.`,
+    "You're on the list for Quanti [Early Access Queue]",
     "",
-    "Quanti reads Screen Time, Health, and Spending in the background and turns that into one daily Focus Directive—so you don't have to log it yourself.",
-    ogLine,
-    "If you want the private TestFlight, reply to this email with BETA.",
+    "Welcome to the Quanti waitlist.",
     "",
-    `Your page: ${referralUrl}`,
-    "Every friend who joins moves you up 20 spots.",
+    "Most health and productivity tools act like vitamins—showing you raw graphs after the damage is done. Quanti is built differently.",
     "",
-    "Brian",
-    "Founder, Quanti",
+    "By combining your physical biometrics, screen time, and finances with 15-second voice reflections, Quanti detects behavioral domino effects before burnout happens. Instead of locking your apps or forcing calendar changes, Quanti provides smart friction, ambient directives, and choice-based guardrails that respect your agency.",
     "",
-    "https://quanti-app.com",
-    "https://quanti-app.com/privacy",
-    "https://quanti-app.com/terms",
+    `Your referral link to skip the line: ${referralUrl}`,
+    "",
+    "Share with 3 friends to unlock early beta access and direct founder feedback.",
+    "",
+    "- The Quanti Team",
   ].join("\n");
 }

@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti — An automated behavioral GPS for whatever arc you're in",
+  title: "Quanti — Stop Behavioral Burnout Before It Starts",
   description:
-    "Find out exactly which late-night habit is destroying your morning focus. HealthKit, Screen Time, and Plaid into one daily action. Zero manual logging.",
+    "A privacy-first behavioral OS. Biometrics, screen habits, finances, and 15-second voice logs into one 1% daily directive and smart friction—never forced lockouts.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti — An automated behavioral GPS for whatever arc you're in",
+    title: "Quanti — Stop Behavioral Burnout Before It Starts",
     description:
-      "Find out exactly which late-night habit is destroying your morning focus. HealthKit, Screen Time, and Plaid into one daily action. Zero manual logging.",
+      "A privacy-first behavioral OS. Biometrics, screen habits, finances, and 15-second voice logs into one 1% daily directive and smart friction—never forced lockouts.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti — An automated behavioral GPS for whatever arc you're in",
+    title: "Quanti — Stop Behavioral Burnout Before It Starts",
     description:
-      "Find out exactly which late-night habit is destroying your morning focus. HealthKit, Screen Time, and Plaid into one daily action. Zero manual logging.",
+      "A privacy-first behavioral OS. Biometrics, screen habits, finances, and 15-second voice logs into one 1% daily directive and smart friction—never forced lockouts.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

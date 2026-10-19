@@ -1,23 +1,23 @@
-import { ArrowDown, ArrowRight, Compass, Link2, Target } from "lucide-react";
+import { ArrowDown, ArrowRight, Compass, Link2, Pause } from "lucide-react";
 
 const STEPS = [
   {
     number: "01",
-    title: "Sync Domains",
-    body: "Connect biometrics, screen time, and spend in under 60 seconds. Read-only. No journals.",
+    title: "Sync Four Streams",
+    body: "Connect biometrics, Screen Time, read-only spend, and 15-second voice logs. On-device. No homework.",
     icon: Link2,
   },
   {
     number: "02",
-    title: "Select Your Arc",
-    body: "Tilt your system toward Recovery, Deep Work, or Capital—Quanti orients the engine to the arc you're in.",
+    title: "Name Your Agency Arc",
+    body: "Define the season you're in—Founder Sprint, Creative Flow, Parenting Presence, or your own. It can change.",
     icon: Compass,
   },
   {
     number: "03",
-    title: "Execute Your 1% Rule",
-    body: "Get one clear daily directive every morning. Zero chart fatigue. Zero second job.",
-    icon: Target,
+    title: "1% Rule + Smart Friction",
+    body: "One morning directive. When willpower falters: 5-second pauses and choice-based nudges—never forced lockouts.",
+    icon: Pause,
   },
 ];
 
@@ -27,7 +27,7 @@ export default function HowItWorks() {
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">How It Works</p>
         <h2 id="how-it-works-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Three steps. One morning rule.
+          Three steps. One morning rule. Your last move.
         </h2>
       </div>
 

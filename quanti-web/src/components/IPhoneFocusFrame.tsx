@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useState, type PointerEvent } from "react";
 import TraceSignalCard from "@/components/TraceSignalCard";
 
-export type FocusArcId = "recovery" | "deep-work" | "capital";
+export type FocusArcId = "founder-sprint" | "creative-flow" | "parenting-presence";
 
 export const ARC_OPTIONS: { id: FocusArcId; label: string; glyph: string }[] = [
-  { id: "recovery", label: "Recovery Arc", glyph: "🧘" },
-  { id: "deep-work", label: "Deep Work Arc", glyph: "🧠" },
-  { id: "capital", label: "Capital Arc", glyph: "💰" },
+  { id: "founder-sprint", label: "Founder Sprint", glyph: "⚡" },
+  { id: "creative-flow", label: "Creative Flow", glyph: "🎨" },
+  { id: "parenting-presence", label: "Parenting Presence", glyph: "🤍" },
 ];
 
 type IPhoneFocusFrameProps = {
@@ -86,7 +86,7 @@ export default function IPhoneFocusFrame({ arc, onArcChange }: IPhoneFocusFrameP
                       Live
                     </p>
                     <p className="mt-0.5 max-w-[108px] text-right text-[7px] font-medium uppercase leading-3 tracking-[0.1em] text-zinc-500">
-                      Quanti Telemetry Engine
+                      On-Device OS
                     </p>
                   </div>
                 </div>
@@ -110,7 +110,11 @@ export default function IPhoneFocusFrame({ arc, onArcChange }: IPhoneFocusFrameP
                             : "border border-white/10 bg-black/30 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                         }`}
                       >
-                        {option.id === "deep-work" ? "Deep Work" : option.id === "capital" ? "Capital" : "Recovery"}
+                        {option.id === "founder-sprint"
+                          ? "Sprint"
+                          : option.id === "creative-flow"
+                            ? "Flow"
+                            : "Presence"}
                       </button>
                     );
                   })}

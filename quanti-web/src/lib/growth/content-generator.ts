@@ -21,11 +21,11 @@ export type WeeklyPostDraft = {
 
 const PERSONA_BRIEF: Record<GrowthPersona, string> = {
   "Biohackers & Quantified-Self":
-    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti turns sleep, strain, and Screen Time into one Daily Focus Card with zero logging.",
+    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti turns sleep, strain, Screen Time, and 15-second voice logs into one 1% daily directive with smart friction—never app locks.",
   "Founders & Executives":
     "Operators drowning in decision fatigue. Bank + calendar + health already exist as telemetry. Quanti gives one high-leverage move for the morning instead of 40 charts.",
   "Deep Work Engineers":
-    "Builders who track focus in Notion/Sheets by hand. Quanti kills the manual log: Screen Time, HealthKit, and Plaid spend become one Focus Directive.",
+    "Builders who track focus in Notion/Sheets by hand. Quanti kills the homework: Screen Time, HealthKit, Plaid spend, and voice reflections become one 1% directive plus choice-based guardrails.",
 };
 
 function xaiApiKey() {
@@ -89,7 +89,7 @@ function normalizeDrafts(value: unknown): WeeklyPostDraft[] {
 function buildPrompt() {
   return `You are drafting a week's social posts for Quanti (quanti-app.com).
 
-Quanti is an anti-homework GPS for your day. It links passive telemetry — Apple HealthKit, Screen Time, and Plaid spend — into ONE Daily Focus Card. Zero manual logging. Not another dashboard. Not a habit chart.
+Quanti is a privacy-first behavioral OS. It correlates Apple HealthKit, Screen Time, Plaid spend, and 15-second voice logs into ONE 1% daily directive plus smart friction. On-device. Zero forced app locks. Not another dashboard.
 
 Write exactly 5 distinct, high-impact post drafts. Cover all 3 personas at least once:
 1. ${GROWTH_PERSONAS[0]} — ${PERSONA_BRIEF[GROWTH_PERSONAS[0]]}
@@ -100,7 +100,7 @@ Mix platforms: some "linkedin", some "x". LinkedIn can be slightly longer (still
 
 Rules:
 - Tone: concise, sharp, high-signal. No hype, no emoji spam, no "game-changer", no "I'm thrilled to announce".
-- Core value in every post: passive telemetry → one Daily Focus Card, 0 manual logging.
+- Core value in every post: four-stream telemetry (body, screen, spend, voice) → one 1% directive + smart friction, 0 forced locks.
 - CTA is subtle and non-salesy: invite people to the closed TestFlight waitlist at ${WAITLIST_URL}. Do not use "Sign up now!!" or discount language.
 - Do not invent features (no AI chat, no trading, no social feed).
 - Return JSON only.
