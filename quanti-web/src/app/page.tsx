@@ -7,7 +7,7 @@ import EnginePreview from "@/components/EnginePreview";
 import FAQAndCTA from "@/components/FAQAndCTA";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
-import HowItWorks from "@/components/HowItWorks";
+import Psychology from "@/components/Psychology";
 import SignalsGrid from "@/components/SignalsGrid";
 import SiloPsychologySection from "@/components/SiloPsychologySection";
 
@@ -45,8 +45,8 @@ export default function Home() {
         <Hero />
         <SiloPsychologySection />
         <SignalsGrid />
+        <Psychology />
         <EnginePreview />
-        <HowItWorks />
         <FAQAndCTA />
       </main>
 

@@ -1,7 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowDown, ArrowRight, Compass, Link2, Pause } from "lucide-react";
 import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Sync",
+    body: "Read-only signals, on-device.",
+    icon: Link2,
+  },
+  {
+    number: "02",
+    title: "Name your arc",
+    body: "The season you're in right now.",
+    icon: Compass,
+  },
+  {
+    number: "03",
+    title: "Daily directive",
+    body: "One 1% rule + skippable speed bumps.",
+    icon: Pause,
+  },
+];
 
 export default function EnginePreview() {
   const [arc, setArc] = useState<FocusArcId>("founder-sprint");
@@ -16,10 +38,10 @@ export default function EnginePreview() {
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The Mirror Card</p>
           <h2 id="engine-preview-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Grounded this morning. Present all day.
+            Low sleep. Heavy calendar. One gentle rule.
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            Low sleep, a packed calendar, a tired voice note—turned into one gentle rule that keeps you in the
+            A tired voice note plus the day you actually lived—turned into one energy defense, so you stay in the
             driver&apos;s seat.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-2" role="tablist" aria-label="Example seasons">
@@ -48,6 +70,34 @@ export default function EnginePreview() {
 
         <div className="mt-10 flex justify-center">
           <IPhoneFocusFrame arc={arc} onArcChange={setArc} />
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 items-stretch gap-3 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)]">
+          {STEPS.flatMap((step, index) => {
+            const Icon = step.icon;
+            const card = (
+              <article key={step.title} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-indigo-400/25 bg-indigo-400/10">
+                    <Icon className="h-4 w-4 text-indigo-300" strokeWidth={1.75} />
+                  </span>
+                  <span className="font-mono text-[11px] tracking-widest text-slate-500">{step.number}</span>
+                </div>
+                <h3 className="mt-3 text-base font-semibold tracking-tight">{step.title}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-slate-400">{step.body}</p>
+              </article>
+            );
+            if (index === STEPS.length - 1) {
+              return [card];
+            }
+            return [
+              card,
+              <div key={`${step.title}-arrow`} className="flex items-center justify-center py-1" aria-hidden>
+                <ArrowDown className="h-5 w-5 text-indigo-400/70 lg:hidden" />
+                <ArrowRight className="hidden h-5 w-5 text-indigo-400/70 lg:block" />
+              </div>,
+            ];
+          })}
         </div>
       </div>
     </section>

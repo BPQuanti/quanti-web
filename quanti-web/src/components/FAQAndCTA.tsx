@@ -32,7 +32,7 @@ export default function FAQAndCTA() {
             Early Access
           </p>
           <h2 id="faq-cta-heading" className="mt-4 text-2xl font-semibold tracking-tight sm:text-4xl sm:leading-[1.12]">
-            Claim a spot. Ground your morning.
+            Claim a spot. Stay in control of your day.
           </h2>
         </div>
 
