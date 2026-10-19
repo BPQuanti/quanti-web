@@ -5,16 +5,20 @@ export default function Purpose() {
       aria-labelledby="purpose-heading"
     >
       <div className="pointer-events-none absolute -left-16 top-0 h-56 w-56 rounded-full bg-indigo-600/20 blur-3xl" />
-      <article className="relative mx-auto max-w-3xl rounded-2xl border border-indigo-400/30 bg-slate-950/80 p-6 text-center shadow-[0_0_36px_rgba(99,102,241,0.16)] sm:p-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Definition</p>
-        <h2 id="purpose-heading" className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
+      <article className="relative mx-auto max-w-3xl rounded-2xl border border-indigo-400/30 bg-slate-950/80 px-6 py-12 text-center shadow-[0_0_36px_rgba(99,102,241,0.16)] sm:px-10 sm:py-14">
+        <h2
+          id="purpose-heading"
+          className="text-sm font-semibold uppercase tracking-wide text-indigo-300"
+        >
           What is Quanti?
         </h2>
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Quanti is a privacy-first behavioral operating system designed to keep your daily life in total alignment.
-          By using passive telemetry across your health, schedule, and finances—combined with a 15-second morning voice
-          check—Quanti bridges cold data with how you actually feel, giving you one clear directive each day so you stay
-          present and in control.
+        <p className="mt-3 text-2xl font-bold leading-snug tracking-tight text-slate-50 sm:text-3xl">
+          Quanti turns your raw daily data into an intelligent strategy for whatever life season you&apos;re in.
+        </p>
+        <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
+          By pairing passive telemetry across your health (Apple Watch, Oura, WHOOP), schedule, and bank activity with a
+          15-second morning voice check, Quanti connects cold metrics with how you actually feel—delivering one clear
+          directive each day so you stay present, intentional, and in total alignment.
         </p>
       </article>
     </section>
