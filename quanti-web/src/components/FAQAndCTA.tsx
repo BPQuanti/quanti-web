@@ -9,7 +9,7 @@ const QUESTIONS = [
   },
   {
     q: "Are integrations read-only?",
-    a: "Yes. HealthKit, Screen Time, calendar, and Plaid are read-only. Quanti cannot move money or lock your apps.",
+    a: "Yes. Apple Health, calendar, phone usage, and bank activity are read-only. Quanti cannot move money or lock your apps.",
   },
   {
     q: "Does Quanti lock my apps or force my calendar?",

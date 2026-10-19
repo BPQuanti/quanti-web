@@ -13,8 +13,8 @@ export default function Hero() {
           Finally, an app that actually gets you.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Stop letting bad days run your life. Quanti translates your daily signals into one gentle directive each
-          morning so you stay in control.
+          Quanti translates your daily telemetry into one clear move each morning—keeping your energy, habits, and daily
+          actions in complete alignment.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Claim Early Access" />

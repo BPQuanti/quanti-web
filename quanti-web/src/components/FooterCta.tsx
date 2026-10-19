@@ -19,7 +19,8 @@ export default function FooterCta() {
           Most tools judge you by raw numbers—how many steps you missed, how much you spent, or how long you scrolled.
           Quanti is different. It learns the rhythm of your real life, honors your energy, and speaks to you with
           empathy when you&apos;re exhausted and momentum when you&apos;re ready. No cold graphs. No guilt. Just a
-          trusted companion that knows you and helps you navigate your path with presence and clarity.
+          trusted companion that knows you, respects your season, and keeps you effortlessly aligned with the path you
+          want to walk.
         </p>
 
         <div id="waitlist-footer" className="mx-auto mt-8 max-w-xl scroll-mt-24 text-left">
@@ -31,7 +32,7 @@ export default function FooterCta() {
         </div>
 
         <p className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-slate-400">
-          <span>Coming soon to iOS</span>
+          <span> Coming soon to iOS</span>
           <span aria-hidden>•</span>
           <span>100% On-Device &amp; Private</span>
         </p>

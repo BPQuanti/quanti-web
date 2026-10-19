@@ -1,24 +1,37 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, Calendar, CreditCard, Mic, Activity, Smartphone, Sparkles } from "lucide-react";
+import {
+  ArrowDown,
+  Calendar,
+  CreditCard,
+  MapPin,
+  Mic,
+  Activity,
+  Sparkles,
+} from "lucide-react";
 
 const ARCS = [
   { id: "founder-sprint", glyph: "⚡", label: "Founder Sprint" },
   { id: "recovery-reset", glyph: "🛡️", label: "Recovery & Reset" },
-  { id: "capital-discipline", glyph: "💰", label: "Capital Discipline" },
+  { id: "spending-control", glyph: "💰", label: "Spending Control" },
 ] as const;
 
+type ArcId = (typeof ARCS)[number]["id"] | "custom";
+
 const PASSIVE = [
-  { icon: Activity, label: "Wearables / HealthKit" },
-  { icon: Calendar, label: "Calendar schedule" },
-  { icon: CreditCard, label: "Plaid capital outflows" },
-  { icon: Smartphone, label: "Screen Time" },
+  { icon: Activity, label: "Apple Watch, Oura, WHOOP, or iPhone Health" },
+  { icon: Calendar, label: "Calendar Density & Phone Usage" },
+  { icon: CreditCard, label: "Bank & Credit Card Activity" },
+  { icon: MapPin, label: "On-Device Location (Home, Work, Gym)" },
 ];
 
 export default function EngineVisual() {
-  const [arc, setArc] = useState<(typeof ARCS)[number]["id"]>("founder-sprint");
-  const selected = ARCS.find((item) => item.id === arc) ?? ARCS[0];
+  const [arc, setArc] = useState<ArcId>("founder-sprint");
+  const [customFocus, setCustomFocus] = useState("");
+  const selectedPreset = ARCS.find((item) => item.id === arc);
+  const customLabel = customFocus.trim() || "your custom focus";
+  const selectedLabel = arc === "custom" ? customLabel : (selectedPreset?.label ?? ARCS[0].label);
 
   return (
     <section
@@ -32,8 +45,8 @@ export default function EngineVisual() {
           <h2 id="engine-visual-heading" className="mt-3 text-3xl font-semibold tracking-tight">
             Passive data + how you feel + your Arc = one rule.
           </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            Cold telemetry, a 15-second voice check, and the season you choose—synthesized into one 1% directive.
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
+            Telemetry tells us where you are. Your voice tells us how you feel. Your Arc aligns where you&apos;re going.
           </p>
         </div>
 
@@ -46,7 +59,7 @@ export default function EngineVisual() {
                 const Icon = item.icon;
                 return (
                   <li key={item.label} className="flex items-center gap-3 text-sm leading-6 text-slate-300">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-sky-400/25 bg-sky-400/10 text-sky-300">
+                    <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-sky-400/25 bg-sky-400/10 text-sky-300">
                       <Icon className="h-4 w-4" strokeWidth={1.75} />
                     </span>
                     {item.label}
@@ -94,8 +107,25 @@ export default function EngineVisual() {
                 );
               })}
             </div>
+            <label className="mt-4 flex items-center gap-2 rounded-2xl border border-dashed border-indigo-400/40 bg-indigo-500/10 px-3 py-2.5">
+              <span aria-hidden className="shrink-0 text-sm">
+                ✨
+              </span>
+              <input
+                type="text"
+                value={customFocus}
+                onChange={(event) => {
+                  setCustomFocus(event.target.value);
+                  setArc("custom");
+                }}
+                onFocus={() => setArc("custom")}
+                placeholder='Type your custom focus... (e.g. "Marathon Prep", "Deep Work & Less Noise")'
+                className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
+                aria-label="Type your custom focus"
+              />
+            </label>
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              {selected.glyph} Selected focus: {selected.label}
+              You name the season. Quanti aligns your daily rules to fit your exact goals.
             </p>
           </article>
         </div>
@@ -111,7 +141,7 @@ export default function EngineVisual() {
           </p>
           <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-50">A + B + C = one 1% rule</h3>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-emerald-50/90 sm:text-base">
-            One actionable morning rule, plus smart speed bumps when fatigue hits—adapted to {selected.label}.
+            One actionable morning rule, plus smart speed bumps when fatigue hits—aligned to {selectedLabel}.
           </p>
         </article>
       </div>
