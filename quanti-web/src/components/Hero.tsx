@@ -13,14 +13,13 @@ export default function Hero() {
           Finally, an app that actually gets you.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Most tools see pieces of your life—your steps, your budget, or your calendar. Quanti connects your physical
-          recovery, schedule, spending, and 15-second voice notes to understand how you actually feel and what you
-          actually need.
+          Quanti connects your physical recovery, calendar, spending, and 15-second voice checks to give you one gentle,
+          actionable rule each morning.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
-          <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Join the Waitlist" />
+          <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Claim Early Access" />
           <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
-            🔒 100% Private &amp; On-Device • Your Safe Space • Read-Only Integrations
+            🔒 On-Device Privacy • Read-Only Sync • Zero Data Sales
           </p>
         </div>
       </div>

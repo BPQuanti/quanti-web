@@ -1,36 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, Calendar, CreditCard, MapPin, Mic } from "lucide-react";
 import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
-
-const PILLARS = [
-  {
-    title: "🧬 Physical",
-    body: "Sleep efficiency and recovery tracking.",
-    icon: Activity,
-  },
-  {
-    title: "📱 Digital & Schedule",
-    body: "Screen habits plus calendar meeting density.",
-    icon: Calendar,
-  },
-  {
-    title: "💳 Capital",
-    body: "Spending velocity and impulse-buy defenses.",
-    icon: CreditCard,
-  },
-  {
-    title: "📍 Location Context",
-    body: "On-device awareness of Home, Work, and Gym transitions.",
-    icon: MapPin,
-  },
-  {
-    title: "🎙️ Voice Checks",
-    body: "15-second audio notes to capture how you actually feel.",
-    icon: Mic,
-  },
-] as const;
 
 export default function EnginePreview() {
   const [arc, setArc] = useState<FocusArcId>("founder-sprint");
@@ -41,24 +12,16 @@ export default function EnginePreview() {
       aria-labelledby="engine-preview-heading"
     >
       <div className="pointer-events-none absolute -left-16 top-0 h-56 w-56 rounded-full bg-indigo-600/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-10 bottom-0 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
-
       <div className="relative mx-auto max-w-5xl">
-        <div className="text-center lg:text-left">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Interactive Engine Preview</p>
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The Mirror Card</p>
           <h2 id="engine-preview-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Name the season. Watch the 1% daily rule move.
+            Low sleep. Heavy calendar. One gentle rule.
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base lg:mx-0">
-            These are examples you could name—Founder Sprint, Creative Flow, Parenting Presence. Quanti reorients the
-            morning rule, voice check, and gentle speed bumps around the season you&apos;re in. You are not locked to
-            three presets.
+          <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
+            A tired voice note plus the day you actually lived—turned into one energy defense, not a lecture.
           </p>
-          <div
-            className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start"
-            role="tablist"
-            aria-label="Example seasons"
-          >
+          <div className="mt-6 flex flex-wrap justify-center gap-2" role="tablist" aria-label="Example seasons">
             {ARC_OPTIONS.map((option) => {
               const active = option.id === arc;
               return (
@@ -82,29 +45,8 @@ export default function EnginePreview() {
           </div>
         </div>
 
-        <div className="mt-10 grid items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+        <div className="mt-10 flex justify-center">
           <IPhoneFocusFrame arc={arc} onArcChange={setArc} />
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            {PILLARS.map((pillar) => {
-              const Icon = pillar.icon;
-              return (
-                <li
-                  key={pillar.title}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 transition-all duration-300 hover:border-indigo-400/40 hover:shadow-[0_0_24px_rgba(99,102,241,0.16)]"
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-indigo-400/25 bg-indigo-400/10">
-                      <Icon className="h-5 w-5 text-indigo-300" strokeWidth={1.75} />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold tracking-tight text-slate-50">{pillar.title}</p>
-                      <p className="mt-1 text-sm leading-6 text-slate-400">{pillar.body}</p>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
         </div>
       </div>
     </section>

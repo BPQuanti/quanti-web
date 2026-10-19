@@ -3,14 +3,13 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import EmpathyComparison from "@/components/EmpathyComparison";
 import EnginePreview from "@/components/EnginePreview";
 import FAQAndCTA from "@/components/FAQAndCTA";
 import Footer from "@/components/Footer";
 import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
+import SignalsGrid from "@/components/SignalsGrid";
 import SiloPsychologySection from "@/components/SiloPsychologySection";
-import VoiceFeature from "@/components/VoiceFeature";
 
 export default function Home() {
   return (
@@ -38,15 +37,14 @@ export default function Home() {
           href="#waitlist"
           className="rounded-full border border-indigo-400/40 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-50 transition hover:border-indigo-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] active:scale-95 sm:px-4 sm:text-sm"
         >
-          Join the Waitlist
+          Claim Early Access
         </a>
       </motion.header>
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
-        <EmpathyComparison />
-        <VoiceFeature />
         <SiloPsychologySection />
+        <SignalsGrid />
         <EnginePreview />
         <HowItWorks />
         <FAQAndCTA />
@@ -58,7 +56,7 @@ export default function Home() {
         href="#waitlist"
         className="fixed inset-x-4 bottom-4 z-30 inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 text-sm font-semibold text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] lg:hidden"
       >
-        Join the Waitlist
+        Claim Early Access
       </a>
     </div>
   );

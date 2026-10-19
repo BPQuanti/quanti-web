@@ -2,20 +2,24 @@ import WaitlistCapture from "@/components/WaitlistCapture";
 
 const QUESTIONS = [
   {
-    q: "How is my financial and biometric data secured?",
-    a: "On-device and read-only. Sleep, screens, calendar, spend, location, and voice stay in the iOS sandbox. Location and voice never leave your phone. We never store, sell, or train models on raw health, bank, or voice data in a cloud you don't control.",
+    q: "Is my data safe?",
+    a: "Yes. Sleep, screens, calendar, spend, location, and voice stay in the iOS sandbox. We never sell data. Integrations are read-only.",
+  },
+  {
+    q: "How does on-device processing work?",
+    a: "Correlation runs on your phone. Location and voice never leave the device. Raw health and bank samples are not dumped into a cloud you don't control.",
   },
   {
     q: "Does Quanti lock my apps or force my calendar?",
-    a: "No. Quanti uses gentle speed bumps: 5-second pause screens, suggested blocks, and nudges you can skip. You keep the last move. Never forced lockouts or rigid auto-scheduling.",
+    a: "No. You get skippable 5-second pauses and one morning rule. Never forced lockouts.",
   },
   {
-    q: "Am I stuck with Recovery, Deep Work, and Capital?",
-    a: "No. You name the season—Founder Sprint, Creative Flow, Parenting Presence, or whatever this chapter is. It can change. You are not stuck with three presets.",
+    q: "Am I stuck with three presets?",
+    a: "No. You name the season—Founder Sprint, Creative Flow, Parenting Presence, or your own.",
   },
   {
     q: "When does TestFlight open?",
-    a: "Closed TestFlight is rolling out from the waitlist. Join now—spot order is based on signup plus referrals.",
+    a: "Closed TestFlight rolls out from this waitlist. Spot order is signup plus referrals.",
   },
 ];
 
@@ -25,14 +29,11 @@ export default function FAQAndCTA() {
       <div className="overflow-hidden rounded-[28px] border border-indigo-400/25 bg-slate-950/80 px-5 py-10 shadow-[0_0_40px_rgba(99,102,241,0.16)] sm:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <p className="inline-flex rounded-full border border-slate-600/80 bg-slate-900/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300">
-            Privacy-First Behavioral OS
+            Early Access
           </p>
-          <h2 id="faq-cta-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 sm:text-4xl sm:leading-[1.12]">
-            One morning rule. Gentle speed bumps. Keep your momentum.
+          <h2 id="faq-cta-heading" className="mt-4 text-2xl font-semibold tracking-tight sm:text-4xl sm:leading-[1.12]">
+            Claim a spot. Be seen in the morning.
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            15-second voice checks, processed on your phone. Then claim your spot.
-          </p>
         </div>
 
         <div className="mx-auto mt-8 max-w-3xl space-y-3">
@@ -60,12 +61,9 @@ export default function FAQAndCTA() {
         <div id="waitlist-footer" className="mx-auto mt-10 max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture
             emailFieldId="footer-waitlist-email"
-            submitLabel="Join the Waitlist"
+            submitLabel="Claim Early Access"
             refreshOnMount={false}
           />
-          <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
-            🔒 On-Device Location &amp; Voice Processing • Zero Data Sales • Read-Only Integrations
-          </p>
         </div>
       </div>
     </section>
