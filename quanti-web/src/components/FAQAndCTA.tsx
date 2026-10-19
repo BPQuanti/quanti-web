@@ -1,5 +1,3 @@
-import WaitlistCapture from "@/components/WaitlistCapture";
-
 const QUESTIONS = [
   {
     q: "Is my data processed on-device?",
@@ -25,14 +23,14 @@ const QUESTIONS = [
 
 export default function FAQAndCTA() {
   return (
-    <section className="mt-16 mb-8 text-slate-50" aria-labelledby="faq-cta-heading">
-      <div className="overflow-hidden rounded-[28px] border border-indigo-400/25 bg-slate-950/80 px-5 py-10 shadow-[0_0_40px_rgba(99,102,241,0.16)] sm:px-10">
+    <section className="mt-16 text-slate-50" aria-labelledby="faq-cta-heading">
+      <div className="overflow-hidden rounded-[28px] border border-slate-800/80 bg-slate-950/80 px-5 py-10 sm:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <p className="inline-flex rounded-full border border-slate-600/80 bg-slate-900/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] text-indigo-300">
-            Early Access
+            FAQ
           </p>
           <h2 id="faq-cta-heading" className="mt-4 text-2xl font-semibold tracking-tight sm:text-4xl sm:leading-[1.12]">
-            Claim a spot. Stay in control of your day.
+            A few things, plainly.
           </h2>
         </div>
 
@@ -56,14 +54,6 @@ export default function FAQAndCTA() {
               <p className="mt-3 text-sm leading-6 text-slate-400">{item.a}</p>
             </details>
           ))}
-        </div>
-
-        <div id="waitlist-footer" className="mx-auto mt-10 max-w-xl scroll-mt-24 text-left">
-          <WaitlistCapture
-            emailFieldId="footer-waitlist-email"
-            submitLabel="Claim Early Access"
-            refreshOnMount={false}
-          />
         </div>
       </div>
     </section>

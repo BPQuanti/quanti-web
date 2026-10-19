@@ -6,6 +6,7 @@ import Link from "next/link";
 import EngineVisual from "@/components/EngineVisual";
 import FAQAndCTA from "@/components/FAQAndCTA";
 import Footer from "@/components/Footer";
+import FooterCta from "@/components/FooterCta";
 import Hero from "@/components/Hero";
 import Psychology from "@/components/Psychology";
 import Purpose from "@/components/Purpose";
@@ -46,6 +47,7 @@ export default function Home() {
         <EngineVisual />
         <Psychology />
         <FAQAndCTA />
+        <FooterCta />
       </main>
 
       <Footer />
