@@ -3,20 +3,20 @@ import { ArrowDown, ArrowRight, Compass, Link2, Pause } from "lucide-react";
 const STEPS = [
   {
     number: "01",
-    title: "Sync Four Streams",
-    body: "Connect biometrics, Screen Time, read-only spend, and 15-second voice logs. On-device. No homework.",
+    title: "Connect the Signals",
+    body: "Sleep, screens, calendar, spend, on-device location, and 15-second voice checks. On your phone. No homework.",
     icon: Link2,
   },
   {
     number: "02",
-    title: "Name Your Agency Arc",
-    body: "Define the season you're in—Founder Sprint, Creative Flow, Parenting Presence, or your own. It can change.",
+    title: "Name the Season",
+    body: "Founder Sprint, Creative Flow, Parenting Presence, or your own. It can change whenever life does.",
     icon: Compass,
   },
   {
     number: "03",
-    title: "1% Rule + Smart Friction",
-    body: "One morning directive. When willpower falters: 5-second pauses and choice-based nudges—never forced lockouts.",
+    title: "One Rule + Gentle Speed Bumps",
+    body: "One morning rule. When willpower dips: a 5-second pause you can skip—never a forced lock.",
     icon: Pause,
   },
 ];

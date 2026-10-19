@@ -1,34 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { Activity, CreditCard, Mic, Shield, Smartphone } from "lucide-react";
+import { Activity, Calendar, CreditCard, MapPin, Mic } from "lucide-react";
 import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
 
 const PILLARS = [
   {
-    title: "Physical",
-    body: "HealthKit / wearables: sleep efficiency and HRV.",
+    title: "🧬 Physical",
+    body: "Sleep efficiency and recovery tracking.",
     icon: Activity,
   },
   {
-    title: "Digital",
-    body: "Screen Time APIs: pickups and doomscroll loops.",
-    icon: Smartphone,
+    title: "📱 Digital & Schedule",
+    body: "Screen habits plus calendar meeting density.",
+    icon: Calendar,
   },
   {
-    title: "Capital",
-    body: "Plaid read-only: outflow velocity and impulse categories.",
+    title: "💳 Capital",
+    body: "Spending velocity and impulse-buy defenses.",
     icon: CreditCard,
   },
   {
-    title: "Emotional",
-    body: "15-second voice telemetry: the why behind the numbers.",
-    icon: Mic,
+    title: "📍 Location Context",
+    body: "On-device awareness of Home, Work, and Gym transitions.",
+    icon: MapPin,
   },
   {
-    title: "Privacy",
-    body: "On-device local processing. Zero data sales. Read-only integrations.",
-    icon: Shield,
+    title: "🎙️ Voice Checks",
+    body: "15-second audio notes to capture how you actually feel.",
+    icon: Mic,
   },
 ] as const;
 
@@ -50,14 +50,14 @@ export default function EnginePreview() {
             Name the season. Watch the 1% daily rule move.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base lg:mx-0">
-            These are example Agency Arcs you could define—Founder Sprint, Creative Flow, Parenting Presence. Quanti
-            reorients the directive, voice context, and smart friction around the season you&apos;re in. You are not
-            locked to three presets.
+            These are examples you could name—Founder Sprint, Creative Flow, Parenting Presence. Quanti reorients the
+            morning rule, voice check, and gentle speed bumps around the season you&apos;re in. You are not locked to
+            three presets.
           </p>
           <div
             className="mt-6 flex flex-wrap justify-center gap-2 lg:justify-start"
             role="tablist"
-            aria-label="Example Agency Arcs"
+            aria-label="Example seasons"
           >
             {ARC_OPTIONS.map((option) => {
               const active = option.id === arc;

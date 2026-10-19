@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti — Stop Behavioral Burnout Before It Starts",
+  title: "Quanti — Stop Letting Bad Days Run Your Life",
   description:
-    "A privacy-first behavioral OS. Biometrics, screen habits, finances, and 15-second voice logs into one 1% daily directive and smart friction—never forced lockouts.",
+    "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks into one simple morning rule—keeping you in the driver's seat when willpower dips.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti — Stop Behavioral Burnout Before It Starts",
+    title: "Quanti — Stop Letting Bad Days Run Your Life",
     description:
-      "A privacy-first behavioral OS. Biometrics, screen habits, finances, and 15-second voice logs into one 1% daily directive and smart friction—never forced lockouts.",
+      "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks into one simple morning rule—keeping you in the driver's seat when willpower dips.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti — Stop Behavioral Burnout Before It Starts",
+    title: "Quanti — Stop Letting Bad Days Run Your Life",
     description:
-      "A privacy-first behavioral OS. Biometrics, screen habits, finances, and 15-second voice logs into one 1% daily directive and smart friction—never forced lockouts.",
+      "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks into one simple morning rule—keeping you in the driver's seat when willpower dips.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

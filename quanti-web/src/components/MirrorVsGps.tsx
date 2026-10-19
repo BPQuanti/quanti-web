@@ -9,8 +9,8 @@ const MIRROR = [
 ];
 
 const GPS = [
-  { title: "On-device four-stream telemetry", description: "HealthKit, Screen Time, read-only Plaid, and 15-second voice logs." },
-  { title: "Smart friction, not lockouts", description: "5-second pauses and choice-based nudges when willpower falters." },
+  { title: "On-device signals, including calendar & location", description: "Sleep, screens, meeting density, spend, Home/Work/Gym context, and 15-second voice checks." },
+  { title: "Gentle speed bumps, not lockouts", description: "5-second pauses and skippable nudges when willpower dips." },
   { title: "ONE 1% daily directive", description: "A single next move every morning from the full picture." },
 ];
 

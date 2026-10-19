@@ -4,7 +4,9 @@ import {
   ArrowRight,
   CheckCircle2,
   CreditCard,
+  Calendar,
   Flame,
+  MapPin,
   Mic,
   Pause,
   Shield,
@@ -17,7 +19,7 @@ const CASCADE = [
   {
     domain: "Physical Strain",
     title: "Sleep & HRV Slip",
-    body: "Recovery debt drops executive function and impulse control below baseline.",
+    body: "Poor sleep makes it harder to think clearly and say no.",
     icon: Activity,
     glow: "hover:border-sky-400/40 hover:shadow-[0_0_28px_rgba(56,189,248,0.18)]",
     iconWrap: "border-sky-400/30 bg-sky-400/10 text-sky-300",
@@ -26,7 +28,7 @@ const CASCADE = [
   {
     domain: "Digital Friction",
     title: "Late-Night Loops",
-    body: "Pickups and doomscroll windows open in high-fatigue hours.",
+    body: "Late-night scrolling shows up when you're already tired.",
     icon: Smartphone,
     glow: "hover:border-purple-400/40 hover:shadow-[0_0_28px_rgba(168,85,247,0.18)]",
     iconWrap: "border-purple-400/30 bg-purple-400/10 text-purple-300",
@@ -35,7 +37,7 @@ const CASCADE = [
   {
     domain: "Capital Outflow",
     title: "Impulse Spend",
-    body: "Frictionless checkout rides the same vulnerability window.",
+    body: "One-tap checkout hits in that same tired window.",
     icon: CreditCard,
     glow: "hover:border-emerald-400/40 hover:shadow-[0_0_28px_rgba(52,211,153,0.18)]",
     iconWrap: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
@@ -43,8 +45,8 @@ const CASCADE = [
   },
   {
     domain: "Burnout",
-    title: "Agency Collapse",
-    body: "Cortisol, regret, and tomorrow's deficit restart the chain.",
+    title: "The Crash",
+    body: "You're fried, you regret it, and tomorrow starts behind.",
     icon: Flame,
     glow: "hover:border-amber-400/40 hover:shadow-[0_0_28px_rgba(251,191,36,0.16)]",
     iconWrap: "border-amber-400/30 bg-amber-400/10 text-amber-200",
@@ -54,26 +56,32 @@ const CASCADE = [
 
 const PILLARS = [
   {
-    title: "Physical",
-    body: "HealthKit / wearables: sleep efficiency and HRV as recovery signal—not another chart wall.",
+    title: "🧬 Physical",
+    body: "Sleep efficiency and recovery tracking from HealthKit and wearables.",
     icon: Activity,
     tone: "border-sky-400/25 text-sky-300",
   },
   {
-    title: "Digital",
-    body: "Screen Time APIs: pickups and doomscroll loops that open the vulnerability window.",
-    icon: Smartphone,
+    title: "📱 Digital & Schedule",
+    body: "Screen habits plus calendar meeting density—how packed (or empty) your day actually is.",
+    icon: Calendar,
     tone: "border-purple-400/25 text-purple-300",
   },
   {
-    title: "Capital",
-    body: "Plaid read-only: outflow velocity and impulse categories, never write access to your accounts.",
+    title: "💳 Capital",
+    body: "Spending velocity and impulse-buy defenses. Plaid is read-only.",
     icon: CreditCard,
     tone: "border-emerald-400/25 text-emerald-300",
   },
   {
-    title: "Emotional",
-    body: "15-second voice telemetry & micro-journaling: mood sentiment, trigger analysis, intent anchors.",
+    title: "📍 Location Context",
+    body: "On-device transition awareness—Home, Work, Gym—never sent to a cloud map of your life.",
+    icon: MapPin,
+    tone: "border-amber-400/25 text-amber-200",
+  },
+  {
+    title: "🎙️ Voice Checks",
+    body: "15-second audio notes to capture how you actually feel—the why behind the numbers.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-300",
   },
@@ -82,13 +90,13 @@ const PILLARS = [
 const STATUS_QUO = [
   "Isolated graphs after the damage is done",
   "Insight fatigue from context-switching across 3+ apps",
-  "Forced locks and rigid auto-schedules that fight your agency",
+  "Forced locks and rigid auto-schedules that take the wheel",
 ];
 
 const QUANTI_ENGINE = [
-  "Four-stream correlation: body, screen, spend, and voice",
-  "Filters 99% of noisy charts into one 1% daily directive",
-  "Smart friction and choice-based guardrails—never forced lockouts",
+  "Sleep, screens, calendar, spend, location, and voice—connected on your phone",
+  "Cuts the noise down to one simple morning rule",
+  "Gentle speed bumps when willpower dips—never forced lockouts",
 ];
 
 export default function SiloPsychologySection() {
@@ -110,13 +118,13 @@ export default function SiloPsychologySection() {
           Your life isn&apos;t compartmentalized. Why track it in silos?
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-          Behavior is one system. Staring at three dashboards makes you the processing layer. Quanti correlates the
-          chain before burnout starts.
+          Sleep, scrolling, meetings, and spending don&apos;t live in separate boxes. Quanti spots the daily burnout
+          chain before a rough night becomes a rough week.
         </p>
       </div>
 
       <div className="relative mx-auto mt-12 max-w-5xl">
-        <h3 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">The Domino Effect</h3>
+        <h3 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">The Daily Burnout Chain</h3>
         <div className="mt-6 flex flex-col items-stretch gap-3 lg:flex-row lg:items-center">
           {CASCADE.map((card, index) => {
             const Icon = card.icon;
@@ -145,13 +153,13 @@ export default function SiloPsychologySection() {
           })}
         </div>
         <p className="mt-6 rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-3 text-center text-sm font-medium italic leading-6 text-indigo-100">
-          Physical strain → digital friction → capital outflow → burnout. A spend leak is often a recovery issue in disguise.
+          Tired body → late scrolling → impulse spend → burnout. A money leak is often a sleep problem in disguise.
         </p>
       </div>
 
       <div className="relative mx-auto mt-12 max-w-5xl">
-        <h3 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Four Telemetry Streams</h3>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        <h3 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-300">Five Signals Quanti Reads</h3>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((pillar) => {
             const Icon = pillar.icon;
             return (
@@ -177,30 +185,30 @@ export default function SiloPsychologySection() {
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-rose-400/30 bg-rose-400/10 text-rose-300">
             <Mic className="h-5 w-5" strokeWidth={1.75} />
           </span>
-          <h3 className="mt-4 text-lg font-semibold tracking-tight">15-Second Voice Telemetry</h3>
+          <h3 className="mt-4 text-lg font-semibold tracking-tight">15-Second Voice Checks</h3>
           <p className="mt-2 text-sm leading-6 text-slate-400">
-            Micro-reflections give the qualitative <em>why</em> behind HRV, sleep, and screen time—mood sentiment, triggers,
-            and intent anchors, processed on-device.
+            A quick audio note captures how you actually feel—so the numbers (sleep, screens, spend) have a <em>why</em>.
+            Processed on your phone.
           </p>
         </article>
         <article className="rounded-2xl border border-indigo-400/25 bg-slate-950/80 p-6 transition-all duration-300 hover:border-indigo-300/40 hover:shadow-[0_0_28px_rgba(99,102,241,0.16)]">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-indigo-400/30 bg-indigo-400/10 text-indigo-300">
             <Pause className="h-5 w-5" strokeWidth={1.75} />
           </span>
-          <h3 className="mt-4 text-lg font-semibold tracking-tight">Smart Friction &amp; Choice-Based Guardrails</h3>
+          <h3 className="mt-4 text-lg font-semibold tracking-tight">Gentle Speed Bumps</h3>
           <p className="mt-2 text-sm leading-6 text-slate-400">
-            Gentle 5-second pause screens, suggested calendar blocks, and pre-commitment nudges. Never forced lockouts.
-            You keep the last move.
+            A 5-second pause, a suggested calendar block, a nudge you can skip. Never a forced lock. You stay in control
+            of your day.
           </p>
         </article>
         <article className="rounded-2xl border border-emerald-400/25 bg-slate-950/80 p-6 transition-all duration-300 hover:border-emerald-300/40 hover:shadow-[0_0_28px_rgba(52,211,153,0.14)]">
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
             <Sparkles className="h-5 w-5" strokeWidth={1.75} />
           </span>
-          <h3 className="mt-4 text-lg font-semibold tracking-tight">Dynamic Agency Arcs</h3>
+          <h3 className="mt-4 text-lg font-semibold tracking-tight">You Name the Season</h3>
           <p className="mt-2 text-sm leading-6 text-slate-400">
-            You name the season: Founder Sprint, Creative Flow, Parenting Presence. Arcs adapt with your life—not a
-            hardcoded trio.
+            Founder Sprint, Creative Flow, Parenting Presence—or whatever this chapter is. It can change. You&apos;re not
+            stuck with three presets.
           </p>
         </article>
       </div>
@@ -221,8 +229,8 @@ export default function SiloPsychologySection() {
         </article>
         <article className="rounded-2xl border border-indigo-400/40 bg-slate-950/80 p-6 shadow-[0_0_36px_rgba(99,102,241,0.18)] transition-all duration-300 hover:border-indigo-300/60 hover:shadow-[0_0_48px_rgba(99,102,241,0.28)]">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">The Quanti OS</p>
-          <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-50">Agency Before Burnout</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-400">Qualitative voice + smart friction. One morning rule.</p>
+          <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-50">Stay in Control of Your Day</h3>
+          <p className="mt-2 text-sm leading-6 text-slate-400">15-second voice checks + gentle speed bumps. One morning rule.</p>
           <ul className="mt-5 space-y-3">
             {QUANTI_ENGINE.map((item, index) => (
               <li key={item} className="flex items-start gap-3 text-sm leading-6 text-slate-200">
@@ -247,9 +255,8 @@ export default function SiloPsychologySection() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Privacy Architecture</p>
             <h3 className="mt-2 text-xl font-semibold tracking-tight text-slate-50">On-Device Local Processing</h3>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-emerald-50/80">
-              Correlation runs in the iOS sandbox. Integrations are read-only. Raw HealthKit, Screen Time, Plaid, and
-              voice reflections are not sold, and they are not dumped into a central cloud for someone else to analyze.
-              You keep the keys.
+              Sleep, screens, calendar, spend, location, and voice stay on your phone. Location and voice never leave
+              the device. Integrations are read-only. Nothing is sold. You keep the keys.
             </p>
           </div>
         </div>

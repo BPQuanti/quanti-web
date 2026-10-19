@@ -2,13 +2,13 @@ import { Compass, Radio, Shield } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "Dynamic Agency Arcs",
-    body: "You name the season—Founder Sprint, Creative Flow, Parenting Presence, or your own. The 1% rule orients around it.",
+    title: "You Name the Season",
+    body: "Founder Sprint, Creative Flow, Parenting Presence, or your own. The morning rule orients around it.",
     icon: Compass,
   },
   {
-    title: "Cross-Domain Telemetry",
-    body: "HealthKit, Screen Time, read-only Plaid, and 15-second voice logs—correlated on-device into one directive.",
+    title: "Sleep, Screens, Calendar, Spend, Place, Voice",
+    body: "Meeting density and Home/Work/Gym context sit next to screen habits, spend, and 15-second voice checks—connected on your phone into one morning rule.",
     icon: Radio,
   },
   {
@@ -25,7 +25,7 @@ export default function ArchitectureBanner() {
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Value Pillars</p>
         <h2 id="architecture-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Agency. Telemetry. On-device.
+          Stay in control. Signals stay on your phone.
         </h2>
       </div>
 

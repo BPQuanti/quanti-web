@@ -21,7 +21,7 @@ export type WeeklyPostDraft = {
 
 const PERSONA_BRIEF: Record<GrowthPersona, string> = {
   "Biohackers & Quantified-Self":
-    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti turns sleep, strain, Screen Time, and 15-second voice logs into one 1% daily directive with smart friction—never app locks.",
+    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti turns sleep, screens, schedule, spend, and 15-second voice checks into one morning rule with gentle speed bumps—never app locks.",
   "Founders & Executives":
     "Operators drowning in decision fatigue. Bank + calendar + health already exist as telemetry. Quanti gives one high-leverage move for the morning instead of 40 charts.",
   "Deep Work Engineers":
@@ -89,7 +89,7 @@ function normalizeDrafts(value: unknown): WeeklyPostDraft[] {
 function buildPrompt() {
   return `You are drafting a week's social posts for Quanti (quanti-app.com).
 
-Quanti is a privacy-first behavioral OS. It correlates Apple HealthKit, Screen Time, Plaid spend, and 15-second voice logs into ONE 1% daily directive plus smart friction. On-device. Zero forced app locks. Not another dashboard.
+Quanti connects sleep, screen time, calendar density, spending, on-device location (Home/Work/Gym), and 15-second voice checks into one simple morning rule plus gentle speed bumps. On-device. Zero forced app locks. Not another dashboard.
 
 Write exactly 5 distinct, high-impact post drafts. Cover all 3 personas at least once:
 1. ${GROWTH_PERSONAS[0]} — ${PERSONA_BRIEF[GROWTH_PERSONAS[0]]}
@@ -100,7 +100,7 @@ Mix platforms: some "linkedin", some "x". LinkedIn can be slightly longer (still
 
 Rules:
 - Tone: concise, sharp, high-signal. No hype, no emoji spam, no "game-changer", no "I'm thrilled to announce".
-- Core value in every post: four-stream telemetry (body, screen, spend, voice) → one 1% directive + smart friction, 0 forced locks.
+- Core value in every post: sleep + screens + calendar + spend + on-device location + 15-second voice checks → one morning rule + gentle speed bumps, 0 forced locks.
 - CTA is subtle and non-salesy: invite people to the closed TestFlight waitlist at ${WAITLIST_URL}. Do not use "Sign up now!!" or discount language.
 - Do not invent features (no AI chat, no trading, no social feed).
 - Return JSON only.

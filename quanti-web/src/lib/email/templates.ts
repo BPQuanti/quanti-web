@@ -43,7 +43,7 @@ export function getWelcomeEmailHtml({
                   Most health and productivity tools act like vitamins—showing you raw graphs after the damage is done. Quanti is built differently.
                 </p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  By combining your physical biometrics, screen time, and finances with 15-second voice reflections, Quanti detects behavioral domino effects before burnout happens. Instead of locking your apps or forcing calendar changes, Quanti provides smart friction, ambient directives, and choice-based guardrails that respect your agency.
+                  Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks so it can spot the daily burnout chain before a rough night becomes a rough week. Instead of locking your apps, it uses gentle speed bumps and one simple morning rule—so you stay in control of your day.
                 </p>
                 <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:#94a3b8;">
                   Your referral link to skip the line:
@@ -90,7 +90,7 @@ export function getWelcomeEmailText({
     "",
     "Most health and productivity tools act like vitamins—showing you raw graphs after the damage is done. Quanti is built differently.",
     "",
-    "By combining your physical biometrics, screen time, and finances with 15-second voice reflections, Quanti detects behavioral domino effects before burnout happens. Instead of locking your apps or forcing calendar changes, Quanti provides smart friction, ambient directives, and choice-based guardrails that respect your agency.",
+    "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks so it can spot the daily burnout chain before a rough night becomes a rough week. Instead of locking your apps, it uses gentle speed bumps and one simple morning rule—so you stay in control of your day.",
     "",
     `Your referral link to skip the line: ${referralUrl}`,
     "",

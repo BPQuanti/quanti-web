@@ -21,8 +21,8 @@ export default function FocusDemoSection() {
             Name the season. Watch the 1% daily rule move.
           </h2>
           <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
-            Example Agency Arcs you define—Founder Sprint, Creative Flow, Parenting Presence. The 1% rule and smart
-            friction reorient around the season you&apos;re in.
+            Example seasons you define—Founder Sprint, Creative Flow, Parenting Presence. The morning rule and gentle
+            speed bumps reorient around the chapter you&apos;re in.
           </p>
           <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Arc selector">
             {ARC_OPTIONS.map((option) => {

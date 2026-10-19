@@ -3,15 +3,15 @@ import WaitlistCapture from "@/components/WaitlistCapture";
 const QUESTIONS = [
   {
     q: "How is my financial and biometric data secured?",
-    a: "On-device and read-only. Apple Health, Screen Time, Plaid, and voice reflections stay in the iOS sandbox. We never store, sell, or train models on raw health, bank, or voice data in a central cloud you don't control.",
+    a: "On-device and read-only. Sleep, screens, calendar, spend, location, and voice stay in the iOS sandbox. Location and voice never leave your phone. We never store, sell, or train models on raw health, bank, or voice data in a cloud you don't control.",
   },
   {
     q: "Does Quanti lock my apps or force my calendar?",
-    a: "No. Quanti uses smart friction: 5-second pause screens, suggested blocks, and pre-commitment nudges. You keep the last move. Never forced lockouts or rigid auto-scheduling.",
+    a: "No. Quanti uses gentle speed bumps: 5-second pause screens, suggested blocks, and nudges you can skip. You keep the last move. Never forced lockouts or rigid auto-scheduling.",
   },
   {
     q: "Am I stuck with Recovery, Deep Work, and Capital?",
-    a: "No. Agency Arcs are yours to name—Founder Sprint, Creative Flow, Parenting Presence, or whatever season you're in. They adapt. They are not a hardcoded set of three.",
+    a: "No. You name the season—Founder Sprint, Creative Flow, Parenting Presence, or whatever this chapter is. It can change. You are not stuck with three presets.",
   },
   {
     q: "When does TestFlight open?",
@@ -28,10 +28,10 @@ export default function FAQAndCTA() {
             Privacy-First Behavioral OS
           </p>
           <h2 id="faq-cta-heading" className="mt-4 text-2xl font-semibold tracking-tight text-slate-50 sm:text-4xl sm:leading-[1.12]">
-            One 1% directive. Smart friction. Your agency.
+            One morning rule. Gentle speed bumps. Keep your momentum.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-slate-400 sm:text-base">
-            Voice telemetry, on-device processing, then claim your spot.
+            15-second voice checks, processed on your phone. Then claim your spot.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function FAQAndCTA() {
             refreshOnMount={false}
           />
           <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
-            🔒 On-Device Processing • Zero Data Sales • Read-Only Integrations
+            🔒 On-Device Location &amp; Voice Processing • Zero Data Sales • Read-Only Integrations
           </p>
         </div>
       </div>

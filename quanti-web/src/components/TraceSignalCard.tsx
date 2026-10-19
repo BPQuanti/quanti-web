@@ -15,36 +15,42 @@ const ARC_TRACES: Record<
 > = {
   "founder-sprint": {
     label: "Founder Sprint",
-    directive: "5-second pause before late Slack. Protect the 9:00 AM decision window.",
+    directive: "5-second pause before late Slack. Keep the 9:00 AM decision window.",
     signals: [
-      "HealthKit: HRV −18% vs 7-day baseline",
-      "Screen Time: Slack + social after 10:12 PM",
-      "Plaid: Late checkout in the fatigue window",
-      "Voice: 'I was avoiding the hard email.'",
+      "Sleep: recovery down vs your usual week",
+      "Screens: Slack + social after 10:12 PM",
+      "Calendar: back-to-back meetings until 6:40 PM",
+      "Location: left the gym at 8:51 PM, home after 9:20",
+      "Spend: late checkout when you were already tired",
+      "Voice check: 'I was avoiding the hard email.'",
     ],
-    impact: "Smart friction, not a lockout—you still choose. Pre-commit the morning block.",
+    impact: "A gentle speed bump, not a lock—you still choose. Pre-commit the morning block.",
   },
   "creative-flow": {
     label: "Creative Flow",
     directive: "Cap caffeine by 11:30 AM. Suggested 90-minute deep-work block—accept or skip.",
     signals: [
-      "HealthKit: Delayed core cooling by 2.1 hrs",
-      "Screen Time: High-stimulus apps after 10:00 PM",
-      "Plaid: Late delivery $45.80 at 10:15 PM",
-      "Voice: 'I needed noise so I wouldn't sit with the draft.'",
+      "Sleep: you cooled down 2 hours later than usual",
+      "Screens: high-stimulus apps after 10:00 PM",
+      "Calendar: only one deep-work block, stacked after 3 PM",
+      "Location: studio until 9:10 PM, then home",
+      "Spend: late delivery $45.80 at 10:15 PM",
+      "Voice check: 'I needed noise so I wouldn't sit with the draft.'",
     ],
-    impact: "Voice gives the why. The 1% rule is a nudge, not a calendar takeover.",
+    impact: "The voice check gives the why. The morning rule is a nudge, not a calendar takeover.",
   },
   "parenting-presence": {
     label: "Parenting Presence",
     directive: "Pause-screen on checkout after 8:30 PM. Keep surplus for tomorrow's 7:00 AM window.",
     signals: [
-      "Plaid: Impulse delivery in the fatigue window",
-      "Screen Time: Checkout flows after 9:40 PM",
-      "HealthKit: Late arousal delayed sleep onset",
-      "Voice: 'I was buying calm after bedtime chaos.'",
+      "Spend: impulse delivery after bedtime",
+      "Screens: checkout flows after 9:40 PM",
+      "Calendar: school pickup + evening activities stacked",
+      "Location: home after 7:05 PM, stayed home",
+      "Sleep: wired late, slow to fall asleep",
+      "Voice check: 'I was buying calm after bedtime chaos.'",
     ],
-    impact: "Choice-based guardrail. No app lock. You keep the last move.",
+    impact: "A skippable pause. No app lock. You keep the last move.",
   },
 };
 
@@ -72,11 +78,11 @@ export default function TraceSignalCard({
       {compact ? (
         <div className="font-mono font-semibold uppercase tracking-[0.12em] text-indigo-300">
           <p className="text-[9px] leading-4">1% Daily Directive // {dateLabel}</p>
-          <p className="mt-0.5 text-[9px] leading-4">Agency Arc: {scene.label}</p>
+          <p className="mt-0.5 text-[9px] leading-4">Season: {scene.label}</p>
         </div>
       ) : (
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-300">
-          1% Daily Directive // {dateLabel} • Agency Arc: {scene.label}
+          1% Daily Directive // {dateLabel} • Season: {scene.label}
         </p>
       )}
       <p
@@ -107,13 +113,13 @@ export default function TraceSignalCard({
       >
         <div className={`overflow-hidden ${open ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}>
           <div className={`rounded-xl border border-slate-700 bg-slate-950/80 text-left ${compact ? "mt-3 p-3" : "mt-4 p-4"}`}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Four-stream signal</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Connected signals</p>
             <ul className={`mt-3 space-y-2 text-slate-300 ${compact ? "text-[11px] leading-5" : "text-sm leading-6"}`}>
               {scene.signals.map((signal) => (
                 <li key={signal}>{signal}</li>
               ))}
             </ul>
-            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-200">Smart friction</p>
+            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-200">Gentle speed bump</p>
             <p className={`mt-1.5 text-slate-300 ${compact ? "text-[11px] leading-5" : "text-sm leading-6"}`}>{scene.impact}</p>
           </div>
         </div>
