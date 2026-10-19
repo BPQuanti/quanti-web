@@ -46,8 +46,8 @@ export default function Home() {
         <Purpose />
         <EngineVisual />
         <Psychology />
-        <FAQAndCTA />
         <FooterCta />
+        <FAQAndCTA />
       </main>
 
       <Footer />
