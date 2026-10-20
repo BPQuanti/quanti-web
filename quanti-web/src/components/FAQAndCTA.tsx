@@ -8,8 +8,12 @@ const QUESTIONS = [
     a: "The 15-second voice check is processed on your phone. Voice never leaves the device. It is not used to train models in a cloud you don't control.",
   },
   {
+    q: "How does Quanti synthesize my voice and biometrics?",
+    a: "Quanti uses local, on-device AI models to parse your morning voice note and correlate it with your background signals (like Apple Watch data or calendar density). Because processing happens directly on your phone, your personal thoughts and health metrics never leave your device or get trained on external servers.",
+  },
+  {
     q: "What if I can't speak out loud every morning?",
-    a: "No problem. While a 15-second voice note is the fastest way to capture how you feel, Quanti includes 1-tap emoji check-ins and quick text notes for quiet or busy mornings so your daily momentum never breaks.",
+    a: "No problem. While a 15-second voice check-in is the fastest way to capture qualitative context, Quanti includes 1-tap emoji state check-ins and quick text notes for quiet or busy mornings so your daily habit loop never breaks.",
   },
   {
     q: "Are integrations read-only?",
