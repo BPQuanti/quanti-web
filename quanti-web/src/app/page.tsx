@@ -10,6 +10,7 @@ import FooterCta from "@/components/FooterCta";
 import Hero from "@/components/Hero";
 import Psychology from "@/components/Psychology";
 import Purpose from "@/components/Purpose";
+import WidgetPreview from "@/components/WidgetPreview";
 
 export default function Home() {
   return (
@@ -45,6 +46,7 @@ export default function Home() {
         <Hero />
         <Purpose />
         <EngineVisual />
+        <WidgetPreview />
         <Psychology />
         <FooterCta />
         <FAQAndCTA />
