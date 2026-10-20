@@ -6,8 +6,8 @@ const SCENARIOS = [
     telemetry: [" Watch: Low HRV (-16ms)"],
     voice: "Stressed from work, but I desperately need to move to clear my head.",
     directive:
-      "Biometrics show physical strain, but your mind needs an outlet. Swap heavy lifting for a 30-minute zone-2 incline walk and light mobility. Movement over intensity today.",
-    alignment: "Learns when your mental need for stress relief overrides strict physical recovery metrics.",
+      "Wanting to clear your head after a heavy work week makes total sense. Your body is carrying physical strain today, so let's protect it: swap heavy lifting for a restorative 30-minute incline walk. Let's give your mind a break without beating up your body.",
+    alignment: "Validates mental stress and adapts physical load so movement heals rather than drains.",
   },
   {
     badge: "💳 Capital & Intent",
@@ -19,8 +19,8 @@ const SCENARIOS = [
     ],
     voice: "Overwhelmed with work and felt like treating myself to feel better.",
     directive:
-      "Late-night browsing is your emotional stress valve. Set a gentle 12-hour lock on shopping apps after 9 PM—direct that evening fatigue into early rest instead.",
-    alignment: "Recognizes emotional retail friction and adapts your environment to safeguard your financial intent.",
+      "It's completely valid to want a reward after an overwhelming day. But late-night impulse buys usually leave you feeling worse tomorrow. Let's protect your peace and capital tonight: set a gentle lock on shopping apps after 9 PM and get to bed early instead.",
+    alignment: "Meets emotional burnout with empathy while creating smart friction against impulse habits.",
   },
   {
     badge: "⚡ Focus & Boundaries",
@@ -29,8 +29,8 @@ const SCENARIOS = [
     telemetry: ["📅 Calendar: 6.5h meetings tomorrow"],
     voice: "I feel like I'm drowning in meetings and making zero real progress.",
     directive:
-      "Tomorrow's schedule will drain your battery. Decline the 2 PM status sync, block 10 AM–12 PM today for deep execution, and close Slack at 5 PM sharp.",
-    alignment: "Detects schedule overload before burnout hits, shifting your focus to protect cognitive bandwidth.",
+      "Feeling like you're drowning in meetings is exhausting, and your frustration is totally justified. Looking ahead, tomorrow will drain you if we don't protect your space now. Decline the 2 PM status sync today, block 2 hours for real progress, and log off at 5 PM.",
+    alignment: "Validates cognitive overload and steps in to protect time before burnout takes over.",
   },
 ] as const;
 
