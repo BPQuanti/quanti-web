@@ -6,7 +6,7 @@ const SCENARIOS = [
     telemetry: [" Watch: Low HRV (-16ms)"],
     voice: "Stressed from work, but I desperately need to move to clear my head.",
     directive:
-      "Wanting to clear your head after a heavy work week makes total sense. Your body is carrying physical strain today, so let's protect it: swap heavy lifting for a restorative 30-minute incline walk. Let's give your mind a break without beating up your body.",
+      "Wanting to clear your head makes total sense. Your body is carrying strain today, so swap heavy lifting for a 30-minute incline walk. Motion over intensity.",
     alignment: "Validates mental stress and adapts physical load so movement heals rather than drains.",
   },
   {
@@ -19,7 +19,7 @@ const SCENARIOS = [
     ],
     voice: "Overwhelmed with work and felt like treating myself to feel better.",
     directive:
-      "It's completely valid to want a reward after an overwhelming day. But late-night impulse buys usually leave you feeling worse tomorrow. Let's protect your peace and capital tonight: set a gentle lock on shopping apps after 9 PM and get to bed early instead.",
+      "Wanting a reward after a tough day is completely valid. Tonight, we'll nudge you at 9 PM to close shopping apps early and protect your rest.",
     alignment: "Meets emotional burnout with empathy while creating smart friction against impulse habits.",
   },
   {
@@ -29,7 +29,7 @@ const SCENARIOS = [
     telemetry: ["📅 Calendar: 6.5h meetings tomorrow"],
     voice: "I feel like I'm drowning in meetings and making zero real progress.",
     directive:
-      "Feeling like you're drowning in meetings is exhausting, and your frustration is totally justified. Looking ahead, tomorrow will drain you if we don't protect your space now. Decline the 2 PM status sync today, block 2 hours for real progress, and log off at 5 PM.",
+      "Feeling overwhelmed by meetings is exhausting. Decline the 2 PM status sync today, block 2 hours for deep execution, and log off at 5 PM.",
     alignment: "Validates cognitive overload and steps in to protect time before burnout takes over.",
   },
 ] as const;

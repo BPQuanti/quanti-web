@@ -16,6 +16,10 @@ const QUESTIONS = [
     a: "No problem. While a 15-second voice check-in is the fastest way to capture qualitative context, Quanti includes 1-tap emoji state check-ins and quick text notes for quiet or busy mornings so your daily habit loop never breaks.",
   },
   {
+    q: "Do I have to connect every signal at launch?",
+    a: "No. Launch release connects with Apple Health and Calendar. You choose exactly which data sources to enable—start with just your morning voice check and add background signals as you go.",
+  },
+  {
     q: "Are integrations read-only?",
     a: "Yes. Apple Health, calendar, phone usage, and bank activity are read-only. Quanti cannot move money or lock your apps.",
   },

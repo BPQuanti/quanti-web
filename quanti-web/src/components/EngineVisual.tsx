@@ -48,6 +48,13 @@ export default function EngineVisual() {
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
             Telemetry tells us where you are. Your voice tells us how you feel. Your Arc aligns where you&apos;re going.
           </p>
+          <p className="mx-auto mt-4 max-w-2xl rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-3 text-sm leading-6 text-slate-300">
+            <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
+              Start with 1 signal. Expand whenever you&apos;re ready.
+            </span>
+            Launch release connects seamlessly with Apple Health and Calendar. You choose exactly which data sources to
+            enable—start with just your morning voice check and add background signals as you go.
+          </p>
         </div>
 
         <div className="mt-10 grid gap-3 lg:grid-cols-3">

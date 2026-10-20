@@ -4,7 +4,7 @@ const ANCHORS = [
   {
     title: "Name how you feel",
     kicker: "Interoception",
-    body: "Speaking for 15 seconds names your emotional state, instantly lowering amygdala stress and bringing you into the present moment.",
+    body: "Designed to quiet morning cognitive load and replace decision fatigue with one grounding daily focus.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-200",
   },

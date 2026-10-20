@@ -5,8 +5,8 @@ import { useRef } from "react";
 const CAPABILITIES = [
   { icon: "🏃‍♂️", label: "Overtraining Protection", detail: "Adapts workout load when HRV drops" },
   { icon: "💳", label: "Impulse Spend Friction", detail: "Safeguards capital during emotional fatigue" },
-  { icon: "📅", label: "Calendar Overload Defense", detail: "Blocks focus time when meetings stack up" },
-  { icon: "🌙", label: "Late-Night Boundary Lock", detail: "Intervenes when late screen time spikes" },
+  { icon: "📅", label: "Calendar Overload Defense", detail: "Protects focus time when meetings stack up" },
+  { icon: "🌙", label: "Late-Night Boundary Nudge", detail: "Nudges you when late screen time spikes" },
   { icon: "🧘", label: "Restorative Recovery", detail: "Guides active recovery on high-strain days" },
   { icon: "☕", label: "Caffeine & Energy Timing", detail: "Caps stimulants based on sleep latency" },
   { icon: "🎯", label: "Deep Work Safeguards", detail: "Protects high-cognitive windows for execution" },
