@@ -10,6 +10,7 @@ import FooterCta from "@/components/FooterCta";
 import Hero from "@/components/Hero";
 import Psychology from "@/components/Psychology";
 import Purpose from "@/components/Purpose";
+import SignalCarousel from "@/components/SignalCarousel";
 import WidgetPreview from "@/components/WidgetPreview";
 
 export default function Home() {
@@ -47,6 +48,7 @@ export default function Home() {
         <Purpose />
         <EngineVisual />
         <WidgetPreview />
+        <SignalCarousel />
         <Psychology />
         <FooterCta />
         <FAQAndCTA />
