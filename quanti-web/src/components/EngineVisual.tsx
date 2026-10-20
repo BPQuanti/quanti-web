@@ -71,15 +71,20 @@ export default function EngineVisual() {
 
           <article className="rounded-2xl border border-rose-400/25 bg-slate-950/80 p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-200">Input B · Emotional context</p>
-            <h3 className="mt-2 text-lg font-semibold tracking-tight">How you feel</h3>
+            <h3 className="mt-2 text-lg font-semibold tracking-tight">
+              <span aria-hidden>🎙️</span> 15-Second Morning Voice Check
+            </h3>
             <div className="mt-4 flex items-start gap-3">
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rose-400/30 bg-rose-400/10 text-rose-200">
                 <Mic className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <p className="text-sm leading-6 text-slate-300">
-                15-second morning voice check. Mood, stress, and intent—no journaling, no manual logging.
+                Captures qualitative mood, energy, and intent to give emotional context to your passive telemetry.
               </p>
             </div>
+            <p className="mt-4 rounded-full border border-rose-300/25 bg-rose-400/10 px-3 py-2 text-xs font-medium leading-5 text-rose-100">
+              ✨ Quiet morning? Tap 3 emoji states or type a quick note instead.
+            </p>
           </article>
 
           <article className="rounded-2xl border border-indigo-400/25 bg-slate-950/80 p-5">

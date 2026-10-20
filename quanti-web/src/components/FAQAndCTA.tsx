@@ -8,6 +8,10 @@ const QUESTIONS = [
     a: "The 15-second voice check is processed on your phone. Voice never leaves the device. It is not used to train models in a cloud you don't control.",
   },
   {
+    q: "What if I can't speak out loud every morning?",
+    a: "No problem. While a 15-second voice note is the fastest way to capture how you feel, Quanti includes 1-tap emoji check-ins and quick text notes for quiet or busy mornings so your daily momentum never breaks.",
+  },
+  {
     q: "Are integrations read-only?",
     a: "Yes. Apple Health, calendar, phone usage, and bank activity are read-only. Quanti cannot move money or lock your apps.",
   },
