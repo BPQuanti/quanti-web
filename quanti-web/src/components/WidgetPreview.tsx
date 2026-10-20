@@ -3,31 +3,34 @@ const SCENARIOS = [
     badge: "🌿 Physical Well-being",
     badgeTone: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
     time: "7:15 AM",
-    telemetry: " Watch: Low HRV (-16ms)",
+    telemetry: [" Watch: Low HRV (-16ms)"],
     voice: "Stressed from work, but I desperately need to move to clear my head.",
     directive:
       "Biometrics show physical strain, but your mind needs an outlet. Swap heavy lifting for a 30-minute zone-2 incline walk and light mobility. Movement over intensity today.",
-    signal: "Signal: Low Recovery + High Mental Load",
+    alignment: "Learns when your mental need for stress relief overrides strict physical recovery metrics.",
   },
   {
     badge: "💳 Capital & Intent",
     badgeTone: "border-blue-500/20 bg-blue-500/10 text-blue-400",
     time: "8:00 AM",
-    telemetry: "💳 Bank: 3 late DoorDash orders",
-    voice: "Exhausted after work this week. Feeling tempted to just order takeout again.",
+    telemetry: [
+      "💳 Bank: $180 retail/shopping spend at 11:30 PM",
+      "⌚ Apple Watch: High late-night stress spikes",
+    ],
+    voice: "Overwhelmed with work and felt like treating myself to feel better.",
     directive:
-      "Late-night convenience spend is your exhaustion tax. Pre-order dinner delivery now for 6:30 PM while your willpower is fresh—eliminate the 9 PM impulse friction.",
-    signal: "Signal: Fatigue + Friction Vulnerability",
+      "Late-night browsing is your emotional stress valve. Set a gentle 12-hour lock on shopping apps after 9 PM—direct that evening fatigue into early rest instead.",
+    alignment: "Recognizes emotional retail friction and adapts your environment to safeguard your financial intent.",
   },
   {
     badge: "⚡ Focus & Boundaries",
     badgeTone: "border-purple-500/20 bg-purple-500/10 text-purple-400",
     time: "8:30 AM",
-    telemetry: "📅 Calendar: 6.5h meetings tomorrow",
-    voice: "I feel like I'm drowning in meetings and making zero progress on my main goal.",
+    telemetry: ["📅 Calendar: 6.5h meetings tomorrow"],
+    voice: "I feel like I'm drowning in meetings and making zero real progress.",
     directive:
       "Tomorrow's schedule will drain your battery. Decline the 2 PM status sync, block 10 AM–12 PM today for deep execution, and close Slack at 5 PM sharp.",
-    signal: "Signal: Calendar Overload + Frustration",
+    alignment: "Detects schedule overload before burnout hits, shifting your focus to protect cognitive bandwidth.",
   },
 ] as const;
 
@@ -45,8 +48,8 @@ export default function WidgetPreview() {
             Data tracks your patterns. Voice honors your reality.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-400">
-            Cold metrics don&apos;t tell the whole story. See how Quanti pairs passive background telemetry with your
-            15-second morning check-in to deliver the exact directive you need.
+            Cold metrics don&apos;t tell the whole story. Quanti truly gets to know you—bridging your background signals
+            with your real-time voice context to shift and adapt to what you need to feel fully aligned.
           </p>
         </div>
 
@@ -67,9 +70,16 @@ export default function WidgetPreview() {
                 </div>
 
                 <div className="mb-6 space-y-2 border-b border-white/10 pb-4 text-xs">
-                  <span className="inline-block max-w-full rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono leading-5 text-neutral-300">
-                    {card.telemetry}
-                  </span>
+                  <div className="flex flex-col items-start gap-1.5">
+                    {card.telemetry.map((signal) => (
+                      <span
+                        key={signal}
+                        className="inline-block max-w-full rounded border border-white/10 bg-white/5 px-2 py-0.5 font-mono leading-5 text-neutral-300"
+                      >
+                        {signal}
+                      </span>
+                    ))}
+                  </div>
                   <p className="font-medium italic text-amber-400/90">
                     🎙️ &ldquo;{card.voice}&rdquo;
                   </p>
@@ -80,7 +90,10 @@ export default function WidgetPreview() {
                 </p>
               </div>
 
-              <p className="border-t border-white/5 pt-3 font-mono text-[11px] text-neutral-500">{card.signal}</p>
+              <p className="border-t border-white/5 pt-3 text-[11px] leading-snug text-neutral-400/80">
+                <span className="mb-0.5 block font-medium text-neutral-500">ALIGNMENT ENGINE:</span>
+                {card.alignment}
+              </p>
             </article>
           ))}
         </div>
