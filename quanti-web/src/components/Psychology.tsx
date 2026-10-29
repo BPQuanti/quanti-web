@@ -18,7 +18,7 @@ const ANCHORS = [
   {
     title: "Pre-commitment & presence",
     kicker: "Hold your ground",
-    body: "Set a realistic boundary in the morning. Smart speed bumps protect your focus in the afternoon when willpower runs low.",
+    body: "Tonight you tap Executed, Partial, or Shifted. That mark is how tomorrow adapts. No streaks. No guilt dashboard.",
     icon: Shield,
     tone: "border-emerald-400/25 text-emerald-200",
   },

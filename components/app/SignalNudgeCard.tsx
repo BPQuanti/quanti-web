@@ -8,18 +8,11 @@ import { scopedAsyncKey } from '../../src/services/sessionIsolation';
 const DISMISS_KEY = '@quanti_signal_nudge_dismissed';
 
 function suggestion(healthOn: boolean, micOn: boolean, toward: string | null) {
-  const missing: string[] = [];
-  if (!healthOn) {
-    missing.push('HealthKit sleep and HRV so recovery can size today’s 1%');
-  }
-  if (!micOn) {
-    missing.push('the microphone so the morning check can fill what sensors miss');
-  }
-  if (!missing.length) {
+  if (micOn) {
     return null;
   }
-  const aim = toward ? `Toward ${toward}, connect` : 'Connect';
-  return `${aim} ${missing.join(' and ')}.`;
+  const aim = toward ? `Toward ${toward},` : '';
+  return `${aim} connect the microphone so the morning check can fill what sensors miss. HealthKit is optional.`.trim();
 }
 
 type Props = {
@@ -78,7 +71,7 @@ export default function SignalNudgeCard({ northStar, healthOn, micOn, onOpenArcs
         <Text style={styles.link}>Connect in Privacy</Text>
       </Pressable>
       <Pressable onPress={onOpenArcs}>
-        <Text style={styles.fluid}>Direction can be rewritten anytime.</Text>
+        <Text style={styles.fluid}>Destination can be rewritten anytime.</Text>
       </Pressable>
     </View>
   );

@@ -43,7 +43,7 @@ const ERROR_BG = '#3F1D1D';
 const ERROR_TEXT = '#FECACA';
 
 export default function AuthScreen() {
-  const { signInWithEmail, signUpWithEmail, signInWithApple, continueAsGuest } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signInWithApple } = useAuth();
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -129,7 +129,7 @@ export default function AuthScreen() {
       >
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
           <Text style={styles.wordmark}>QUANTI</Text>
-          <Text style={styles.subtitle}>Passive Telemetry Decision Engine</Text>
+          <Text style={styles.subtitle}>Your daily execution compass.</Text>
           <View style={styles.accentTrack}>
             <View style={styles.accentCyan} />
             <View style={styles.accentEmerald} />
@@ -156,11 +156,6 @@ export default function AuthScreen() {
               <Text style={styles.appleFallbackText}>Sign in with Apple</Text>
             </TouchableOpacity>
           )}
-
-          <TouchableOpacity style={styles.guest} onPress={continueAsGuest} disabled={busy}>
-            <Text style={styles.guestText}>Continue as Guest / Sandbox Mode</Text>
-          </TouchableOpacity>
-          <Text style={styles.guestNote}>⚡ Instant access • 100% On-Device Processing</Text>
 
           <View style={styles.form}>
           <View style={styles.dividerRow}>
@@ -228,7 +223,7 @@ export default function AuthScreen() {
               <Text style={styles.legalLink}>Terms of Service</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.version}>Quanti v{version} (Build {build}) • On-Device Sandbox</Text>
+          <Text style={styles.version}>Quanti v{version} (Build {build})</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -243,9 +238,8 @@ const styles = StyleSheet.create({
   subtitle: {
     color: MUTED,
     fontFamily: fonts.medium,
-    fontSize: 11,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    fontSize: 15,
+    letterSpacing: 0.2,
     marginTop: 8,
   },
   accentTrack: {

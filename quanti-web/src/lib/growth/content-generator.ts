@@ -21,11 +21,11 @@ export type WeeklyPostDraft = {
 
 const PERSONA_BRIEF: Record<GrowthPersona, string> = {
   "Biohackers & Quantified-Self":
-    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti is a destination GPS: name now and next; sleep and screens only size today’s 1%.",
+    "HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti is a destination GPS: name a target; sleep and HRV only size today’s 1%.",
   "Founders & Executives":
     "Operators drowning in decision fatigue. Telemetry already exists. Quanti writes one 1% move toward the destination they named—not another season or dashboard.",
   "Deep Work Engineers":
-    "Builders who track focus in Notion/Sheets by hand. Destination is the plot. Screen Time, HealthKit, spend, and a 15-second check become one named action, then stop.",
+    "Builders who track focus in Notion/Sheets by hand. Destination is the plot. Optional HealthKit and a 15-second check become one named action, then stop.",
 };
 
 function xaiApiKey() {
@@ -89,7 +89,7 @@ function normalizeDrafts(value: unknown): WeeklyPostDraft[] {
 function buildPrompt() {
   return `You are drafting a week's social posts for Quanti (quanti-app.com).
 
-Quanti connects sleep, screen time, calendar density, spending, on-device location (Home/Work/Gym), and 15-second voice checks into one simple morning rule plus gentle speed bumps. On-device. Zero forced app locks. Not another dashboard.
+Quanti is a daily execution compass: name a concrete target, get one 15–20 word 1% action. Optional HealthKit sleep/HRV sizes the window. A 15-second voice check names what’s in the way. Executed/Partial/Shifted writes tomorrow. No dashboards, streaks, calendar, bank, or Screen Time.
 
 Write exactly 5 distinct, high-impact post drafts. Cover all 3 personas at least once:
 1. ${GROWTH_PERSONAS[0]} — ${PERSONA_BRIEF[GROWTH_PERSONAS[0]]}
@@ -100,7 +100,7 @@ Mix platforms: some "linkedin", some "x". LinkedIn can be slightly longer (still
 
 Rules:
 - Tone: concise, sharp, high-signal. No hype, no emoji spam, no "game-changer", no "I'm thrilled to announce".
-- Core value in every post: sleep + screens + calendar + spend + on-device location + 15-second voice checks → one morning rule + gentle speed bumps, 0 forced locks.
+- Core value in every post: named destination + optional sleep/HRV + 15-second voice check + last night’s mark → one 15–20 word action. No locks, no streaks, no dashboards.
 - CTA is subtle and non-salesy: invite people to the closed TestFlight waitlist at ${WAITLIST_URL}. Do not use "Sign up now!!" or discount language.
 - Do not invent features (no AI chat, no trading, no social feed).
 - Return JSON only.

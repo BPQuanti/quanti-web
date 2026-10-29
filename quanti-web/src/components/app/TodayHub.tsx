@@ -4,25 +4,17 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 
 const SIGNALS = [
-  " Health: Low HRV (-16ms)",
-  "📅 Calendar: 6.5h Meetings",
-  "💳 Bank: Restrained",
-] as const;
-
-const DELIVERY = [
-  { id: "lock-screen", label: "Lock Screen Widget" },
-  { id: "notification", label: "Rich Notification" },
-  { id: "sms", label: "SMS Push" },
+  "Destination: own place",
+  " Health: Low HRV (optional)",
+  "Yesterday: shifted",
 ] as const;
 
 type TabId = "today" | "arcs" | "privacy";
-type DeliveryId = (typeof DELIVERY)[number]["id"];
 
 export default function TodayHub() {
   const [tab, setTab] = useState<TabId>("today");
   const [hasRecorded, setHasRecorded] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [delivery, setDelivery] = useState<DeliveryId[]>(["lock-screen"]);
   const [reflectionOpen, setReflectionOpen] = useState(false);
   const [reflection, setReflection] = useState<"executed" | "partial" | "shifted" | null>(null);
 
@@ -36,12 +28,6 @@ export default function TodayHub() {
     }, 2000);
     return () => window.clearTimeout(timer);
   }, [isRecording]);
-
-  function toggleDelivery(id: DeliveryId) {
-    setDelivery((current) =>
-      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
-    );
-  }
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md flex-col bg-[#09090B] font-sans text-neutral-100 shadow-2xl sm:min-h-[844px] sm:border-x sm:border-white/10">
@@ -57,7 +43,7 @@ export default function TodayHub() {
           />
           <p className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-neutral-400">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
-            Synced • On-Device
+            Destination GPS
           </p>
         </div>
         <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
@@ -127,7 +113,7 @@ export default function TodayHub() {
                   onClick={() => setHasRecorded(true)}
                   className="rounded-full border border-white/10 px-3 py-1.5 transition hover:border-white/30 hover:text-white"
                 >
-                  😄 Emoji State
+                  Skip — blunter card
                 </button>
               </div>
             </div>
@@ -152,32 +138,6 @@ export default function TodayHub() {
                   <span>Watch HRV + Voice Context</span>
                 </div>
               </article>
-
-              <div className="space-y-2 rounded-xl border border-white/5 bg-white/[0.02] p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                  Delivery Preferences
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {DELIVERY.map((option) => {
-                    const active = delivery.includes(option.id);
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() => toggleDelivery(option.id)}
-                        className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${
-                          active
-                            ? "border-indigo-400/40 bg-indigo-500/15 text-indigo-100"
-                            : "border-white/10 text-neutral-400 hover:border-white/25 hover:text-white"
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
 
               <div className="rounded-xl border border-white/5 bg-white/[0.02]">
                 <button
@@ -235,21 +195,21 @@ export default function TodayHub() {
 
         {tab === "arcs" ? (
           <div className="flex flex-1 flex-col justify-center space-y-4 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">Direction</p>
-            <h2 className="text-2xl font-semibold tracking-tight">Where you are. Where you want to go.</h2>
+            <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">Destination</p>
+            <h2 className="text-2xl font-semibold tracking-tight">Where are you going?</h2>
             <p className="text-sm leading-6 text-neutral-400">
-              Name where you are and where you want to go. Today&apos;s card is one 1% move toward that destination.
+              Name a finish line someone else could check. Vague goals make vague cards. Named targets make named moves.
             </p>
           </div>
         ) : null}
 
         {tab === "privacy" ? (
           <div className="flex flex-1 flex-col justify-center space-y-4 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">Integrations &amp; Privacy</p>
-            <h2 className="text-2xl font-semibold tracking-tight">On-device. You choose the signals.</h2>
+            <p className="font-mono text-xs uppercase tracking-widest text-neutral-400">Privacy</p>
+            <h2 className="text-2xl font-semibold tracking-tight">HealthKit optional. Voice not retained.</h2>
             <p className="text-sm leading-6 text-neutral-400">
-              Start with a morning voice check. Add Apple Health and Calendar when you&apos;re ready. Processing stays on
-              this phone. Nothing is sold.
+              Voice processed securely in-memory via encrypted edge transcription with zero data retention. Sleep and HRV
+              only size today&apos;s push. Nothing is sold.
             </p>
           </div>
         ) : null}
@@ -259,8 +219,8 @@ export default function TodayHub() {
         {(
           [
             { id: "today", label: "Today" },
-            { id: "arcs", label: "Direction" },
-            { id: "privacy", label: "Integrations & Privacy" },
+            { id: "arcs", label: "Destination" },
+            { id: "privacy", label: "Privacy" },
           ] as const
         ).map((item) => {
           const active = tab === item.id;

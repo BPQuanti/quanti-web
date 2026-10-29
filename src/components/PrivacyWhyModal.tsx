@@ -4,20 +4,24 @@ import { colors, fonts, surfaces, typography } from '../../constants/theme';
 
 const CARDS = [
   {
-    title: 'HealthKit energy bounds',
-    body: 'Sleep duration and HRV are read as recovery context so today’s directive can match what your body can actually hold. Samples stay on-device; Quanti uses summaries, not a health timeline.',
+    title: 'Destination you named',
+    body: 'Where you are and where you want to go is the plot. Quanti stores that on your account so today’s card is a 1% move on that vector—not a season, streak, or posture.',
   },
   {
-    title: 'Transient voice',
-    body: 'When you speak, audio is sent to Whisper only to produce a transcript. Raw audio is not stored in Quanti, and the file is discarded after transcription.',
+    title: 'HealthKit sizes the window',
+    body: 'Sleep and HRV only bound how hard today can go. Samples stay on-device; Quanti uses summaries, not a health timeline. Recovery does not rewrite the destination.',
   },
   {
-    title: 'Zero-retention synthesis',
-    body: 'The transcript and anonymized telemetry go to a Supabase Edge Function that calls the model, returns one directive, and does not keep a training copy of your day.',
+    title: 'Transient voice fills one blank',
+    body: 'Voice processed securely in-memory via encrypted edge transcription with zero data retention.',
+  },
+  {
+    title: 'Zero-retention synthesizer',
+    body: 'Destination, anonymized telemetry, yesterday’s mark (executed, partial, or shifted), and the transcript go to a Supabase Edge Function. The model returns one 1% directive and does not keep a training copy of your day.',
   },
   {
     title: 'Row-level isolation',
-    body: 'Your profile, destination, and directives are scoped to your account with Supabase Row Level Security. Other users cannot read your rows.',
+    body: 'Your profile, destination, directives, and execution marks are scoped to your account with Supabase Row Level Security. Other users cannot read your rows. There is no board, friends list, or duel.',
   },
 ] as const;
 
@@ -39,9 +43,9 @@ export default function PrivacyWhyModal({ visible, onClose }: Props) {
               <Text style={styles.close}>Close</Text>
             </Pressable>
           </View>
-          <Text style={styles.title}>Why Quanti asks</Text>
+          <Text style={styles.title}>How data is used</Text>
           <Text style={styles.lede}>
-            Signals exist to write one directive—not a feed, not a graph, and not an audience.
+            You name now and next. Signals only size today’s 1%. Nothing here becomes a feed, a graph, or an audience.
           </Text>
           <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
             {CARDS.map((card) => (

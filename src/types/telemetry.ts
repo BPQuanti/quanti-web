@@ -44,6 +44,7 @@ export type DailyTelemetryPayload = {
     outcomes: string[];
   };
   biometrics: BiometricSummary;
+  healthkit?: boolean;
   location: {
     category: LocationCategory;
     timezone_offset_minutes: number;

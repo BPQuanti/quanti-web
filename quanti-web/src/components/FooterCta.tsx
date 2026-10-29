@@ -16,9 +16,9 @@ export default function FooterCta() {
           Built to stand in your corner.
         </h2>
         <p className="mx-auto mt-5 text-lg leading-relaxed text-slate-400">
-          Most tools judge you by raw numbers. Quanti asks where you are and where you want to go, then writes one 1%
-          move for today. Overnight signals only size the window. A 15-second check fills the blank. Yesterday&apos;s
-          mark writes tomorrow. No season badge. No guilt dashboard.
+          Most tools judge you by dashboards. Quanti asks for a concrete target, then writes one 1% move for today.
+          Optional sleep and HRV size the window. A 15-second check fills the blank. Yesterday&apos;s mark writes
+          tomorrow. No streaks. No guilt.
         </p>
 
         <div id="waitlist-footer" className="mx-auto mt-8 max-w-xl scroll-mt-24 text-left">
@@ -32,7 +32,7 @@ export default function FooterCta() {
         <p className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-slate-400">
           <span> Coming soon to iOS</span>
           <span aria-hidden>•</span>
-          <span>100% On-Device &amp; Private</span>
+          <span>HealthKit optional • Zero data sales</span>
         </p>
       </div>
     </section>

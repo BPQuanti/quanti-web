@@ -3,13 +3,11 @@
 import { useRef } from "react";
 
 const CAPABILITIES = [
-  { icon: "🏠", label: "Now → next", detail: "The plot is the destination you named" },
-  { icon: "⌚", label: "Overnight size", detail: "Sleep and HRV only bound how hard today can go" },
-  { icon: "🎙️", label: "One blank", detail: "15s fills what sensors cannot see" },
-  { icon: "📅", label: "Protect the window", detail: "Meetings cannot steal the 1% toward next" },
-  { icon: "💳", label: "Keep the 1%", detail: "A slip does not rewrite where you are going" },
-  { icon: "✓", label: "Executed / partial / shifted", detail: "Yesterday’s mark writes tomorrow’s 1%" },
-  { icon: "🎯", label: "One card", detail: "A named action, then stop" },
+  { icon: "🎯", label: "Named target", detail: "A finish line someone else could check" },
+  { icon: "⌚", label: "Optional HealthKit", detail: "Sleep and HRV only size today’s push" },
+  { icon: "🎙️", label: "10–15s check", detail: "Name the file, person, place, or clock time in the way" },
+  { icon: "✓", label: "Executed / Partial / Shifted", detail: "Last night’s mark writes tomorrow’s 1%" },
+  { icon: "📝", label: "One card", detail: "A 15–20 word action, then stop" },
 ] as const;
 
 export default function SignalCarousel() {

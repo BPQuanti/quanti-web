@@ -23,22 +23,45 @@ function notify() {
   listeners.forEach((listener) => listener());
 }
 
+export const DESTINATION_PLACEHOLDER = 'e.g., Launch iOS alpha to 10 testers';
+
+function clipStar(value: string, max = 280) {
+  return value.replace(/\s+/g, ' ').trim().replace(/^[.,;:\s]+/, '').replace(/[.,;:]+$/, '').slice(0, max);
+}
+
 export function parseNorthStarFromSpeech(text: string): NorthStar {
   const cleaned = text.replace(/\s+/g, ' ').trim();
   if (!cleaned) {
     return { now: '', next: '', outcomes: [] };
   }
-  const split = cleaned.split(/\b(?:want to|wanted to|trying to|hoping to|so I can|so that|in order to)\b/i);
-  const now = (split[0] || cleaned).trim().replace(/[.,;:]+$/, '');
-  const next = (split.slice(1).join(' ').trim() || cleaned).replace(/^[.,;:\s]+/, '');
+  const spoken = cleaned
+    .replace(/\b(um+|uh+|like|you know|i guess|so yeah|basically|kind of|sort of)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const split = spoken.split(
+    /\b(?:want to|wanted to|trying to|going to|gonna|hoping to|so i can|so that|in order to|my goal is|the goal is|next is|working toward|working towards)\b/i,
+  );
+  let now = '';
+  let next = '';
+  if (split.length >= 2) {
+    now = clipStar(split[0]);
+    next = clipStar(split.slice(1).join(' '));
+  } else {
+    const sentences = spoken.split(/[.!?]+/).map((part) => part.trim()).filter(Boolean);
+    next = clipStar(sentences[sentences.length - 1] || spoken);
+    now = sentences.length > 1 ? clipStar(sentences.slice(0, -1).join('. ')) : 'here';
+  }
+  if (!next) {
+    next = clipStar(spoken);
+  }
   const outcomes = next
     .split(/\band\b|,| then /i)
-    .map((part) => part.trim().replace(/[.,;]+$/, ''))
-    .filter((part) => part.length > 8)
+    .map((part) => clipStar(part, 120))
+    .filter((part) => part.length > 4)
     .slice(0, 2);
   return {
-    now: now.slice(0, 280),
-    next: next.slice(0, 280) || now.slice(0, 280),
+    now: now.slice(0, 280) || 'here',
+    next: next.slice(0, 280),
     outcomes: outcomes.length ? outcomes : next ? [next.slice(0, 120)] : [],
   };
 }

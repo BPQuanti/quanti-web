@@ -3,11 +3,15 @@ import {
   ActivityIndicator,
   Animated,
   Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Switch,
   Text,
+  TextInput,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -21,19 +25,18 @@ import {
 import { LogoMark } from '../../../components/Logo';
 import FuturisticVoiceWave from '../../../components/app/FuturisticVoiceWave';
 import { colors, fonts, surfaces, typography } from '../../../constants/theme';
-import PrivacyWhyModal from '../PrivacyWhyModal';
 import { requestHealthKitAuthorization } from '../../services/healthkit';
 import { markOnboardingComplete, setPendingOnboardingVoice } from '../../services/onboarding';
-import { setSelectedArc } from '../../services/arcSettings';
-import { parseNorthStarFromSpeech, saveNorthStar } from '../../services/northStar';
+import { DESTINATION_PLACEHOLDER, parseNorthStarFromSpeech, saveNorthStar } from '../../services/northStar';
+import { VOICE_CHECK_SECONDS } from '../../services/voiceCheckPrompt';
+import { setAIConsent } from '../../services/privacyConsent';
 import { assembleAnonymizedPayload } from '../../services/telemetryPayload';
 import { generateDailyDirective } from '../../services/directiveEngine';
 import { transcribeVoiceRecording } from '../../services/transcribeVoice';
 
-const STEPS = 5;
-const MIN_VOICE_SECONDS = 30;
-const MAX_VOICE_SECONDS = 60;
-const FORMULA = ['Data Patterns', 'Spoken Context', 'Where You Are Going'] as const;
+const STEPS = 3;
+const MIN_VOICE_SECONDS = 10;
+const MAX_VOICE_SECONDS = VOICE_CHECK_SECONDS;
 
 type Props = {
   onComplete: () => void;
@@ -51,14 +54,13 @@ export default function OnboardingFlow({ onComplete }: Props) {
   const slide = useRef(new Animated.Value(0)).current;
   const [step, setStep] = useState(0);
   const [healthOn, setHealthOn] = useState(false);
-  const [micOn, setMicOn] = useState(false);
-  const [permBusy, setPermBusy] = useState<'health' | 'mic' | null>(null);
-  const [whyOpen, setWhyOpen] = useState(false);
+  const [permBusy, setPermBusy] = useState(false);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const finishVoiceRef = useRef<() => Promise<void>>(async () => {});
+  const [destinationDraft, setDestinationDraft] = useState('');
+  const finishVoiceRef = useRef<(opts?: { skipVoice?: boolean }) => Promise<void>>(async () => {});
 
   useEffect(() => {
     Animated.timing(slide, {
@@ -95,38 +97,14 @@ export default function OnboardingFlow({ onComplete }: Props) {
       setHealthOn(false);
       return;
     }
-    setPermBusy('health');
-    setError(null);
+    setPermBusy(true);
     try {
       const result = await requestHealthKitAuthorization();
       setHealthOn(Boolean(result.authorized));
-      if (!result.authorized) {
-        setError(result.available ? 'HealthKit was not enabled.' : 'HealthKit is unavailable in this build.');
-      }
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'HealthKit request failed.');
+    } catch {
+      setHealthOn(false);
     } finally {
-      setPermBusy(null);
-    }
-  }
-
-  async function enableMic(next: boolean) {
-    if (!next) {
-      setMicOn(false);
-      return;
-    }
-    setPermBusy('mic');
-    setError(null);
-    try {
-      const permission = await requestRecordingPermissionsAsync();
-      setMicOn(Boolean(permission.granted));
-      if (!permission.granted) {
-        setError('Microphone access is needed to speak where you are and where you want to go.');
-      }
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Microphone request failed.');
-    } finally {
-      setPermBusy(null);
+      setPermBusy(false);
     }
   }
 
@@ -135,11 +113,9 @@ export default function OnboardingFlow({ onComplete }: Props) {
     try {
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
-        setError('Enable the microphone to speak where you are and where you want to go.');
-        setMicOn(false);
+        setError('Microphone is optional. You can skip and still start with your target.');
         return;
       }
-      setMicOn(true);
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
       recorder.record();
@@ -150,12 +126,18 @@ export default function OnboardingFlow({ onComplete }: Props) {
     }
   }
 
-  async function finishVoice() {
+  async function completeOnboarding(opts?: { skipVoice?: boolean }) {
     if (finishing) {
       return;
     }
-    if (elapsed < MIN_VOICE_SECONDS && recorder.isRecording) {
-      setError(`Keep going — speak at least ${MIN_VOICE_SECONDS} seconds.`);
+    const typed = destinationDraft.trim();
+    if (!typed) {
+      setError('Name a concrete target first.');
+      go(1);
+      return;
+    }
+    if (!opts?.skipVoice && elapsed < MIN_VOICE_SECONDS && recorder.isRecording) {
+      setError(`Keep going — ${MIN_VOICE_SECONDS}–${MAX_VOICE_SECONDS} seconds.`);
       return;
     }
     setFinishing(true);
@@ -170,174 +152,200 @@ export default function OnboardingFlow({ onComplete }: Props) {
         // Session restore is best-effort.
       }
       setRecording(false);
-      const uri = recorder.uri;
+      let spoken = '';
       const durationSeconds = recorder.currentTime || elapsed;
-      if (!uri) {
-        throw new Error('No audio file was produced. Try the mic again.');
+      if (!opts?.skipVoice && recorder.uri) {
+        const result = await transcribeVoiceRecording({ uri: recorder.uri, durationSeconds });
+        spoken = result.transcript.trim();
       }
-      const { transcript } = await transcribeVoiceRecording({ uri, durationSeconds });
-      if (!transcript.trim()) {
-        throw new Error('Speak where you are and where you want to go so Quanti can write a first directive.');
-      }
-      setPendingOnboardingVoice({ transcript, durationSeconds });
-      const payload = await assembleAnonymizedPayload(transcript, { voiceDurationSeconds: durationSeconds });
-      const directive = await generateDailyDirective({ ...payload, infer_arc: true });
-      if (directive.inferred_arc) {
-        await setSelectedArc(directive.inferred_arc);
-      }
-      const star = directive.north_star ?? parseNorthStarFromSpeech(transcript);
+      const star = parseNorthStarFromSpeech(typed);
       if (!star.next && !star.now) {
-        throw new Error('Name where you are and where you want to go. Then we can write today’s 1%.');
+        throw new Error('Name a concrete target so Quanti can point at it.');
       }
+      if (spoken) {
+        setPendingOnboardingVoice({ transcript: spoken, durationSeconds });
+      }
+      await setAIConsent(true).catch(() => {});
       await saveNorthStar(star);
+      const payload = await assembleAnonymizedPayload(spoken || undefined, {
+        voiceDurationSeconds: spoken ? durationSeconds : undefined,
+      });
+      await generateDailyDirective({
+        ...payload,
+        north_star: star,
+        infer_arc: false,
+      });
       await markOnboardingComplete();
       onComplete();
     } catch (caught) {
       const reason = caught instanceof Error ? caught.message : String(caught);
-      console.error('[Onboarding] voice launch failed', reason);
+      console.error('[Onboarding] complete failed', reason);
       setError(reason);
       setFinishing(false);
     }
   }
 
-  finishVoiceRef.current = finishVoice;
+  finishVoiceRef.current = completeOnboarding;
   const paneStyle = { width };
+  const hasTarget = destinationDraft.trim().length > 3;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <View style={styles.progressRow}>
-        {Array.from({ length: STEPS }, (_, index) => (
-          <View key={index} style={[styles.dot, index === step && styles.dotOn, index < step && styles.dotDone]} />
-        ))}
-      </View>
-
-      <Animated.View style={[styles.track, { width: width * STEPS, transform: [{ translateX: slide }] }]}>
-        <View style={[styles.pane, paneStyle]}>
-          <LogoMark width={72} />
-          <Text style={styles.kicker}>01</Text>
-          <Text style={styles.headline}>Meet Quanti.</Text>
-          <Text style={styles.body}>
-            We turn your raw daily data into an intelligent strategy for where you are and where you want to go.
-          </Text>
-        </View>
-
-        <View style={[styles.pane, paneStyle]}>
-          <Text style={styles.kicker}>02</Text>
-          <Text style={styles.headline}>Built for Agency, Not Attention.</Text>
-          <Text style={styles.body}>
-            Modern software optimizes for continuous engagement and cognitive noise. Quanti is designed as a quiet,
-            privacy-first decision mirror—giving you clarity and getting out of the way.
-          </Text>
-        </View>
-
-        <View style={[styles.pane, paneStyle]}>
-          <Text style={styles.kicker}>03</Text>
-          <Text style={styles.headline}>The Formula.</Text>
-          <View style={styles.bento}>
-            <View style={styles.bentoRow}>
-              {FORMULA.map((label, index) => (
-                <View key={label} style={styles.bentoPiece}>
-                  <View style={styles.bentoChip}>
-                    <Text style={styles.bentoChipText}>{label}</Text>
-                  </View>
-                  <Text style={styles.operator}>{index < FORMULA.length - 1 ? '+' : '='}</Text>
-                </View>
-              ))}
-            </View>
-            <View style={styles.bentoResult}>
-              <Text style={styles.bentoResultText}>One Daily Directive</Text>
-            </View>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Pressable style={styles.flex} onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.progressRow}>
+            {Array.from({ length: STEPS }, (_, index) => (
+              <View key={index} style={[styles.dot, index === step && styles.dotOn, index < step && styles.dotDone]} />
+            ))}
           </View>
-          <Text style={styles.body}>
-            1% better every day. No manual surveys—just speak your context and let your execution engine adapt.
-          </Text>
-        </View>
 
-        <View style={[styles.pane, paneStyle]}>
-          <View style={styles.screenHead}>
-            <Text style={styles.kicker}>04</Text>
-            <Pressable onPress={() => setWhyOpen(true)} style={styles.whyChip}>
-              <Text style={styles.whyChipText}>Why?</Text>
-            </Pressable>
-          </View>
-          <Text style={styles.headline}>Connect Your Signals.</Text>
-          <View style={styles.permCard}>
-            <View style={styles.permCopy}>
-              <Text style={styles.permTitle}>HealthKit</Text>
-              <Text style={styles.permBody}>Sleep & HRV recovery so Quanti can bound today’s energy.</Text>
-            </View>
-            <Switch
-              value={healthOn}
-              disabled={permBusy !== null}
-              onValueChange={(value) => {
-                enableHealth(value).catch(() => {});
-              }}
-              trackColor={{ false: colors.input, true: colors.emeraldBorder }}
-              thumbColor={healthOn ? colors.emerald : colors.muted}
-            />
-          </View>
-          <View style={styles.permCard}>
-            <View style={styles.permCopy}>
-              <Text style={styles.permTitle}>Microphone</Text>
-              <Text style={styles.permBody}>Verbal context so the directive hears where you are, not just the sensors.</Text>
-            </View>
-            <Switch
-              value={micOn}
-              disabled={permBusy !== null}
-              onValueChange={(value) => {
-                enableMic(value).catch(() => {});
-              }}
-              trackColor={{ false: colors.input, true: colors.emeraldBorder }}
-              thumbColor={micOn ? colors.emerald : colors.muted}
-            />
-          </View>
-        </View>
-
-        <View style={[styles.pane, paneStyle, styles.seasonPane]}>
-          <ScrollView contentContainerStyle={styles.seasonScroll} showsVerticalScrollIndicator={false}>
-            <Text style={styles.kicker}>05</Text>
-            <Text style={styles.headline}>Where are you now — and where do you want to go?</Text>
-            <Text style={styles.body}>
-              Talk for 30–60 seconds. Example: you’re 27, at home, building an app, and you want your own place and
-              revenue. Quanti keeps that destination and writes today’s 1% move.
-            </Text>
-            <Pressable
-              onPress={() => {
-                if (finishing) {
-                  return;
-                }
-                if (recording) {
-                  finishVoice().catch(() => {});
-                  return;
-                }
-                startVoice().catch(() => {});
-              }}
-              style={[styles.voiceCard, recording && styles.voiceCardLive]}
-            >
-              <Text style={styles.voiceHint}>Speak where you are and where you want to go. 30–60 seconds.</Text>
-              <FuturisticVoiceWave isRecording={recording} gradientId="onboardingWave" />
-              <Text style={styles.voiceStatus}>
-                {finishing
-                  ? 'Transcribing and writing your first directive…'
-                  : recording
-                    ? `Listening ${formatElapsed(elapsed)} / 1:00`
-                    : 'Tap to record'}
+          <Animated.View style={[styles.track, { width: width * STEPS, transform: [{ translateX: slide }] }]}>
+            <View style={[styles.pane, paneStyle]}>
+              <LogoMark width={72} />
+              <Text style={styles.kicker}>The Compass</Text>
+              <Text style={styles.headline}>One 1% move toward your target.</Text>
+              <Text style={styles.body}>
+                You name a concrete target. Each morning you get one 15–20 word action on that path. Sleep and a
+                15-second check size the push. Last night&apos;s mark writes tomorrow.
               </Text>
-              {finishing ? <ActivityIndicator color={colors.heading} style={{ marginTop: 12 }} /> : null}
-            </Pressable>
-          </ScrollView>
-        </View>
-      </Animated.View>
+              <Text style={styles.contrast}>No dashboards, streaks, or guilt.</Text>
+            </View>
+
+            <View style={[styles.pane, paneStyle, styles.loopPane]}>
+              <ScrollView
+                contentContainerStyle={styles.destScroll}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.kicker}>The Destination</Text>
+                <Text style={styles.headline}>Where are you going?</Text>
+                <Text style={styles.body}>
+                  Name a finish line someone else could check. Vague goals make vague cards. Named targets make named
+                  moves.
+                </Text>
+                <TextInput
+                  value={destinationDraft}
+                  onChangeText={setDestinationDraft}
+                  placeholder={DESTINATION_PLACEHOLDER}
+                  placeholderTextColor={colors.inactive}
+                  multiline
+                  blurOnSubmit
+                  returnKeyType="done"
+                  submitBehavior="blurAndSubmit"
+                  onSubmitEditing={Keyboard.dismiss}
+                  style={styles.destinationInput}
+                />
+                <View style={styles.exampleBlock}>
+                  <Text style={styles.exampleLine}>
+                    <Text style={styles.exampleLabel}>Weak: </Text>
+                    &quot;Get in shape&quot; / &quot;Grow the app&quot;
+                  </Text>
+                  <Text style={styles.exampleLine}>
+                    <Text style={styles.exampleLabelStrong}>Strong: </Text>
+                    &quot;Run 5 miles this week&quot; / &quot;Launch iOS alpha to 10 testers&quot;
+                  </Text>
+                </View>
+                <Text style={styles.reassure}>
+                  Quanti can only point at what you name. You can change this later.
+                </Text>
+              </ScrollView>
+            </View>
+
+            <View style={[styles.pane, paneStyle, styles.loopPane]}>
+              <ScrollView
+                contentContainerStyle={styles.loopScroll}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.kicker}>The Daily Loop</Text>
+                <Text style={styles.headline}>The 30-second daily loop.</Text>
+                <Text style={styles.stepText}>
+                  10–15s Check: Name what&apos;s in the way today (file, person, place, clock time) — that&apos;s what
+                  shapes the card.
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    if (finishing) {
+                      return;
+                    }
+                    if (recording) {
+                      completeOnboarding().catch(() => {});
+                      return;
+                    }
+                    startVoice().catch(() => {});
+                  }}
+                  style={[styles.voiceCard, recording && styles.voiceCardLive]}
+                >
+                  <FuturisticVoiceWave isRecording={recording} gradientId="onboardingWave" />
+                  <Text style={styles.voiceStatus}>
+                    {finishing
+                      ? 'Writing your first 1%…'
+                      : recording
+                        ? `Listening ${formatElapsed(elapsed)} / 0:15`
+                        : 'Tap to record · 10–15 seconds'}
+                  </Text>
+                  {finishing ? <ActivityIndicator color={colors.heading} style={{ marginTop: 12 }} /> : null}
+                </Pressable>
+                <View style={styles.healthRow}>
+                  <View style={styles.healthCopy}>
+                    <Text style={styles.stepText}>
+                      Optional HealthKit: Sizes today&apos;s push window based on sleep & HRV.
+                    </Text>
+                  </View>
+                  <Switch
+                    value={healthOn}
+                    disabled={permBusy || finishing}
+                    onValueChange={(value) => {
+                      enableHealth(value).catch(() => {});
+                    }}
+                    trackColor={{ false: colors.input, true: colors.emeraldBorder }}
+                    thumbColor={healthOn ? colors.emerald : colors.muted}
+                  />
+                </View>
+                <Text style={styles.stepText}>
+                  Tonight: Tap Executed / Partial / Shifted — that&apos;s how tomorrow adapts.
+                </Text>
+              </ScrollView>
+            </View>
+          </Animated.View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {step < 4 ? (
-        <Pressable onPress={() => go(step + 1)} style={styles.next}>
+      {step === 0 ? (
+        <Pressable onPress={() => go(1)} style={styles.next}>
           <Text style={styles.nextText}>Continue</Text>
         </Pressable>
       ) : null}
-
-      <PrivacyWhyModal visible={whyOpen} onClose={() => setWhyOpen(false)} />
+      {step === 1 ? (
+        <Pressable
+          onPress={() => {
+            Keyboard.dismiss();
+            if (!hasTarget) {
+              setError('Name a concrete target first.');
+              return;
+            }
+            go(2);
+          }}
+          style={[styles.next, !hasTarget && styles.nextDim]}
+        >
+          <Text style={styles.nextText}>Continue</Text>
+        </Pressable>
+      ) : null}
+      {step === 2 && !recording && !finishing ? (
+        <Pressable
+          onPress={() => {
+            completeOnboarding({ skipVoice: true }).catch(() => {});
+          }}
+          style={styles.skip}
+        >
+          <Text style={styles.skipText}>Skip check-in still works, but the card will be blunter.</Text>
+        </Pressable>
+      ) : null}
+        </Pressable>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -345,6 +353,9 @@ export default function OnboardingFlow({ onComplete }: Props) {
 const styles = StyleSheet.create({
   safe: {
     backgroundColor: colors.bg,
+    flex: 1,
+  },
+  flex: {
     flex: 1,
   },
   progressRow: {
@@ -358,7 +369,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.input,
     borderRadius: 99,
     height: 4,
-    width: 28,
+    width: 36,
   },
   dotOn: { backgroundColor: colors.heading },
   dotDone: { backgroundColor: colors.indigo },
@@ -373,30 +384,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 24,
   },
-  seasonPane: {
+  loopPane: {
     justifyContent: 'flex-start',
     paddingVertical: 8,
   },
-  seasonScroll: {
+  loopScroll: {
     gap: 14,
     paddingBottom: 16,
   },
-  screenHead: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  whyChip: {
-    borderColor: colors.indigoBorder,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  whyChipText: {
-    color: colors.indigo,
-    fontFamily: fonts.semibold,
-    fontSize: 12,
+  destScroll: {
+    gap: 14,
+    paddingBottom: 16,
   },
   kicker: typography.kicker,
   headline: {
@@ -408,102 +406,49 @@ const styles = StyleSheet.create({
     ...typography.body,
     maxWidth: 360,
   },
-  bento: {
-    ...surfaces.glass,
-    gap: 10,
-    padding: 18,
-  },
-  bentoRow: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  bentoPiece: {
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 8,
-  },
-  bentoChip: {
-    backgroundColor: colors.input,
-    borderColor: colors.border,
-    borderRadius: 16,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  bentoChipText: {
-    color: colors.heading,
+  contrast: {
+    ...typography.body,
+    color: colors.muted,
     fontFamily: fonts.medium,
-    fontSize: 14,
+    maxWidth: 360,
   },
-  operator: {
-    color: colors.inactive,
-    fontFamily: fonts.mono,
-    fontSize: 16,
-    width: 16,
-  },
-  bentoResult: {
-    backgroundColor: colors.indigoBg,
-    borderColor: colors.indigoBorder,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginTop: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-  },
-  bentoResultText: {
-    color: colors.indigo,
-    fontFamily: fonts.semibold,
-    fontSize: 15,
-  },
-  permCard: {
+  destinationInput: {
     ...surfaces.glass,
-    alignItems: 'center',
-    flexDirection: 'row',
-    gap: 12,
-    padding: 16,
-  },
-  permCopy: { flex: 1, gap: 6 },
-  permTitle: {
     color: colors.heading,
-    fontFamily: fonts.semibold,
+    fontFamily: fonts.regular,
     fontSize: 16,
+    lineHeight: 24,
+    minHeight: 96,
+    padding: 16,
+    textAlignVertical: 'top',
   },
-  permBody: {
+  exampleBlock: {
+    gap: 6,
+  },
+  exampleLine: {
     color: colors.muted,
     fontFamily: fonts.regular,
     fontSize: 13,
     lineHeight: 18,
   },
-  chips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
+  exampleLabel: {
+    color: colors.amber,
+    fontFamily: fonts.semibold,
   },
-  chip: {
-    borderColor: colors.border,
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+  exampleLabelStrong: {
+    color: colors.emerald,
+    fontFamily: fonts.semibold,
   },
-  chipOn: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderColor: colors.heading,
-  },
-  chipText: {
+  reassure: {
     color: colors.inactive,
-    fontFamily: fonts.medium,
-    fontSize: 14,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    lineHeight: 18,
   },
-  chipTextOn: { color: colors.heading },
-  secondaryLabel: {
-    color: colors.muted,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    letterSpacing: 0.4,
-    marginTop: 4,
+  stepText: {
+    ...typography.body,
+    fontSize: 15,
+    lineHeight: 22,
   },
   voiceCard: {
     ...surfaces.glass,
@@ -514,20 +459,32 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1710',
     borderColor: colors.amberBorder,
   },
-  voiceHint: {
-    color: colors.muted,
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    lineHeight: 19,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
   voiceStatus: {
     color: colors.inactive,
     fontFamily: fonts.mono,
     fontSize: 11,
     letterSpacing: 0.6,
     marginTop: 10,
+    textAlign: 'center',
+  },
+  healthRow: {
+    ...surfaces.glass,
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 12,
+    padding: 16,
+  },
+  healthCopy: { flex: 1, gap: 4 },
+  healthTitle: {
+    color: colors.heading,
+    fontFamily: fonts.semibold,
+    fontSize: 15,
+  },
+  healthBody: {
+    color: colors.muted,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    lineHeight: 18,
   },
   error: {
     color: colors.amber,
@@ -543,9 +500,22 @@ const styles = StyleSheet.create({
     marginHorizontal: 28,
     minHeight: 52,
   },
+  nextDim: { opacity: 0.45 },
   nextText: {
     color: colors.white,
     fontFamily: fonts.semibold,
     fontSize: 16,
+  },
+  skip: {
+    marginBottom: 16,
+    marginHorizontal: 28,
+    paddingVertical: 10,
+  },
+  skipText: {
+    color: colors.muted,
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 });

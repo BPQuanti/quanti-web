@@ -1,35 +1,27 @@
 const QUESTIONS = [
   {
-    q: "Is my data processed on-device?",
-    a: "Yes. Sleep, screens, calendar, spend, location, and voice stay in the iOS sandbox. We never sell data.",
+    q: "What is Quanti?",
+    a: "Your daily execution compass. You name a concrete target. Each morning you get one 15–20 word action on that path. Optional sleep and HRV size the push. A 10–15 second check names what’s in the way. Last night’s mark writes tomorrow.",
   },
   {
     q: "How is voice processing secured?",
-    a: "The 15-second voice check is processed on your phone. Voice never leaves the device. It is not used to train models in a cloud you don't control.",
+    a: "Voice processed securely in-memory via encrypted edge transcription with zero data retention. The transcript fills one blank on today’s card. Audio is not kept and is not used to train models.",
   },
   {
     q: "Where does the daily directive come from?",
-    a: "You name where you are and where you want to go. Overnight telemetry only sizes how hard today can go. A 15-second check fills one blank. Yesterday’s mark (executed, partial, or shifted) changes tomorrow’s 1%. The card is that move—not a season or streak.",
+    a: "Destination + transcript + optional HealthKit (sleep & HRV) + yesterday’s mark (Executed, Partial, or Shifted). The synthesizer does not use calendar, bank, location, or Screen Time.",
   },
   {
-    q: "How does Quanti synthesize my voice and biometrics?",
-    a: "The synthesizer compresses destination, sleep/HRV, yesterday’s mark, and the morning check into one concrete action. Raw health and bank details stay summarized. Nothing is sold. The model does not get a new life story from you each morning.",
+    q: "Do I have to connect HealthKit?",
+    a: "No. HealthKit is optional. Without it, Quanti still writes a 1% from your destination and voice. Sleep and HRV only size how hard today can go—they never rewrite the target.",
   },
   {
     q: "What if I can't speak out loud every morning?",
-    a: "No problem. While a 15-second voice check-in is the fastest way to capture qualitative context, Quanti includes 1-tap emoji state check-ins and quick text notes for quiet or busy mornings so your daily habit loop never breaks.",
-  },
-  {
-    q: "Do I have to connect every signal at launch?",
-    a: "No. Launch release connects with Apple Health and Calendar. You choose exactly which data sources to enable—start with just your morning voice check and add background signals as you go.",
-  },
-  {
-    q: "Are integrations read-only?",
-    a: "Yes. Apple Health, calendar, phone usage, and bank activity are read-only. Quanti cannot move money or lock your apps.",
+    a: "Skip check-in still works, but the card will be blunter. A short typed note can name the same object, person, or clock time.",
   },
   {
     q: "Does Quanti lock my apps or force my calendar?",
-    a: "No. You get skippable speed bumps and one morning rule. Never forced lockouts.",
+    a: "No. There are no speed bumps, app locks, streaks, or dashboards. One card. Then it gets out of the way.",
   },
   {
     q: "When does TestFlight open?",

@@ -58,7 +58,7 @@ export default function DeveloperTelemetryControls() {
       <View style={styles.row}>
         <View style={styles.copy}>
           <Text style={styles.title}>Use Physical iPhone Telemetry</Text>
-          <Text style={styles.hint}>Live HealthKit, location, and voice when permissions allow.</Text>
+          <Text style={styles.hint}>Live HealthKit sleep/HRV and voice when permissions allow.</Text>
         </View>
         <Switch
           value={hardware}

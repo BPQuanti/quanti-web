@@ -7,7 +7,7 @@ import { easeLayout } from '../lib/motion';
 const QUESTIONS = [
   {
     q: 'What is Quanti?',
-    a: 'Quanti is a private morning coach. It reads the signals you connect—sleep, recovery, screen time, spend—and a short voice check-in about how the day actually feels, then writes one directive. Nobody else sees that card.',
+    a: 'Quanti is a private destination GPS. You name where you are and where you want to go. Overnight signals size the window. A short voice check fills one blank. The card is today’s 1% move. Nobody else sees it.',
   },
   {
     q: 'What do I do today?',

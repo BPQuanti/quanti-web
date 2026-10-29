@@ -28,7 +28,7 @@ import {
 import { useAppContext } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useTelemetryPayload } from '../../src/hooks/useTelemetryPayload';
-import { pickVoicePrompt, voicePromptForPayload } from '../../src/services/arcVoicePrompts';
+import { MORNING_VOICE_PROMPT, VOICE_CHECK_SECONDS } from '../../src/services/arcVoicePrompts';
 import { formatToward, getNorthStar, subscribeNorthStar, type NorthStar } from '../../src/services/northStar';
 import { isInternalToolsAccount } from '../../src/lib/config/reviewMode';
 import { displayNameFromAuthUser, firstNameFromDisplay } from '../../src/services/displayName';
@@ -45,6 +45,7 @@ import type { DailyDirective, DailyTelemetryPayload } from '../../src/types/tele
 import FuturisticVoiceWave from './FuturisticVoiceWave';
 import ObsidianScreen from './ObsidianScreen';
 import SignalNudgeCard from './SignalNudgeCard';
+import FeedbackModal from '../../src/components/FeedbackModal';
 
 const PRIVACY_PERM_KEY = '@quanti_permission_prefs';
 const SANDBOX_PERM_KEY = '@quanti_today_perm_sandbox';
@@ -110,19 +111,6 @@ function formatSignedPercent(value: number | null) {
   return `${sign}${value}%`;
 }
 
-function locationLabel(category: DailyTelemetryPayload['location']['category']) {
-  if (category === 'home_like') {
-    return 'Home-like';
-  }
-  if (category === 'transit') {
-    return 'Transit';
-  }
-  if (category === 'travel') {
-    return 'Travel';
-  }
-  return 'Unknown';
-}
-
 function telemetrySourceBadge(payload: DailyTelemetryPayload | null) {
   if (!payload || payload.is_mock) {
     return `🟡 Mock Data (${payload?.mock_profile || 'Default'})`;
@@ -167,8 +155,8 @@ function WellnessDisclaimer() {
   return (
     <View style={styles.disclaimer}>
       <Text style={styles.disclaimerText}>
-        🛡️ Quanti is a general wellness tool for personal alignment and habit optimization. It is not a medical device,
-        does not provide medical advice, and does not diagnose, treat, or prevent any medical condition.
+        Quanti is a general wellness tool. It is not a medical device, does not provide medical advice, and does not
+        diagnose, treat, or prevent any medical condition.
       </Text>
     </View>
   );
@@ -206,6 +194,7 @@ export default function TodayHub() {
   const { payload, loading, error, refreshTelemetry } = useTelemetryPayload();
   const [directive, setDirective] = useState<DailyDirective | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const recordFade = useRef(new Animated.Value(1)).current;
   const synthPulse = useRef(new Animated.Value(0.55)).current;
   const forceRegenerate = useRef(false);
@@ -387,6 +376,12 @@ export default function TodayHub() {
     return () => clearInterval(tick);
   }, [isRecording]);
 
+  useEffect(() => {
+    if (isRecording && elapsed >= VOICE_CHECK_SECONDS) {
+      startOrStopRecording().catch(() => {});
+    }
+  }, [elapsed, isRecording]);
+
   async function applyVoiceContext(quote: string, durationSeconds?: number) {
     const transcript = quote.trim();
     if (!transcript) {
@@ -540,20 +535,24 @@ export default function TodayHub() {
             </Pressable>
             <Text style={styles.dateLine}>{formatGreetingDate()}</Text>
           </View>
+          <Pressable onPress={() => setFeedbackOpen(true)} hitSlop={8} style={styles.feedbackChip}>
+            <Text style={styles.feedbackChipText}>Feedback</Text>
+          </Pressable>
         </View>
         <View style={styles.scroll}>
           <View style={styles.sectionCard}>
             <Text style={styles.sectionKicker}>First-time setup</Text>
             <Text style={styles.directiveText}>Tell Quanti where you are and where you want to go.</Text>
             <Text style={styles.cardSubtext}>
-              New accounts start empty. Speak your destination on Direction — nothing is copied from another user on this
+              New accounts start empty. Name your destination — nothing is copied from another user on this
               phone.
             </Text>
             <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.journalSubmit}>
-              <Text style={styles.journalSubmitText}>Set your direction</Text>
+              <Text style={styles.journalSubmitText}>Set your destination</Text>
             </Pressable>
           </View>
         </View>
+        <FeedbackModal visible={feedbackOpen} userId={user?.id} onClose={() => setFeedbackOpen(false)} />
       </ObsidianScreen>
     );
   }
@@ -570,7 +569,7 @@ export default function TodayHub() {
     .map((line) => line.replace(/\s+/g, ' ').trim())
     .filter(Boolean)
     .slice(0, 2);
-  const spokenPrompt = payload ? voicePromptForPayload(payload) : pickVoicePrompt('deep_work');
+  const spokenPrompt = MORNING_VOICE_PROMPT;
 
   return (
     <ObsidianScreen>
@@ -582,11 +581,9 @@ export default function TodayHub() {
           </Pressable>
           <Text style={styles.dateLine}>{formatGreetingDate()}</Text>
         </View>
-        {voiceBoosted ? (
-          <View style={[styles.statusBadge, styles.statusBadgeRefined]}>
-            <Text style={styles.statusBadgeTextRefined}>✨ Refined with Voice Context</Text>
-          </View>
-        ) : null}
+        <Pressable onPress={() => setFeedbackOpen(true)} hitSlop={8} style={styles.feedbackChip}>
+          <Text style={styles.feedbackChipText}>Feedback</Text>
+        </Pressable>
       </View>
 
       <ScrollView
@@ -645,41 +642,50 @@ export default function TodayHub() {
                     {line}
                   </Text>
                 ))}
-                <View style={styles.checkInRow}>
-                  {(
-                    [
-                      { id: 'executed', label: '⚡ Executed' },
-                      { id: 'partial', label: '🌗 Partial' },
-                      { id: 'shifted', label: '❌ Shifted' },
-                    ] as const
-                  ).map((option) => {
-                    const on = todayLog?.status === option.id;
-                    return (
-                      <Pressable
-                        key={option.id}
-                        onPress={() => {
-                          setTodayLog({
-                            date: payload?.local_date ?? '',
-                            primary_directive: headline,
-                            agency_arc: payload?.agency_arc ?? '',
-                            status: option.id,
-                            feedback_note: todayLog?.feedback_note,
-                          });
-                          setTodayExecution({
-                            date: payload?.local_date,
-                            primary_directive: headline,
-                            agency_arc: payload?.agency_arc ?? '',
-                            status: option.id,
-                          }).catch(() => {});
-                        }}
-                        style={[styles.checkInChip, on && styles.checkInChipOn]}
-                      >
-                        <Text style={[styles.checkInChipText, on && styles.checkInChipTextOn]}>{option.label}</Text>
-                      </Pressable>
-                    );
-                  })}
+                <View style={[styles.outcomeCard, !todayLog?.status && styles.outcomeCardUrgent]}>
+                  <Text style={styles.outcomeTitle}>
+                    {todayLog?.status ? 'Today’s mark' : 'Mark today’s 1%'}
+                  </Text>
+                  <Text style={styles.outcomeSub}>
+                    {todayLog?.status
+                      ? 'This writes tomorrow’s card.'
+                      : 'Executed, partial, or shifted — required so tomorrow can adapt.'}
+                  </Text>
+                  <View style={styles.checkInRow}>
+                    {(
+                      [
+                        { id: 'executed', label: 'Executed' },
+                        { id: 'partial', label: 'Partial' },
+                        { id: 'shifted', label: 'Shifted' },
+                      ] as const
+                    ).map((option) => {
+                      const on = todayLog?.status === option.id;
+                      return (
+                        <Pressable
+                          key={option.id}
+                          onPress={() => {
+                            setTodayLog({
+                              date: payload?.local_date ?? '',
+                              primary_directive: headline,
+                              agency_arc: payload?.agency_arc ?? '',
+                              status: option.id,
+                              feedback_note: todayLog?.feedback_note,
+                            });
+                            setTodayExecution({
+                              date: payload?.local_date,
+                              primary_directive: headline,
+                              agency_arc: payload?.agency_arc ?? '',
+                              status: option.id,
+                            }).catch(() => {});
+                          }}
+                          style={[styles.checkInChip, on && styles.checkInChipOn, !todayLog?.status && styles.checkInChipIdle]}
+                        >
+                          <Text style={[styles.checkInChipText, on && styles.checkInChipTextOn]}>{option.label}</Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
                 </View>
-                <Text style={styles.checkInHint}>This mark writes tomorrow’s 1%.</Text>
               </View>
             )}
 
@@ -697,8 +703,8 @@ export default function TodayHub() {
                   {phase === 'refining'
                     ? 'Transcribing and synthesizing your directive…'
                     : isRecording
-                      ? `Recording ${formatElapsed(elapsed)}`
-                      : 'Optional. Answers the one blank sensors cannot see.'}
+                      ? `Listening ${formatElapsed(elapsed)} / 0:15`
+                      : MORNING_VOICE_PROMPT}
                 </Text>
                 {voiceError ? <Text style={styles.voiceError}>{voiceError}</Text> : null}
                 <Animated.View style={{ opacity: recordFade }} pointerEvents={journalMode ? 'none' : 'auto'}>
@@ -706,7 +712,7 @@ export default function TodayHub() {
                     onPress={startOrStopRecording}
                     accessibilityRole="button"
                     accessibilityLabel={
-                      isRecording ? 'Tap to finish voice check-in' : 'Tap wave for 15 second voice check'
+                      isRecording ? 'Tap to finish voice check-in' : 'Tap wave for 10 to 15 second voice check'
                     }
                     accessibilityState={{ disabled: journalMode }}
                     style={({ pressed }) => [
@@ -739,7 +745,7 @@ export default function TodayHub() {
                   <>
                     <Text style={styles.recordHint}>
                       {isRecording
-                        ? `Listening... ${formatElapsed(elapsed)} / 0:15`
+                        ? `Listening ${formatElapsed(elapsed)} / 0:15`
                         : '〰️ Tap wave for 15s voice check'}
                     </Text>
                     <Pressable
@@ -776,8 +782,6 @@ export default function TodayHub() {
               [
                 ['healthKit', 'HealthKit granted'],
                 ['microphone', 'Microphone granted'],
-                ['calendar', 'Calendar granted'],
-                ['location', 'Location granted'],
               ] as const
             ).map(([key, label]) => (
               <View key={key} style={styles.sandboxRow}>
@@ -823,6 +827,7 @@ export default function TodayHub() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+      <FeedbackModal visible={feedbackOpen} userId={user?.id} onClose={() => setFeedbackOpen(false)} />
     </ObsidianScreen>
   );
 }
@@ -838,6 +843,18 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     paddingTop: 8,
     gap: 12,
+  },
+  feedbackChip: {
+    borderColor: colors.indigoBorder,
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  feedbackChipText: {
+    color: colors.indigo,
+    fontFamily: fonts.semibold,
+    fontSize: 12,
   },
   mark: { height: 22, width: 22 },
   greet: {
@@ -992,13 +1009,44 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     padding: 20,
   },
+  outcomeCard: {
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderColor: colors.border,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginTop: 16,
+    padding: 14,
+  },
+  outcomeCardUrgent: {
+    backgroundColor: colors.amberBg,
+    borderColor: colors.amberBorder,
+  },
+  outcomeTitle: {
+    color: colors.heading,
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    letterSpacing: -0.3,
+  },
+  outcomeSub: {
+    color: colors.muted,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 4,
+  },
   checkInRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
   checkInChip: {
     borderColor: '#262626',
-    borderRadius: 999,
+    borderRadius: 14,
     borderWidth: 1,
     flex: 1,
-    paddingVertical: 10,
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  checkInChipIdle: {
+    backgroundColor: 'rgba(9, 9, 11, 0.35)',
+    borderColor: colors.heading,
   },
   checkInChipOn: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',

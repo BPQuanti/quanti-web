@@ -13,8 +13,8 @@ export default function Hero() {
           Finally, an app that actually gets you.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Say where you are and where you want to go. Quanti turns last night’s signals and a 15-second check into one
-          1% move for today.
+          Name a concrete target. Each morning you get one 15–20 word action on that path. Optional sleep and HRV size
+          the push. A 15-second check fills the blank.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Claim Early Access" />
@@ -30,11 +30,11 @@ export default function Hero() {
               one move.&rdquo;
             </p>
             <p className="mt-3 border-t border-white/5 pt-3 text-[11px] text-neutral-400">
-              Destination + overnight signals + 15s check
+              Destination + optional HealthKit + 15s check
             </p>
           </article>
           <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
-            🔒 On-Device Privacy • Read-Only Sync • Zero Data Sales
+            HealthKit optional • Voice transcribed at the edge, not retained • Zero data sales
           </p>
         </div>
       </div>

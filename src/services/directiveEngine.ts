@@ -5,10 +5,8 @@ import { getPriorExecution, localDateStamp } from './directiveHistory';
 import { closedLoopFallback, whyFromPayload } from './directiveLoop';
 import { hasGivenAIConsent } from './privacyConsent';
 import { edgeFunctionUrl } from './supabaseFunctions';
-import { inferArcFromTranscript, asInferredArc } from './arcInference';
-import { setSelectedArc } from './arcSettings';
 import { asNorthStar, parseNorthStarFromSpeech } from './northStar';
-import type { AgencyArc, DailyDirective, DailyTelemetryPayload } from '../types/telemetry';
+import type { DailyDirective, DailyTelemetryPayload } from '../types/telemetry';
 
 const TIMEOUT_MS = 30_000;
 
@@ -50,13 +48,12 @@ async function postDirective(payload: DailyTelemetryPayload, accessToken: string
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   console.log('[Directive] POST synthesize-directive', {
-    agency_arc: payload.agency_arc,
     local_date: payload.local_date,
+    destination: payload.north_star,
     voice_context: payload.voice_context,
     voice: payload.voice,
     biometrics: payload.biometrics,
-    location: payload.location,
-    screen_time: payload.screen_time,
+    yesterday_outcome: payload.last_execution?.status,
   });
 
   try {
@@ -96,7 +93,6 @@ async function postDirective(payload: DailyTelemetryPayload, accessToken: string
           ? data.voice_prompt.trim()
           : voicePromptForPayload(payload),
       source: 'edge' as const,
-      inferred_arc: asInferredArc((data as { inferred_arc?: unknown }).inferred_arc) ?? undefined,
       north_star: asNorthStar((data as { north_star?: unknown }).north_star) ?? payload.north_star,
       why_today:
         typeof (data as { why_today?: unknown }).why_today === 'string'
@@ -111,15 +107,11 @@ async function postDirective(payload: DailyTelemetryPayload, accessToken: string
 export async function generateDailyDirective(payload: DailyTelemetryPayload): Promise<DailyDirective> {
   const sealedPayload = await withLastExecution(payload);
   const consented = await hasGivenAIConsent();
-  const hasVoice = Boolean(sealedPayload.voice_context?.transcript || sealedPayload.voice?.transcript);
-  if (!consented && !hasVoice) {
-    console.warn('[Directive] local fallback: AI synthesis consent is off and no voice context was provided.');
-    const fallback = withInferredArc(sealedPayload, { ...fallbackDirective(sealedPayload), aborted: true });
-    await persistDirective({ ...sealedPayload, agency_arc: fallback.inferred_arc ?? sealedPayload.agency_arc }, fallback);
+  if (!consented) {
+    console.warn('[Directive] AI synthesis explicitly off; using local rule.');
+    const fallback = withDestination(sealedPayload, fallbackDirective(sealedPayload));
+    await persistDirective(sealedPayload, fallback);
     return fallback;
-  }
-  if (!consented && hasVoice) {
-    console.log('[Directive] stored AI consent is off; sending this explicit voice/note refinement to gpt-4o-mini.');
   }
 
   try {
@@ -128,8 +120,8 @@ export async function generateDailyDirective(payload: DailyTelemetryPayload): Pr
     if (error || !accessToken || !data.session?.user?.id) {
       const reason = error?.message || 'No authenticated session.';
       console.error('[Directive] local fallback: auth session missing', reason);
-      const fallback = withInferredArc(sealedPayload, fallbackDirective(sealedPayload));
-      await persistDirective({ ...sealedPayload, agency_arc: fallback.inferred_arc ?? sealedPayload.agency_arc }, fallback);
+      const fallback = withDestination(sealedPayload, fallbackDirective(sealedPayload));
+      await persistDirective(sealedPayload, fallback);
       return fallback;
     }
 
@@ -138,29 +130,25 @@ export async function generateDailyDirective(payload: DailyTelemetryPayload): Pr
       user_id: data.session.user.id,
     };
 
-    const directive = withInferredArc(sealed, await postDirective(sealed, accessToken));
+    const directive = withDestination(sealed, await postDirective(sealed, accessToken));
     console.log('[Directive] edge synthesis complete', directive);
-    await persistDirective({ ...sealed, agency_arc: directive.inferred_arc ?? sealed.agency_arc }, directive);
+    await persistDirective(sealed, directive);
     return directive;
   } catch (caught) {
     const reason = caught instanceof Error ? caught.message : String(caught);
     console.error('[Directive] local fallback after edge failure:', reason);
-    const fallback = withInferredArc(sealedPayload, fallbackDirective(sealedPayload));
-    await persistDirective({ ...sealedPayload, agency_arc: fallback.inferred_arc ?? sealedPayload.agency_arc }, fallback);
+    const fallback = withDestination(sealedPayload, fallbackDirective(sealedPayload));
+    await persistDirective(sealedPayload, fallback);
     return fallback;
   }
 }
 
-function withInferredArc(payload: DailyTelemetryPayload, directive: DailyDirective): DailyDirective {
+function withDestination(payload: DailyTelemetryPayload, directive: DailyDirective): DailyDirective {
   const spoken = payload.voice_context?.transcript || payload.voice?.transcript || '';
-  const inferred: AgencyArc | undefined = payload.infer_arc
-    ? directive.inferred_arc ?? inferArcFromTranscript(spoken)
-    : directive.inferred_arc;
   const northStar =
     directive.north_star ?? payload.north_star ?? (spoken ? parseNorthStarFromSpeech(spoken) : undefined);
   return {
     ...directive,
-    inferred_arc: inferred,
     north_star: northStar ?? undefined,
     why_today: directive.why_today?.trim() || whyFromPayload(payload),
   };
@@ -168,13 +156,10 @@ function withInferredArc(payload: DailyTelemetryPayload, directive: DailyDirecti
 
 async function persistDirective(payload: DailyTelemetryPayload, directive: DailyDirective) {
   try {
-    if (directive.inferred_arc) {
-      await setSelectedArc(directive.inferred_arc);
-    }
     await saveStoredDirective({
       ...directive,
       date: payload.local_date || localDateStamp(),
-      agency_arc: directive.inferred_arc ?? payload.agency_arc,
+      agency_arc: payload.agency_arc,
       voice_transcript: payload.voice_context?.transcript || payload.voice?.transcript || undefined,
     });
   } catch (caught) {

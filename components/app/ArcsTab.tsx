@@ -4,6 +4,7 @@ import { colors, fonts, surfaces, typography } from '../../constants/theme';
 import { getCustomArcContext, setCustomArcContext, subscribeCustomArcContext } from '../../src/lib/arcs';
 import {
   clearNorthStar,
+  DESTINATION_PLACEHOLDER,
   getNorthStar,
   parseNorthStarFromSpeech,
   saveNorthStar,
@@ -103,7 +104,7 @@ export default function ArcsTab() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageKicker}>Direction</Text>
+        <Text style={styles.pageKicker}>Destination</Text>
         <Text style={styles.pageTitle}>Where you are. Where you want to go.</Text>
 
         {saved ? (
@@ -134,17 +135,16 @@ export default function ArcsTab() {
             <Text style={styles.seasonTag}>Now / next</Text>
             <Text style={styles.alignTitle}>Tell Quanti the destination</Text>
             <Text style={styles.alignPrompt}>
-              Where are you now, and where do you want to go? Daily directives are 1% moves on that vector.
+              Name a finish line someone else could check. Daily cards are 1% moves toward that target.
             </Text>
             <Text style={styles.alignSub}>
-              Speak or write freely. Example: living at home, building an app, trying to get your own place and make
-              money from it.
+              {DESTINATION_PLACEHOLDER}
             </Text>
 
             <Pressable
               onPress={toggleRecord}
               accessibilityRole="button"
-              accessibilityLabel={isRecording ? 'Tap to finish now and next' : 'Tap wave for 30 second voice check'}
+              accessibilityLabel={isRecording ? 'Tap to finish now and next' : 'Tap wave for 10 to 15 second voice check'}
               style={({ pressed }) => [
                 styles.waveHit,
                 isRecording && styles.waveHitActive,
@@ -155,8 +155,8 @@ export default function ArcsTab() {
             </Pressable>
             <Text style={styles.timer}>
               {isRecording
-                ? `${formatElapsed(elapsed)} / 0:30+ recommended`
-                : '0:30 recommended — keep talking if you need more'}
+                ? `${formatElapsed(elapsed)} / 0:15`
+                : 'Speak for 10–15 seconds'}
             </Text>
 
             <Pressable onPress={() => setWriteOpen((open) => !open)} style={styles.writeToggle}>
@@ -167,14 +167,14 @@ export default function ArcsTab() {
                 <TextInput
                   value={draft}
                   onChangeText={setDraft}
-                  placeholder="e.g. I'm 27, living with my mom, building an app. I want my own place and to make money from the app."
+                  placeholder={DESTINATION_PLACEHOLDER}
                   placeholderTextColor="#737373"
                   multiline
                   textAlignVertical="top"
                   style={styles.input}
                 />
                 <Pressable onPress={submitWrite} style={styles.submit}>
-                  <Text style={styles.submitText}>Save direction</Text>
+                  <Text style={styles.submitText}>Save destination</Text>
                 </Pressable>
               </View>
             ) : null}

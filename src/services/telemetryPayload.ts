@@ -1,12 +1,17 @@
 import { fetchSleepAndHRV } from './healthkit';
-import { getCurrentLocation, getLocationPermissionStatus } from './location';
 import { cacheAnonymizedPayload } from './privacyConsent';
 import { getSelectedArc } from './arcSettings';
 import { getPriorExecution } from './directiveHistory';
 import { getNorthStar, parseNorthStarFromSpeech } from './northStar';
 import { getMockTelemetrySources } from './telemetryMocks';
 import { getSelectedMockProfile, isUseRealHardwareEnabled } from './telemetrySettings';
-import type { AgencyArc, DailyTelemetryPayload, LocationCategory, TelemetrySources } from '../types/telemetry';
+import type { DailyTelemetryPayload, TelemetrySources } from '../types/telemetry';
+
+export const DEFAULT_RECOVERY_BASELINE = {
+  sleep_hours: 7,
+  hrv_delta_percent: 0,
+  recovery_score: 55,
+} as const;
 
 const PII_PATTERNS = [
   /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi,
@@ -66,22 +71,6 @@ function mean(values: number[]) {
     return null;
   }
   return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
-function classifyLocation(source: TelemetrySources['location']): LocationCategory {
-  if (!source) {
-    return 'unknown';
-  }
-  const lat = asNumber(source.latitude);
-  const lng = asNumber(source.longitude);
-  if (lat == null || lng == null) {
-    return source.timezoneOffsetMinutes != null ? 'home_like' : 'unknown';
-  }
-  const offset = source.timezoneOffsetMinutes ?? new Date().getTimezoneOffset();
-  if (Math.abs(offset) >= 180) {
-    return 'travel';
-  }
-  return 'home_like';
 }
 
 function sanitizeTranscript(input: string | null | undefined) {
@@ -149,20 +138,24 @@ function payloadFromSources(sources: TelemetrySources): DailyTelemetryPayload {
     : null;
 
   const transcript = sanitizeTranscript(sources.voiceTranscript);
+  const liveHealth = liveHealthUsable(health);
 
   return {
     schema_version: 1,
     session_id: sessionId(),
     user_id: sources.userId ?? null,
     local_date: localDateStamp(),
-    biometrics: {
-      hrv_delta_percent: hrvDelta,
-      sleep_hours: sleepHours,
-      recovery_score: recoveryScore(sleepHours, hrvDelta),
-    },
+    biometrics: liveHealth
+      ? {
+          hrv_delta_percent: hrvDelta,
+          sleep_hours: sleepHours,
+          recovery_score: recoveryScore(sleepHours, hrvDelta),
+        }
+      : { ...DEFAULT_RECOVERY_BASELINE },
+    healthkit: liveHealth,
     location: {
-      category: classifyLocation(sources.location),
-      timezone_offset_minutes: sources.location?.timezoneOffsetMinutes ?? new Date().getTimezoneOffset(),
+      category: 'unknown',
+      timezone_offset_minutes: new Date().getTimezoneOffset(),
     },
     screen_time: {
       total_minutes: asNumber(sources.screenTime?.totalMinutes),
@@ -188,32 +181,18 @@ function liveHealthUsable(health: TelemetrySources['health']) {
 
 async function resolveLiveSources(explicit: TelemetrySources): Promise<TelemetrySources | null> {
   try {
-    const locationStatus = await getLocationPermissionStatus();
     const health = explicit.health ?? (await fetchSleepAndHRV().catch(() => null));
-    let location = explicit.location ?? null;
-
-    if (!location && locationStatus.granted) {
-      const position = await getCurrentLocation({ requestIfNeeded: false }).catch(() => null);
-      if (position?.coords) {
-        location = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          timezoneOffsetMinutes: new Date().getTimezoneOffset(),
-        };
-      }
-    }
-
-    if (!liveHealthUsable(health) && !location) {
-      return null;
-    }
-
     return {
       ...explicit,
-      health: health ?? explicit.health,
-      location,
+      health: liveHealthUsable(health) ? health : undefined,
+      location: undefined,
     };
   } catch {
-    return null;
+    return {
+      ...explicit,
+      health: undefined,
+      location: undefined,
+    };
   }
 }
 
@@ -233,8 +212,23 @@ export async function assembleAnonymizedPayload(
 
   if (useHardware) {
     const live = await resolveLiveSources(sources);
-    if (live && (liveHealthUsable(live.health) || live.location)) {
-      resolved = mergeSources(mock, live);
+    if (liveHealthUsable(live?.health)) {
+      resolved = mergeSources(
+        {
+          userId: sources.userId,
+          voiceTranscript,
+          voiceDurationSeconds: sources.voiceDurationSeconds,
+        },
+        live ?? sources,
+      );
+      sourceLabel = 'LIVE_DEVICE_SENSORS';
+    } else {
+      resolved = {
+        userId: sources.userId,
+        voiceTranscript,
+        voiceDurationSeconds: sources.voiceDurationSeconds,
+        location: undefined,
+      };
       sourceLabel = 'LIVE_DEVICE_SENSORS';
     }
   } else {
@@ -259,7 +253,7 @@ export async function assembleAnonymizedPayload(
   const payload: DailyTelemetryPayload = {
     ...payloadFromSources({ ...resolved, voiceTranscript: cleaned }),
     agency_arc: agencyArc ?? 'deep_work',
-    infer_arc: true,
+    infer_arc: false,
     north_star: storedStar ?? spokenStar ?? undefined,
     last_execution: prior?.status
       ? {

@@ -9,6 +9,7 @@ import DeleteAccountModal from '../../src/features/settings/DeleteAccountModal';
 import DeveloperTelemetryControls from '../../src/components/DeveloperTelemetryControls';
 import PermissionsGate from '../../src/components/PermissionsGate';
 import EditProfileModal from '../EditProfileModal';
+import FeedbackModal from '../../src/components/FeedbackModal';
 import PrivacyWhyModal from '../../src/components/PrivacyWhyModal';
 import { isInternalToolsAccount } from '../../src/lib/config/reviewMode';
 import { resetOnboardingProgress } from '../../src/services/onboarding';
@@ -19,16 +20,13 @@ const PRIVACY_URL = 'https://quanti-app.com/privacy';
 const TERMS_URL = 'https://quanti-app.com/terms';
 const PERM_KEY = '@quanti_permission_prefs';
 
-type DomainId = 'health' | 'calendar' | 'plaid' | 'voice' | 'location';
+type DomainId = 'health' | 'voice';
 
 type Perms = Record<DomainId, boolean>;
 
 const DEFAULT_PERMS: Perms = {
   health: true,
-  calendar: true,
-  plaid: false,
   voice: true,
-  location: false,
 };
 
 const DOMAINS: {
@@ -41,31 +39,13 @@ const DOMAINS: {
     id: 'health',
     title: 'HealthKit',
     line: 'Sleep & HRV · on-device',
-    detail: 'Read-only recovery context. Samples stay on this phone; Quanti uses summaries, not a health timeline.',
-  },
-  {
-    id: 'calendar',
-    title: 'Calendar & screens',
-    line: 'Load, not event titles',
-    detail: 'Density and late-night use, parsed locally. Titles and contacts are not uploaded.',
-  },
-  {
-    id: 'plaid',
-    title: 'Bank (Plaid)',
-    line: 'Optional · read-only',
-    detail: 'Impulse-spend patterns only. Quanti cannot move money or see login credentials.',
+    detail: 'Read-only recovery context. Sleep and HRV size today’s 1%. Samples stay on this phone; summaries only.',
   },
   {
     id: 'voice',
     title: 'Microphone',
     line: 'Spoken context · not stored',
-    detail: 'Audio goes to Whisper for a transcript, then the file is discarded. Raw voice is not kept.',
-  },
-  {
-    id: 'location',
-    title: 'Place',
-    line: 'Home / travel · no GPS log',
-    detail: 'Coarse place category on-device. Coordinates are not stored or sent.',
+    detail: 'Voice processed securely in-memory via encrypted edge transcription with zero data retention.',
   },
 ];
 
@@ -90,7 +70,8 @@ export default function PrivacyTab() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [whyOpen, setWhyOpen] = useState(false);
-  const [aiConsent, setAiConsent] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [aiConsent, setAiConsent] = useState(true);
   const version = Constants.expoConfig?.version ?? '1.0.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
 
@@ -107,13 +88,10 @@ export default function PrivacyTab() {
         if (!mounted || !raw) {
           return;
         }
-        const saved = JSON.parse(raw) as Partial<Perms> & { screen?: boolean };
+        const saved = JSON.parse(raw) as Partial<Perms>;
         setPerms({
           health: saved.health !== false,
-          calendar: saved.calendar !== false && saved.screen !== false,
-          plaid: saved.plaid === true,
           voice: saved.voice !== false,
-          location: saved.location === true,
         });
       } catch {
         if (mounted) {
@@ -136,28 +114,6 @@ export default function PrivacyTab() {
   }
 
   function setPerm(key: DomainId, value: boolean) {
-    if (value && key === 'plaid') {
-      Alert.alert(
-        'Plaid preview',
-        'Read-only. Quanti cannot move money or see bank credentials.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Enable', onPress: () => persistPerms({ ...perms, plaid: true }) },
-        ],
-      );
-      return;
-    }
-    if (value && key === 'location') {
-      Alert.alert(
-        'Place stays on-device',
-        'Only coarse home / travel / desk context. Precise GPS is not stored.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Enable', onPress: () => persistPerms({ ...perms, location: true }) },
-        ],
-      );
-      return;
-    }
     persistPerms({ ...perms, [key]: value });
   }
 
@@ -170,10 +126,7 @@ export default function PrivacyTab() {
         onPress: async () => {
           const cleared: Perms = {
             health: false,
-            calendar: false,
-            plaid: false,
             voice: false,
-            location: false,
           };
           await resetAppData();
           setPerms(cleared);
@@ -234,7 +187,7 @@ export default function PrivacyTab() {
               <Text style={styles.rowLine}>{aiConsent ? 'Anonymized summary on' : 'Local rule only'}</Text>
               {openId === 'ai' ? (
                 <Text style={styles.rowDetail}>
-                  Off = on-device rule. On = one anonymized payload to the model, not kept for training.
+                  On by default. Off = local rule only. On = one anonymized payload (destination, sized telemetry or baseline, yesterday’s mark, voice blank) to the model, not kept for training.
                 </Text>
               ) : null}
             </Pressable>
@@ -272,6 +225,13 @@ export default function PrivacyTab() {
           >
             <Text style={styles.rowTitle}>Profile</Text>
             <Text style={styles.accountMeta}>{userProfile?.name || 'Name & photo'}</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.accountRow, styles.rowDivider, pressed && styles.rowPressed]}
+            onPress={() => setFeedbackOpen(true)}
+          >
+            <Text style={styles.rowTitle}>Send feedback</Text>
+            <Text style={styles.accountMeta}>Alpha</Text>
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.accountRow, styles.rowDivider, pressed && styles.rowPressed]}
@@ -341,6 +301,11 @@ export default function PrivacyTab() {
         </Text>
       </ScrollView>
       <PrivacyWhyModal visible={whyOpen} onClose={() => setWhyOpen(false)} />
+      <FeedbackModal
+        visible={feedbackOpen}
+        userId={session?.user?.id}
+        onClose={() => setFeedbackOpen(false)}
+      />
       <EditProfileModal
         visible={editProfileOpen}
         profile={userProfile}

@@ -4,6 +4,8 @@ import { scopedAsyncKey, scopedSecureKey } from './sessionIsolation';
 
 const CONSENT_KEY = 'quanti_ai_synthesis_consent';
 export const TELEMETRY_CACHE_KEY = '@quanti_anon_telemetry_cache';
+const GRANTED = 'granted';
+const DENIED = 'denied';
 
 async function secureAvailable() {
   try {
@@ -16,12 +18,12 @@ async function secureAvailable() {
 export async function hasGivenAIConsent(): Promise<boolean> {
   try {
     if (!(await secureAvailable())) {
-      return false;
+      return true;
     }
     const value = await SecureStore.getItemAsync(await scopedSecureKey(CONSENT_KEY));
-    return value === 'granted';
+    return value !== DENIED;
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -30,12 +32,7 @@ export async function setAIConsent(granted: boolean): Promise<void> {
     throw new Error('SecureStore is unavailable; AI consent cannot be stored.');
   }
 
-  if (granted) {
-    await SecureStore.setItemAsync(await scopedSecureKey(CONSENT_KEY), 'granted');
-    return;
-  }
-
-  await revokeConsent();
+  await SecureStore.setItemAsync(await scopedSecureKey(CONSENT_KEY), granted ? GRANTED : DENIED);
 }
 
 export async function revokeConsent(): Promise<void> {

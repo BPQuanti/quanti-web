@@ -3,7 +3,6 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'r
 import { colors, fonts, radii, surfaces, typography } from '../../constants/theme';
 import { requestMicrophonePermission } from '../services/audio';
 import { requestHealthKitAuthorization } from '../services/healthkit';
-import { requestLocationPermission } from '../services/location';
 import {
   type AllPermissions,
   type PermissionState,
@@ -16,10 +15,12 @@ type RowId = keyof AllPermissions;
 
 const ROWS: { id: RowId; title: string; body: string }[] = [
   { id: 'healthkit', title: 'Apple HealthKit', body: 'Sleep analysis and HRV, read-only on this device.' },
-  { id: 'location', title: 'Location', body: 'Foreground location for travel and desk-context arcs.' },
-  { id: 'microphone', title: 'Microphone', body: 'Morning voice check-in, processed on-device.' },
+  {
+    id: 'microphone',
+    title: 'Microphone',
+    body: 'Voice processed securely in-memory via encrypted edge transcription with zero data retention.',
+  },
   { id: 'notifications', title: 'Local notifications', body: 'Optional directive reminders on this phone.' },
-  { id: 'plaid', title: 'Plaid Link', body: 'Optional read-only bank connection in a development build.' },
 ];
 
 const STATE_COPY: Record<PermissionState, string> = {
@@ -83,8 +84,6 @@ export default function PermissionsGate({ onDone }: Props) {
     try {
       if (id === 'healthkit') {
         await requestHealthKitAuthorization();
-      } else if (id === 'location') {
-        await requestLocationPermission();
       } else if (id === 'microphone') {
         const mic = await requestMicrophonePermission();
         if (!mic.granted) {
@@ -92,8 +91,6 @@ export default function PermissionsGate({ onDone }: Props) {
         }
       } else if (id === 'notifications') {
         await requestNotificationPermission();
-      } else {
-        setMessage('Plaid is not an iOS system permission. Connect it from Privacy after a development build is installed.');
       }
       await refresh();
     } catch (error) {
@@ -107,7 +104,7 @@ export default function PermissionsGate({ onDone }: Props) {
     try {
       await Linking.openSettings();
     } catch {
-      setMessage('Open Settings on this iPhone to change Health, Location, Microphone, or Notifications.');
+      setMessage('Open Settings on this iPhone to change Health, Microphone, or Notifications.');
     }
   }
 
@@ -136,7 +133,7 @@ export default function PermissionsGate({ onDone }: Props) {
                 <View style={[styles.badge, { borderColor: STATE_COLOR[state] }]}>
                   <Text style={[styles.badgeText, { color: STATE_COLOR[state] }]}>{STATE_COPY[state]}</Text>
                 </View>
-                {state !== 'granted' && row.id !== 'plaid' ? (
+                {state !== 'granted' ? (
                   <Pressable disabled={busy} onPress={() => requestOne(row.id)} style={styles.miniButton}>
                     <Text style={styles.miniLabel}>Allow</Text>
                   </Pressable>

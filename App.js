@@ -70,8 +70,8 @@ function MainTabs() {
           name="Arcs"
           component={ArcsScreen}
           options={{
-            title: 'Direction',
-            tabBarAccessibilityLabel: 'Where you are going',
+            title: 'Destination',
+            tabBarAccessibilityLabel: 'Destination',
             tabBarIcon: ({ color, size }) => <Ionicons name="layers" color={color} size={size} />,
           }}
         />
@@ -80,7 +80,7 @@ function MainTabs() {
           component={SignalVaultScreen}
           options={{
             title: 'Privacy',
-            tabBarAccessibilityLabel: 'Integrations & Privacy',
+            tabBarAccessibilityLabel: 'Privacy',
             tabBarIcon: ({ color, size }) => <Ionicons name="shield-checkmark" color={color} size={size} />,
           }}
         />
@@ -115,7 +115,7 @@ function PermissionHandshake({ children }) {
         if (!mounted) {
           return;
         }
-        const pending = ['healthkit', 'location', 'microphone', 'notifications'].some(
+        const pending = ['healthkit', 'microphone'].some(
           (key) => status[key]?.state === 'pending'
         );
         setOpen(pending);

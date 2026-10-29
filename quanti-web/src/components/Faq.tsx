@@ -1,7 +1,7 @@
 const QUESTIONS = [
   {
-    q: "Do you store or sell my health or bank data?",
-    a: "No. Raw HealthKit, Screen Time, Plaid, and voice reflections are processed on-device. We never store, sell, or train models on raw health, financial, or voice data in a central cloud you don't control.",
+    q: "Do you store or sell my health or voice data?",
+    a: "HealthKit is optional. Voice is transcribed at the encrypted edge and not retained. We never sell data or train models on your day.",
   },
   {
     q: "When does TestFlight open?",

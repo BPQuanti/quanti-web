@@ -43,7 +43,7 @@ export function getWelcomeEmailHtml({
                   Most tools show graphs after the fact. Quanti is a destination GPS: you name where you are and where you want to go.
                 </p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  Overnight signals only size how hard today can go. A 15-second check fills one blank. Yesterday’s mark writes tomorrow. You get one 1% move—not a season, streak, or dashboard.
+                  Optional sleep and HRV size how hard today can go. A 15-second check fills one blank. Yesterday’s mark writes tomorrow. You get one 1% move—not a streak or dashboard.
                 </p>
                 <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:#94a3b8;">
                   Your referral link to skip the line:

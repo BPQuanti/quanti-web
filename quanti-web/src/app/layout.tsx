@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti | Name now. Move 1% toward next.",
+  title: "Quanti | Your daily execution compass.",
   description:
-    "Say where you are and where you want to go. Quanti turns overnight signals and a 15-second check into one 1% move for today.",
+    "Name a concrete target. Each morning you get one 15–20 word action on that path. Optional HealthKit sizes the push. A 15-second check fills the blank.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti | Name now. Move 1% toward next.",
+    title: "Quanti | Your daily execution compass.",
     description:
-      "Say where you are and where you want to go. Quanti turns overnight signals and a 15-second check into one 1% move for today.",
+      "Name a concrete target. Each morning you get one 15–20 word action on that path. Optional HealthKit sizes the push. A 15-second check fills the blank.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti | Name now. Move 1% toward next.",
+    title: "Quanti | Your daily execution compass.",
     description:
-      "Say where you are and where you want to go. Quanti turns overnight signals and a 15-second check into one 1% move for today.",
+      "Name a concrete target. Each morning you get one 15–20 word action on that path. Optional HealthKit sizes the push. A 15-second check fills the blank.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

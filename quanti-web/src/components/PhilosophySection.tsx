@@ -13,12 +13,12 @@ const PILLARS = [
   },
   {
     title: "Subjective Context",
-    body: "Biometrics are incomplete without your lived reality. We pair passive background telemetry with your morning voice to prevent dashboard fatigue.",
+    body: "Sleep and HRV only size the window. A 15-second check names the object, person, or clock time in the way so the card is a physical move, not a pep talk.",
     icon: Mic,
   },
   {
     title: "The Mirror Effect",
-    body: "Data isn't neutral—it depends on where you are going. Your baseline is filtered through that destination so today's rule is a 1% move, not a generic season badge.",
+    body: "Data isn't the plot. The destination you named is. Recovery and last night’s mark only change how hard today’s 1% can go.",
     icon: ScanEye,
   },
 ] as const;

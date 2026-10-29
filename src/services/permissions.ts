@@ -1,7 +1,5 @@
 import { requestHealthKitAuthorization, getHealthKitAvailability } from './healthkit';
-import { getLocationPermissionStatus, requestLocationPermission } from './location';
 import { getAudioPermissionStatus } from './audio';
-import { getPlaidAvailability } from './plaid';
 
 export type PermissionState = 'granted' | 'pending' | 'denied' | 'unavailable';
 
@@ -13,10 +11,8 @@ export type PermissionSnapshot = {
 
 export type AllPermissions = {
   healthkit: PermissionSnapshot;
-  location: PermissionSnapshot;
   microphone: PermissionSnapshot;
   notifications: PermissionSnapshot;
-  plaid: PermissionSnapshot;
 };
 
 function snapshot(
@@ -57,19 +53,6 @@ async function loadNotifications() {
   } catch {
     return null;
   }
-}
-
-function mapExpoStatus(status?: string, canAskAgain = true): PermissionSnapshot {
-  if (status === 'granted') {
-    return snapshot('granted', false);
-  }
-  if (status === 'denied') {
-    return snapshot(canAskAgain ? 'pending' : 'denied', canAskAgain);
-  }
-  if (status === 'undetermined' || !status) {
-    return snapshot('pending', true);
-  }
-  return snapshot('unavailable', false);
 }
 
 export async function checkNotificationPermission(): Promise<PermissionSnapshot> {
@@ -123,22 +106,16 @@ export async function requestNotificationPermission(): Promise<PermissionSnapsho
 }
 
 export async function checkAllPermissions(): Promise<AllPermissions> {
-  const [healthkit, location, microphone, notifications, plaid] = await Promise.all([
+  const [healthkit, microphone, notifications] = await Promise.all([
     getHealthKitAvailability(),
-    getLocationPermissionStatus(),
     getAudioPermissionStatus({ requestIfNeeded: false }),
     checkNotificationPermission(),
-    getPlaidAvailability(),
   ]);
 
   return {
     healthkit,
-    location: mapExpoStatus(location.status, location.canAskAgain),
     microphone: mapMicrophonePermission(microphone),
     notifications,
-    plaid: plaid.available
-      ? snapshot('granted', false, 'Plaid Link native module is present.')
-      : snapshot('unavailable', false, plaid.error ?? 'Plaid Link is not linked in this binary.'),
   };
 }
 
@@ -150,30 +127,15 @@ export async function requestPermissionSequence() {
     return snapshot(result.authorized ? 'granted' : 'pending', !result.authorized);
   }).catch(() => snapshot('unavailable', false));
 
-  const locationGranted = await requestLocationPermission().catch(() => false);
-  const location = locationGranted
-    ? snapshot('granted')
-    : (await getLocationPermissionStatus().then((status) =>
-        mapExpoStatus(status.status, status.canAskAgain)
-      ).catch(() => snapshot('unavailable', false)));
-
   const microphone = await getAudioPermissionStatus({ requestIfNeeded: true })
     .then(mapMicrophonePermission)
     .catch(() => snapshot('unavailable', false));
 
   const notifications = await requestNotificationPermission();
 
-  const plaid = await getPlaidAvailability().then((status) =>
-    status.available
-      ? snapshot('granted', false, 'Plaid Link native module is present.')
-      : snapshot('unavailable', false, status.error ?? undefined)
-  );
-
   return {
     healthkit,
-    location,
     microphone,
     notifications,
-    plaid,
   } satisfies AllPermissions;
 }

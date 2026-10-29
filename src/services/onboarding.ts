@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { supabase } from '../lib/supabase';
 import { clearSelectedArc } from './arcSettings';
 import { clearNorthStar, getNorthStar } from './northStar';
+import { setAIConsent } from './privacyConsent';
 import { currentUserId, ONBOARDING_FLAG_KEY, scopedSecureKey } from './sessionIsolation';
 
 const gateListeners = new Set<() => void>();
@@ -114,6 +115,7 @@ export async function resolveOnboardingComplete(userId: string | null): Promise<
 
 export async function markOnboardingComplete() {
   const userId = await currentUserId();
+  await setAIConsent(true).catch(() => {});
   await writeLocalOnboardingComplete(true);
   if (!userId) {
     return;

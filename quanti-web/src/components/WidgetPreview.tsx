@@ -21,7 +21,7 @@ const SCENARIOS = [
     badge: "Stretched → present evenings",
     badgeTone: "border-purple-500/20 bg-purple-500/10 text-purple-400",
     time: "8:30 AM",
-    telemetry: ["Destination: present evenings", "📅 Calendar stacked past 7 PM"],
+    telemetry: ["Destination: present evenings", "HealthKit: optional off", "Yesterday: partial"],
     voice: "Pickup chaos ate the evening.",
     directive: "Hard stop at 6:30. One protected hour at home—today’s 1% toward present evenings.",
     alignment: "The check filled why yesterday shifted. The rule is a clock, not a pep talk.",

@@ -3,12 +3,10 @@
 import { useState } from "react";
 import {
   ArrowDown,
-  Calendar,
-  CreditCard,
-  MapPin,
   Mic,
   Activity,
   Sparkles,
+  Compass,
 } from "lucide-react";
 
 const DESTINATIONS = [
@@ -20,10 +18,9 @@ const DESTINATIONS = [
 type DestinationId = (typeof DESTINATIONS)[number]["id"] | "custom";
 
 const PASSIVE = [
-  { icon: Activity, label: "Apple Watch, Oura, WHOOP, or iPhone Health" },
-  { icon: Calendar, label: "Calendar Density & Phone Usage" },
-  { icon: CreditCard, label: "Bank & Credit Card Activity" },
-  { icon: MapPin, label: "On-Device Location (Home, Work, Gym)" },
+  { icon: Compass, label: "Destination you named (the plot)" },
+  { icon: Activity, label: "Optional HealthKit: sleep & HRV size today’s window" },
+  { icon: Mic, label: "10–15s check: name what’s in the way" },
 ];
 
 export default function EngineVisual() {
@@ -42,26 +39,27 @@ export default function EngineVisual() {
       <div className="pointer-events-none absolute -right-10 top-8 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
       <div className="relative mx-auto max-w-5xl">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The Signal Engine</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The 30-second daily loop</p>
           <h2 id="engine-visual-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Destination + overnight signals + one blank = today&apos;s 1%.
+            Destination + voice + optional sleep = today&apos;s 1%.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-            You name now and next. Telemetry only sizes how hard today can go. The 15-second check fills the one fact sensors cannot see.
+            You name a finish line someone else could check. HealthKit is optional. The 15-second check names the object
+            in the way. Executed / Partial / Shifted writes tomorrow.
           </p>
           <p className="mx-auto mt-4 max-w-2xl rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-3 text-sm leading-6 text-slate-300">
             <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
-              Start with 1 signal. Expand whenever you&apos;re ready.
+              Skip check-in still works, but the card will be blunter.
             </span>
-            Launch release connects seamlessly with Apple Health and Calendar. You choose exactly which data sources to
-            enable—start with just your morning voice check and add background signals as you go.
+            Launch is destination + voice. Connect Apple Health when you want sleep and HRV to size the push. No
+            calendar, bank, or Screen Time.
           </p>
         </div>
 
         <div className="mt-10 grid gap-3 lg:grid-cols-3">
           <article className="rounded-2xl border border-sky-400/25 bg-slate-950/80 p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Input A · Passive data</p>
-            <h3 className="mt-2 text-lg font-semibold tracking-tight">What happened</h3>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Input A · What Quanti uses</p>
+            <h3 className="mt-2 text-lg font-semibold tracking-tight">The GPS stack</h3>
             <ul className="mt-4 space-y-3">
               {PASSIVE.map((item) => {
                 const Icon = item.icon;
@@ -139,7 +137,7 @@ export default function EngineVisual() {
               />
             </label>
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              You name where you are and where you want to go. Quanti writes a 1% daily rule on that vector.
+              Name a finish line. Vague goals make vague cards. Named targets make named moves.
             </p>
           </article>
         </div>

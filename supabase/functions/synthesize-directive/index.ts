@@ -27,6 +27,7 @@ type TelemetryPayload = {
     next?: string;
     outcomes?: string[];
   };
+  healthkit?: boolean;
   biometrics?: {
     hrv_delta_percent?: number | null;
     sleep_hours?: number | null;
@@ -51,6 +52,7 @@ type TelemetryPayload = {
 type SynthesizerInput = {
   destination: Destination;
   transcript: string | null;
+  healthkit: boolean;
   biometrics: {
     sleep_hours: number | null;
     hrv_delta_percent: number | null;
@@ -59,33 +61,31 @@ type SynthesizerInput = {
   yesterday_outcome: Outcome | null;
 };
 
-const SYSTEM_PROMPT = `You are Quanti's Daily Synthesizer. Compress messy context into ONE single, concrete, sized-for-today 1% action.
+const SYSTEM_PROMPT = `You are Quanti's Daily Synthesizer. Write ONE 1% action for today.
 
-INPUTS
-- destination: immutable. now = where they are. next = where they are going. Never change, reframe, or replace their goal.
-- transcript: 10–15s morning check-in answering a gap the sensors cannot see (why yesterday failed, whether recovery is real, or the named next object). Weather for today only. Not a new destination.
-- biometrics: sleep hours, HRV delta, recovery. These ONLY constrain how hard or long the action is. They are not the plot.
+INPUTS (only these — do not classify arcs, seasons, or posture)
+- destination: immutable. now = where they are. next = where they are going. Never change or replace it.
+- transcript: morning weather (10–15s). Use it to name the object, blocker, or next physical move. Not a new destination.
+- biometrics: sleep hours, HRV delta, recovery. Scope only. Not the plot.
+- healthkit: false = ignore biometrics; use a normal window. Do not invent recovery problems.
 - yesterday_outcome: executed | partial | shifted | null.
 
-RULES
-- Output ONE action in primary_directive: 15–20 words max. Named, doable today, toward destination.next.
-- Low recovery / short sleep / negative HRV = smaller micro-action (minutes, one frictionless step).
-- High recovery = a full 1% push toward next, still one move.
-- If yesterday_outcome is shifted or partial: acknowledge it in why_today and make today's action even more specific and friction-free. Do not stack a new plot.
-- If executed: one step further on the same destination, not a new campaign.
+primary_directive — STRICT
+- 15–20 words max. Zero markdown. Zero preambles. No quotes, bullets, or labels.
+- ALWAYS a concrete, physical action tied to destination.next AND the transcript (named object, file, message, place, person, or clock time).
+- NEVER generic advice: "Take 1 small step", "Take 1 small action toward", "Focus on your goals", "Protect your energy", "Honor your energy", "Cut noise", "Stay consistent", pep talks.
+- NEVER output an arc, season, posture, or inferred category. Use destination + transcript + biometrics + yesterday_outcome only.
 
-BANNED
-- Motivational fluff, pep talks, empathy padding.
-- Generic advice: "protect recovery", "cut noise", "honor your energy", season/arc language.
-- Multi-step lists, numbered plans, focus blocks, recovery actions.
-- Inventing a different life story than destination.
+SCOPE (telemetry + mark only)
+- Low recovery (healthkit true: short sleep, HRV down, recovery < 40) OR yesterday shifted/partial → micro-step. Example: "Draft just the first 3 lines of your email invite before 10 AM."
+- High recovery (healthkit true) AND yesterday executed → high-leverage execution. Example: "Deploy the full Supabase auth function and test all JWT tokens today."
+- healthkit false and no mark → normal named 1% from destination + transcript, not a recovery sermon.
+- Partial: finish the leftover named piece, then stop. Do not stack a new plot.
+
+why_today — one sentence naming the constraint (mark and/or recovery). Empty string if neither applies.
 
 OUTPUT valid JSON exactly:
-{
-  "primary_directive": "string",
-  "why_today": "string"
-}
-why_today is one sentence: name the constraint (yesterday_outcome and/or recovery bound). Empty string if neither applies.`;
+{"primary_directive":"string","why_today":"string"}`;
 
 const MAX_DIRECTIVE_WORDS = 20;
 
@@ -130,14 +130,18 @@ function sanitizePayload(input: TelemetryPayload, userId: string): SynthesizerIn
   const transcript = String(
     input.transcript || input.voice_context?.transcript || input.voice?.transcript || "",
   ).trim();
+  const healthkit = input.healthkit === true;
   return {
     destination: parseDestination(input),
     transcript: transcript ? transcript.slice(0, 600) : null,
-    biometrics: {
-      sleep_hours: input.biometrics?.sleep_hours ?? null,
-      hrv_delta_percent: input.biometrics?.hrv_delta_percent ?? null,
-      recovery_score: input.biometrics?.recovery_score ?? null,
-    },
+    healthkit,
+    biometrics: healthkit
+      ? {
+          sleep_hours: input.biometrics?.sleep_hours ?? null,
+          hrv_delta_percent: input.biometrics?.hrv_delta_percent ?? null,
+          recovery_score: input.biometrics?.recovery_score ?? null,
+        }
+      : { sleep_hours: 7, hrv_delta_percent: 0, recovery_score: 55 },
     yesterday_outcome: asOutcome(input.yesterday_outcome) ?? asOutcome(input.last_execution?.status),
   };
 }
@@ -156,9 +160,11 @@ function voiceCheckPrompt(input: SynthesizerInput): string {
   const hrv = input.biometrics.hrv_delta_percent;
   const recovery = input.biometrics.recovery_score;
   const low =
-    (sleep != null && sleep < 6) || (hrv != null && hrv <= -12) || (recovery != null && recovery < 40);
+    input.healthkit &&
+    ((sleep != null && sleep < 6) || (hrv != null && hrv <= -12) || (recovery != null && recovery < 40));
   const high =
-    (sleep != null && sleep >= 7.5) || (hrv != null && hrv >= 8) || (recovery != null && recovery >= 70);
+    input.healthkit &&
+    ((sleep != null && sleep >= 7.5) || (hrv != null && hrv >= 8) || (recovery != null && recovery >= 70));
 
   if (input.yesterday_outcome === "shifted") {
     return "What actually blocked yesterday’s 1% — people, energy, or a missing object?";
