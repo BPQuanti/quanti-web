@@ -2,8 +2,8 @@ import { Compass, Radio, Shield } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "You Name the Season",
-    body: "Founder Sprint, Creative Flow, Parenting Presence, or your own. The morning rule orients around it.",
+    title: "You name now and next",
+    body: "Where you are, where you want to go. The morning 1% is a move on that vector—not a season badge.",
     icon: Compass,
   },
   {

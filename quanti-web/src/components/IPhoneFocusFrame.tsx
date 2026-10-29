@@ -3,17 +3,26 @@
 import { useCallback, useEffect, useState, type PointerEvent } from "react";
 import TraceSignalCard from "@/components/TraceSignalCard";
 
-export type FocusArcId = "founder-sprint" | "creative-flow" | "parenting-presence";
+export type DestinationId = "own-place" | "first-revenue" | "present-evenings";
 
-export const ARC_OPTIONS: { id: FocusArcId; label: string; glyph: string }[] = [
-  { id: "founder-sprint", label: "Founder Sprint", glyph: "⚡" },
-  { id: "creative-flow", label: "Creative Flow", glyph: "🎨" },
-  { id: "parenting-presence", label: "Parenting Presence", glyph: "🤍" },
+export const DESTINATION_OPTIONS: { id: DestinationId; label: string; glyph: string; short: string }[] = [
+  { id: "own-place", label: "At home → own place", glyph: "🏠", short: "Place" },
+  { id: "first-revenue", label: "Building → first revenue", glyph: "⚡", short: "Revenue" },
+  { id: "present-evenings", label: "Stretched → present evenings", glyph: "🤍", short: "Evenings" },
 ];
 
+/** @deprecated Use DestinationId */
+export type FocusArcId = DestinationId;
+/** @deprecated Use DESTINATION_OPTIONS */
+export const ARC_OPTIONS = DESTINATION_OPTIONS;
+
 type IPhoneFocusFrameProps = {
-  arc: FocusArcId;
-  onArcChange?: (arc: FocusArcId) => void;
+  destination?: DestinationId;
+  onDestinationChange?: (id: DestinationId) => void;
+  /** @deprecated */
+  arc?: DestinationId;
+  /** @deprecated */
+  onArcChange?: (id: DestinationId) => void;
 };
 
 function formatLockscreenDate(date: Date) {
@@ -31,7 +40,14 @@ function formatLockscreenTime(date: Date) {
   }).format(date);
 }
 
-export default function IPhoneFocusFrame({ arc, onArcChange }: IPhoneFocusFrameProps) {
+export default function IPhoneFocusFrame({
+  destination,
+  onDestinationChange,
+  arc,
+  onArcChange,
+}: IPhoneFocusFrameProps) {
+  const selected = destination ?? arc ?? "own-place";
+  const onChange = onDestinationChange ?? onArcChange;
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [now, setNow] = useState<Date | null>(null);
 
@@ -92,29 +108,25 @@ export default function IPhoneFocusFrame({ arc, onArcChange }: IPhoneFocusFrameP
                 </div>
 
                 <div className="mt-4 min-h-0 flex-1 overflow-y-auto pb-2">
-                  <TraceSignalCard arc={arc} compact dateLabel={now ? formatLockscreenDate(now) : undefined} />
+                  <TraceSignalCard destination={selected} compact dateLabel={now ? formatLockscreenDate(now) : undefined} />
                 </div>
 
                 <div className="mt-2 grid grid-cols-3 gap-1.5">
-                  {ARC_OPTIONS.map((option) => {
-                    const active = option.id === arc;
+                  {DESTINATION_OPTIONS.map((option) => {
+                    const active = option.id === selected;
                     return (
                       <button
                         key={option.id}
                         type="button"
                         aria-pressed={active}
-                        onClick={() => onArcChange?.(option.id)}
+                        onClick={() => onChange?.(option.id)}
                         className={`rounded-full px-1 py-1.5 text-[8px] font-semibold uppercase tracking-wide transition ${
                           active
                             ? "border border-indigo-300/40 bg-indigo-500/25 text-indigo-100 shadow-[0_0_16px_rgba(99,102,241,0.35)]"
                             : "border border-white/10 bg-black/30 text-zinc-400 hover:border-white/20 hover:text-zinc-200"
                         }`}
                       >
-                        {option.id === "founder-sprint"
-                          ? "Sprint"
-                          : option.id === "creative-flow"
-                            ? "Flow"
-                            : "Presence"}
+                        {option.short}
                       </button>
                     );
                   })}

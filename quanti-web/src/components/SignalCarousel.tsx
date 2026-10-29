@@ -3,13 +3,13 @@
 import { useRef } from "react";
 
 const CAPABILITIES = [
-  { icon: "🏃‍♂️", label: "Overtraining Protection", detail: "Adapts workout load when HRV drops" },
-  { icon: "💳", label: "Impulse Spend Friction", detail: "Safeguards capital during emotional fatigue" },
-  { icon: "📅", label: "Calendar Overload Defense", detail: "Protects focus time when meetings stack up" },
-  { icon: "🌙", label: "Late-Night Boundary Nudge", detail: "Nudges you when late screen time spikes" },
-  { icon: "🧘", label: "Restorative Recovery", detail: "Guides active recovery on high-strain days" },
-  { icon: "☕", label: "Caffeine & Energy Timing", detail: "Caps stimulants based on sleep latency" },
-  { icon: "🎯", label: "Deep Work Safeguards", detail: "Protects high-cognitive windows for execution" },
+  { icon: "🏠", label: "Now → next", detail: "The plot is the destination you named" },
+  { icon: "⌚", label: "Overnight size", detail: "Sleep and HRV only bound how hard today can go" },
+  { icon: "🎙️", label: "One blank", detail: "15s fills what sensors cannot see" },
+  { icon: "📅", label: "Protect the window", detail: "Meetings cannot steal the 1% toward next" },
+  { icon: "💳", label: "Keep the 1%", detail: "A slip does not rewrite where you are going" },
+  { icon: "✓", label: "Executed / partial / shifted", detail: "Yesterday’s mark writes tomorrow’s 1%" },
+  { icon: "🎯", label: "One card", detail: "A named action, then stop" },
 ] as const;
 
 export default function SignalCarousel() {
@@ -25,7 +25,7 @@ export default function SignalCarousel() {
         id="signal-carousel-heading"
         className="mb-6 text-center font-mono text-xs uppercase tracking-widest text-neutral-400"
       >
-        Harmonizing signals across your entire day
+        Signals size the window. Destination stays the plot.
       </p>
 
       <div className="relative">

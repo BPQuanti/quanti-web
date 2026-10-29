@@ -2,16 +2,16 @@ import { Compass, Mic, Shield } from "lucide-react";
 
 const ANCHORS = [
   {
-    title: "Name how you feel",
-    kicker: "Interoception",
-    body: "Designed to quiet morning cognitive load and replace decision fatigue with one grounding daily focus.",
+    title: "Name now and next",
+    kicker: "Destination",
+    body: "Identity is where you are and where you want to go. The morning check only fills the blank sensors cannot see.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-200",
   },
   {
     title: "Eliminate decision fatigue",
     kicker: "One 1% rule",
-    body: "Cold dashboards give you raw graphs and leave you guilty. Quanti distills the noise into a single rule tailored to your real capacity.",
+    body: "Cold dashboards leave you the analyst. Quanti writes one sized-for-today action toward the destination you named.",
     icon: Compass,
     tone: "border-indigo-400/25 text-indigo-200",
   },

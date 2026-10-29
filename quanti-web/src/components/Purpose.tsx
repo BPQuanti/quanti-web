@@ -13,12 +13,12 @@ export default function Purpose() {
           What is Quanti?
         </h2>
         <p className="mt-3 text-2xl font-bold leading-snug tracking-tight text-slate-50 sm:text-3xl">
-          Quanti turns your raw daily data into an intelligent strategy for whatever life season you&apos;re in.
+          Quanti turns your raw daily data into an intelligent strategy for where you are and where you want to go.
         </p>
         <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
           By pairing passive telemetry across your health (Apple Watch, Oura, WHOOP), schedule, and bank activity with a
-          15-second morning voice check, Quanti connects cold metrics with how you actually feel—delivering one clear
-          directive each day so you stay present, intentional, and in total alignment.
+          15-second morning voice check, Quanti writes one 1% move toward the destination you named—not a season, streak,
+          or dashboard.
         </p>
       </article>
     </section>

@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { logoFullXml, logoMarkXml } from './logoXml';
-import { glow } from '../constants/theme';
+import { colors, glow } from '../constants/theme';
 
 const FULL_RATIO = 265 / 780;
 const MARK_RATIO = 320 / 350;
@@ -31,6 +31,7 @@ export function LogoMark({ width = 88, glowing = false }) {
 
 const markGlow = {
   ...glow,
+  backgroundColor: colors.bg,
   shadowOpacity: 0.45,
   shadowRadius: 28,
 };

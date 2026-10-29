@@ -11,13 +11,13 @@ import {
   Sparkles,
 } from "lucide-react";
 
-const ARCS = [
-  { id: "founder-sprint", glyph: "⚡", label: "Founder Sprint" },
-  { id: "recovery-reset", glyph: "🛡️", label: "Recovery & Reset" },
-  { id: "spending-control", glyph: "💰", label: "Spending Control" },
+const DESTINATIONS = [
+  { id: "own-place", glyph: "🏠", label: "At home → own place" },
+  { id: "first-revenue", glyph: "⚡", label: "Building → first revenue" },
+  { id: "present-evenings", glyph: "🤍", label: "Stretched → present evenings" },
 ] as const;
 
-type ArcId = (typeof ARCS)[number]["id"] | "custom";
+type DestinationId = (typeof DESTINATIONS)[number]["id"] | "custom";
 
 const PASSIVE = [
   { icon: Activity, label: "Apple Watch, Oura, WHOOP, or iPhone Health" },
@@ -27,11 +27,12 @@ const PASSIVE = [
 ];
 
 export default function EngineVisual() {
-  const [arc, setArc] = useState<ArcId>("founder-sprint");
+  const [destination, setDestination] = useState<DestinationId>("own-place");
   const [customFocus, setCustomFocus] = useState("");
-  const selectedPreset = ARCS.find((item) => item.id === arc);
-  const customLabel = customFocus.trim() || "your custom focus";
-  const selectedLabel = arc === "custom" ? customLabel : (selectedPreset?.label ?? ARCS[0].label);
+  const selectedPreset = DESTINATIONS.find((item) => item.id === destination);
+  const customLabel = customFocus.trim() || "where you want to go";
+  const selectedLabel =
+    destination === "custom" ? customLabel : (selectedPreset?.label ?? DESTINATIONS[0].label);
 
   return (
     <section
@@ -43,10 +44,10 @@ export default function EngineVisual() {
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The Signal Engine</p>
           <h2 id="engine-visual-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Passive data + how you feel + your Arc = one rule.
+            Destination + overnight signals + one blank = today&apos;s 1%.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-            Telemetry tells us where you are. Your voice tells us how you feel. Your Arc aligns where you&apos;re going.
+            You name now and next. Telemetry only sizes how hard today can go. The 15-second check fills the one fact sensors cannot see.
           </p>
           <p className="mx-auto mt-4 max-w-2xl rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-3 text-sm leading-6 text-slate-300">
             <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
@@ -77,38 +78,39 @@ export default function EngineVisual() {
           </article>
 
           <article className="rounded-2xl border border-rose-400/25 bg-slate-950/80 p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-200">Input B · Emotional context</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-200">Input B · One blank</p>
             <h3 className="mt-2 text-lg font-semibold tracking-tight">
-              <span aria-hidden>🎙️</span> 15-Second Morning Voice Check
+              <span aria-hidden>🎙️</span> 15-Second Morning Check
             </h3>
             <div className="mt-4 flex items-start gap-3">
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rose-400/30 bg-rose-400/10 text-rose-200">
                 <Mic className="h-5 w-5" strokeWidth={1.75} />
               </span>
               <p className="text-sm leading-6 text-slate-300">
-                Captures qualitative mood, energy, and intent to give emotional context to your passive telemetry.
+                Answers the one fact sensors cannot see: why yesterday slipped, whether recovery is real, or the named
+                next object.
               </p>
             </div>
             <p className="mt-4 rounded-full border border-rose-300/25 bg-rose-400/10 px-3 py-2 text-xs font-medium leading-5 text-rose-100">
-              ✨ Quiet morning? Tap 3 emoji states or type a quick note instead.
+              Quiet morning? A short note works. This is weather, not a new destination.
             </p>
           </article>
 
           <article className="rounded-2xl border border-indigo-400/25 bg-slate-950/80 p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Input C · Your Arc</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Input C · Destination</p>
             <h3 className="mt-2 text-lg font-semibold tracking-tight">Where you&apos;re going</h3>
-            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Life season">
-              {ARCS.map((option) => {
-                const selectedArc = option.id === arc;
+            <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Example destinations">
+              {DESTINATIONS.map((option) => {
+                const selected = option.id === destination;
                 return (
                   <button
                     key={option.id}
                     type="button"
                     role="tab"
-                    aria-selected={selectedArc}
-                    onClick={() => setArc(option.id)}
+                    aria-selected={selected}
+                    onClick={() => setDestination(option.id)}
                     className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                      selectedArc
+                      selected
                         ? "border-indigo-300/50 bg-indigo-500/20 text-indigo-100"
                         : "border-slate-700 bg-slate-900/80 text-slate-300 hover:border-slate-500"
                     }`}
@@ -128,16 +130,16 @@ export default function EngineVisual() {
                 value={customFocus}
                 onChange={(event) => {
                   setCustomFocus(event.target.value);
-                  setArc("custom");
+                  setDestination("custom");
                 }}
-                onFocus={() => setArc("custom")}
-                placeholder='Type your custom focus... (e.g. "Marathon Prep", "Deep Work & Less Noise")'
+                onFocus={() => setDestination("custom")}
+                placeholder='Where you are → where you want to go (e.g. "at home → own place")'
                 className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
-                aria-label="Type your custom focus"
+                aria-label="Type where you are and where you want to go"
               />
             </label>
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              You name the season. Quanti aligns your daily rules to fit your exact goals.
+              You name where you are and where you want to go. Quanti writes a 1% daily rule on that vector.
             </p>
           </article>
         </div>
@@ -153,7 +155,7 @@ export default function EngineVisual() {
           </p>
           <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-50">A + B + C = one 1% rule</h3>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-emerald-50/90 sm:text-base">
-            One actionable morning rule, plus smart speed bumps when fatigue hits—aligned to {selectedLabel}.
+            One concrete 1% action for today, sized by last night, aimed at {selectedLabel}.
           </p>
         </article>
       </div>

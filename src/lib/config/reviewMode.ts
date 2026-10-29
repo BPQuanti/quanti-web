@@ -2,8 +2,19 @@ export const REVIEW_DEMO_EMAIL = 'demo@quanti.app';
 
 let reviewSession = false;
 
+function normalize(value?: string | null) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function extraList(envName: string) {
+  return String(process.env[envName] || '')
+    .split(',')
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 export function isReviewDemoEmail(email?: string | null) {
-  return String(email || '').trim().toLowerCase() === REVIEW_DEMO_EMAIL;
+  return normalize(email) === REVIEW_DEMO_EMAIL;
 }
 
 /** Call whenever the signed-in email changes, including sign-out. */
@@ -15,10 +26,30 @@ export function isReviewModeActive() {
   return reviewSession;
 }
 
+/**
+ * Mock telemetry / sandbox UI: you (lab emails or user ids) and local __DEV__.
+ * Apple Review uses demo@quanti.app for automatic mock health/bank — not this UI.
+ */
+export function isInternalToolsAccount(user?: { email?: string | null; id?: string | null } | null) {
+  if (typeof __DEV__ !== 'undefined' && __DEV__) {
+    return true;
+  }
+  const email = normalize(user?.email);
+  const id = String(user?.id || '').trim();
+  if (email && extraList('EXPO_PUBLIC_LAB_EMAILS').includes(email)) {
+    return true;
+  }
+  if (id && extraList('EXPO_PUBLIC_LAB_USER_IDS').includes(id)) {
+    return true;
+  }
+  return false;
+}
+
 export const REVIEW_MODE_HEALTH = {
-  steps: 2_800_000,
-  workouts: 142,
-  activeEnergyKcal: 18640,
+  steps: 12480,
+  workouts: 4,
+  activeEnergyKcal: 640,
+  sleepHours: 7.4,
   source: 'app-review-demo',
   badge: 'App Review Demo',
   status: 'Simulated HealthKit metrics for App Review',

@@ -84,8 +84,8 @@ export default function EditProfileModal({ visible, profile, onClose, onSave }) 
       .replace(/^@/, '')
       .trim();
     onSave?.({
-      name: String(draft.name || '').trim() || 'Brian Parr',
-      username: username || 'brian_quanti',
+      name: String(draft.name || '').trim(),
+      username,
       bio: String(draft.bio || '').trim(),
       avatarUri: draft.avatarUri || null,
       avatar_url: draft.avatarUri || null,

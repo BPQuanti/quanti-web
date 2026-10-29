@@ -8,15 +8,18 @@
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.quanti.app",
+      "bundleIdentifier": "com.quanti-app.quanti",
+      "buildNumber": "1",
       "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "NSHealthShareUsageDescription": "Quanti uses your Health data to passively calculate verified fitness percentiles and stat badges.",
-        "NSHealthUpdateUsageDescription": "Quanti requires access to calculate verified health recaps.",
-        "NSLocationWhenInUseUsageDescription": "Quanti uses your location to verify local fitness activities.",
+        "NSHealthShareUsageDescription": "Quanti analyzes your sleep and HRV deltas to generate personalized daily performance directives.",
+        "NSHealthUpdateUsageDescription": "Quanti reads health metrics to calculate recovery scores.",
+        "NSLocationWhenInUseUsageDescription": "Quanti categorizes your general environment to contextualize daily focus blocks.",
+        "NSMicrophoneUsageDescription": "Quanti uses your microphone to transcribe optional voice context for directive refinement.",
+        "NSSpeechRecognitionUsageDescription": "Quanti uses on-device speech recognition to transcribe your morning voice journal locally without cloud processing.",
         "NSPhotoLibraryUsageDescription": "Quanti uses your photo library so you can update your profile picture."
       },
       "entitlements": {
@@ -34,7 +37,13 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -53,26 +62,50 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Quanti uses your photo library so you can update your profile picture.",
-          "microphonePermission": false
+          "photosPermission": "Quanti uses your photo library so you can update your profile picture."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Quanti uses your location to verify local fitness activities."
+          "locationWhenInUsePermission": "Quanti categorizes your general environment to contextualize daily focus blocks."
         }
       ],
       [
-        "react-native-health",
+        "expo-audio",
         {
-          "healthSharePermission": "Quanti uses your Health data to passively calculate verified fitness percentiles and stat badges.",
-          "healthUpdatePermission": "Quanti requires access to calculate verified health recaps."
+          "microphonePermission": "Quanti uses your microphone to transcribe optional voice context for directive refinement.",
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Quanti analyzes your sleep and HRV deltas to generate personalized daily performance directives.",
+          "NSHealthUpdateUsageDescription": "Quanti reads health metrics to calculate recovery scores.",
+          "background": true
         }
       ],
       "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "enableRemoteNotifications": false,
+          "enableBackgroundRemoteNotifications": false
+        }
+      ],
       "expo-apple-authentication",
-      "expo-font"
-    ]
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-dev-client",
+      "./plugins/withMicrophoneUsage.js"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "682a9639-d05c-4ae0-a299-a9fea9705c5a"
+      }
+    }
   }
 }

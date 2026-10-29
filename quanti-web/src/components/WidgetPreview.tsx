@@ -1,36 +1,30 @@
 const SCENARIOS = [
   {
-    badge: "🌿 Physical Well-being",
+    badge: "At home → own place",
     badgeTone: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
     time: "7:15 AM",
-    telemetry: [" Watch: Low HRV (-16ms)"],
-    voice: "Stressed from work, but I desperately need to move to clear my head.",
-    directive:
-      "Wanting to clear your head makes total sense. Your body is carrying strain today, so swap heavy lifting for a 30-minute incline walk. Motion over intensity.",
-    alignment: "Validates mental stress and adapts physical load so movement heals rather than drains.",
+    telemetry: ["Destination: own place", " Watch: Low HRV", "Yesterday: shifted"],
+    voice: "The listing is still open. I froze.",
+    directive: "Send one listing follow-up in 20 minutes, then stop. Smaller because yesterday slipped.",
+    alignment: "Destination is the plot. Recovery only sized the window.",
   },
   {
-    badge: "💳 Capital & Intent",
+    badge: "Building → first revenue",
     badgeTone: "border-blue-500/20 bg-blue-500/10 text-blue-400",
     time: "8:00 AM",
-    telemetry: [
-      "💳 Bank: $180 retail/shopping spend at 11:30 PM",
-      "⌚ Apple Watch: High late-night stress spikes",
-    ],
-    voice: "Overwhelmed with work and felt like treating myself to feel better.",
-    directive:
-      "Wanting a reward after a tough day is completely valid. Tonight, we'll nudge you at 9 PM to close shopping apps early and protect your rest.",
-    alignment: "Meets emotional burnout with empathy while creating smart friction against impulse habits.",
+    telemetry: ["Destination: first revenue", "Sleep: 7.6h", "Yesterday: executed"],
+    voice: "I keep polishing instead of charging.",
+    directive: "Ship one paid-path screen before noon. That is the next 1% past yesterday’s win.",
+    alignment: "Voice named the object. Telemetry said the window could hold it.",
   },
   {
-    badge: "⚡ Focus & Boundaries",
+    badge: "Stretched → present evenings",
     badgeTone: "border-purple-500/20 bg-purple-500/10 text-purple-400",
     time: "8:30 AM",
-    telemetry: ["📅 Calendar: 6.5h meetings tomorrow"],
-    voice: "I feel like I'm drowning in meetings and making zero real progress.",
-    directive:
-      "Feeling overwhelmed by meetings is exhausting. Decline the 2 PM status sync today, block 2 hours for deep execution, and log off at 5 PM.",
-    alignment: "Validates cognitive overload and steps in to protect time before burnout takes over.",
+    telemetry: ["Destination: present evenings", "📅 Calendar stacked past 7 PM"],
+    voice: "Pickup chaos ate the evening.",
+    directive: "Hard stop at 6:30. One protected hour at home—today’s 1% toward present evenings.",
+    alignment: "The check filled why yesterday shifted. The rule is a clock, not a pep talk.",
   },
 ] as const;
 
@@ -45,11 +39,11 @@ export default function WidgetPreview() {
         <div className="mb-14 text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Real-World Adaptation</p>
           <h2 id="widget-preview-heading" className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-            Data tracks your patterns. Voice honors your reality.
+            Same destination. Different 1%. Because yesterday and last night changed.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-400">
-            Cold metrics don&apos;t tell the whole story. Quanti truly gets to know you—bridging your background signals
-            with your real-time voice context to shift and adapt to what you need to feel fully aligned.
+            Destination is who you are going toward. Overnight signals size the move. A 15-second check fills the one
+            blank. Yesterday’s mark writes tomorrow.
           </p>
         </div>
 
@@ -91,7 +85,7 @@ export default function WidgetPreview() {
               </div>
 
               <p className="border-t border-white/5 pt-3 text-[11px] leading-snug text-neutral-400/80">
-                <span className="mb-0.5 block font-medium text-neutral-500">ALIGNMENT ENGINE:</span>
+                <span className="mb-0.5 block font-medium text-neutral-500">DAILY SYNTHESIZER:</span>
                 {card.alignment}
               </p>
             </article>

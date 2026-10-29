@@ -1,10 +1,21 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform } from 'react-native';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
-import { isReviewDemoEmail, REVIEW_DEMO_EMAIL, syncReviewModeFromEmail } from '../src/lib/config/reviewMode';
+import { syncReviewModeFromEmail } from '../src/lib/config/reviewMode';
+import { isolateSession } from '../src/services/sessionIsolation';
 
 const AuthContext = createContext(null);
+
+function isExpoGo() {
+  const ownership = Constants.appOwnership;
+  return (
+    ownership === 'expo' ||
+    ownership === Constants.AppOwnership?.Expo ||
+    (Constants.executionEnvironment === ExecutionEnvironment.StoreClient && ownership === 'expo')
+  );
+}
 
 function configError() {
   return new Error(
@@ -18,21 +29,39 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isDevBypass, setIsDevBypass] = useState(false);
   const isDevBypassRef = useRef(false);
+  const clearExpoGoSession = useRef(isExpoGo());
+  const appliedUserId = useRef(undefined);
 
   useEffect(() => {
     let mounted = true;
 
-    const applySession = (nextSession) => {
+    const applySession = async (nextSession) => {
+      if (clearExpoGoSession.current) {
+        await isolateSession(null);
+        syncReviewModeFromEmail(null);
+        if (mounted) {
+          setSession(null);
+          setUser(null);
+        }
+        return;
+      }
       if (isDevBypassRef.current && !nextSession?.user) {
         return;
+      }
+      const nextId = nextSession?.user?.id ?? null;
+      if (appliedUserId.current !== nextId) {
+        await isolateSession(nextId);
+        appliedUserId.current = nextId;
       }
       if (nextSession?.user) {
         isDevBypassRef.current = false;
         setIsDevBypass(false);
       }
       syncReviewModeFromEmail(nextSession?.user?.email);
-      setSession(nextSession ?? null);
-      setUser(nextSession?.user ?? null);
+      if (mounted) {
+        setSession(nextSession ?? null);
+        setUser(nextSession?.user ?? null);
+      }
     };
 
     (async () => {
@@ -40,9 +69,13 @@ export function AuthProvider({ children }) {
         if (!isSupabaseConfigured) {
           return;
         }
+        if (clearExpoGoSession.current) {
+          await supabase.auth.signOut();
+          clearExpoGoSession.current = false;
+        }
         const { data } = await supabase.auth.getSession();
         if (mounted) {
-          applySession(data.session);
+          await applySession(data.session);
         }
       } catch (error) {
         console.log('Auth session restore failed', error);
@@ -53,11 +86,17 @@ export function AuthProvider({ children }) {
       }
     })();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      applySession(nextSession);
-      if (mounted) {
-        setLoading(false);
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      if (isExpoGo() && event === 'INITIAL_SESSION') {
+        return;
       }
+      applySession(nextSession)
+        .catch((error) => console.log('Auth session apply failed', error))
+        .finally(() => {
+          if (mounted) {
+            setLoading(false);
+          }
+        });
     });
 
     return () => {
@@ -66,36 +105,16 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const enterReviewDemo = useCallback(() => {
-    syncReviewModeFromEmail(REVIEW_DEMO_EMAIL);
-    isDevBypassRef.current = true;
-    setIsDevBypass(true);
-    setSession(null);
-    setUser({ id: 'review-demo', email: REVIEW_DEMO_EMAIL });
-    setLoading(false);
-    return {
-      data: { user: { id: 'review-demo', email: REVIEW_DEMO_EMAIL }, session: null },
-      error: null,
-    };
-  }, []);
-
   const signInWithEmail = useCallback(async (email, password) => {
-    if (isReviewDemoEmail(email) && String(password || '').length > 0) {
-      if (isSupabaseConfigured) {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (!error) {
-          syncReviewModeFromEmail(email);
-          return { data, error: null };
-        }
-      }
-      return enterReviewDemo();
-    }
     if (!isSupabaseConfigured) {
       return { data: null, error: configError() };
     }
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (!error) {
+      syncReviewModeFromEmail(email);
+    }
     return { data, error };
-  }, [enterReviewDemo]);
+  }, []);
 
   const signUpWithEmail = useCallback(async (email, password) => {
     if (!isSupabaseConfigured) {
@@ -134,6 +153,23 @@ export function AuthProvider({ children }) {
         provider: 'apple',
         token: identityToken,
       });
+      if (!error && data?.user?.id) {
+        await isolateSession(data.user.id);
+        const name = [credential.fullName?.givenName, credential.fullName?.familyName]
+          .filter(Boolean)
+          .join(' ')
+          .trim();
+        if (name) {
+          const { error: profileError } = await supabase.from('profiles').upsert({
+            id: data.user.id,
+            full_name: name,
+            updated_at: new Date().toISOString(),
+          });
+          if (profileError) {
+            console.warn('[Auth] Apple profile name upsert failed', profileError.message);
+          }
+        }
+      }
       return { data, error };
     } catch (error) {
       if (error?.code === 'ERR_REQUEST_CANCELED' || error?.code === 'ERR_CANCELED') {
@@ -143,18 +179,22 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const bypassAuthForTesting = useCallback(() => {
+  const continueAsGuest = useCallback(() => {
     isDevBypassRef.current = true;
     setIsDevBypass(true);
-    setUser({ id: 'dev-user-123', email: 'dev@quanti.app' });
+    syncReviewModeFromEmail(null);
+    isolateSession(null).catch(() => {});
+    appliedUserId.current = null;
     setSession(null);
-    setLoading(false);
+    setUser(null);
   }, []);
 
   const signOut = useCallback(async () => {
     isDevBypassRef.current = false;
     setIsDevBypass(false);
     syncReviewModeFromEmail(null);
+    await isolateSession(null);
+    appliedUserId.current = null;
     setUser(null);
     setSession(null);
     if (!isSupabaseConfigured) {
@@ -171,10 +211,10 @@ export function AuthProvider({ children }) {
       loading,
       isLoading: loading,
       isDevBypass,
-      bypassAuthForTesting,
       signInWithEmail,
       signUpWithEmail,
       signInWithApple,
+      continueAsGuest,
       signOut,
     }),
     [
@@ -182,10 +222,10 @@ export function AuthProvider({ children }) {
       session,
       loading,
       isDevBypass,
-      bypassAuthForTesting,
       signInWithEmail,
       signUpWithEmail,
       signInWithApple,
+      continueAsGuest,
       signOut,
     ]
   );

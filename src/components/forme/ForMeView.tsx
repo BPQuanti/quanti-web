@@ -11,31 +11,10 @@ const PERIODS: { id: Period; label: string }[] = [
 ];
 
 const RECAPS: Record<Period, string> = {
-  weekly: 'This week is one coffee and 5,900 steps away from two new badges.',
-  monthly: 'Three of four golf rounds are in. One more locks Golf Addict for the month.',
-  yearly: 'Your year already holds Golf, Amazon, Fitness, and DoorDash verified badges.',
+  weekly: 'No weekly recap yet. Verified activity fills this in.',
+  monthly: 'No monthly recap yet.',
+  yearly: 'No yearly recap yet.',
 };
-
-const TRACKERS = [
-  {
-    id: 'caffeine',
-    title: 'Top 1% Caffeine Fiend',
-    progress: 0.8,
-    detail: "You're at 4/5 coffees this week. Buy 1 more coffee to unlock!",
-  },
-  {
-    id: 'weekend',
-    title: 'Weekend Warrior',
-    progress: 0.8,
-    detail: '24,100 / 30,000 steps completed. 5,900 steps left!',
-  },
-  {
-    id: 'golf',
-    title: 'Golf Addict',
-    progress: 0.75,
-    detail: '3/4 rounds logged this month. 1 more round to secure!',
-  },
-];
 
 export default function ForMeView() {
   const [period, setPeriod] = useState<Period>('weekly');
@@ -62,24 +41,11 @@ export default function ForMeView() {
       </View>
 
       <Text style={styles.section}>Active badges</Text>
-      {TRACKERS.map((tracker) => (
-        <View key={tracker.id} style={styles.card}>
-          <View style={styles.cardHead}>
-            <Text style={styles.cardTitle}>{tracker.title}</Text>
-            <Text style={styles.percent}>{Math.round(tracker.progress * 100)}%</Text>
-          </View>
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${tracker.progress * 100}%` }]} />
-          </View>
-          <Text style={styles.detail}>{tracker.detail}</Text>
-        </View>
-      ))}
+      <Text style={styles.detail}>Badges show up here after verified activity is saved.</Text>
 
       <View style={styles.insight}>
         <Text style={styles.insightKicker}>AI SYNTHESIS</Text>
-        <Text style={styles.insightBody}>
-          Your highest spend days align with your lowest sleep nights this month.
-        </Text>
+        <Text style={styles.insightBody}>Sleep and spend correlations appear after both signals are synced.</Text>
         <Text style={styles.insightMeta}>HealthKit + Plaid</Text>
       </View>
     </View>

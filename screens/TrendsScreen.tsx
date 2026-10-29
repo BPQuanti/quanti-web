@@ -1,24 +1,25 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useCallback, useMemo, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '../context/AppContext';
 import { fonts } from '../constants/theme';
+import { useFocusHistory } from '../hooks/useFocusHistory';
+import { useDeviceHabits } from '../hooks/useDeviceHabits';
+import ActivePatternsCard, { type PatternInsight } from '../src/components/ActivePatternsCard';
+import DomainTelemetryDrawers, { type TelemetryDay } from '../src/components/DomainTelemetryDrawers';
+import FocusHistoryList from '../src/components/FocusHistoryList';
 
 type HealthPayload = {
   steps?: number | null;
-  activeCalories?: number | null;
   sleepHours?: number | null;
   sleep?: number | null;
-  workouts?: number | null;
-  status?: string | null;
 } | null;
 
 type PlaidPayload = {
   isConnected?: boolean;
-  bankName?: string | null;
   accountBalance?: number | null;
   spent?: number | null;
-  transactions?: { id?: string; name?: string; amount?: number; date?: string }[] | null;
 } | null;
 
 function finite(value: unknown) {
@@ -26,81 +27,185 @@ function finite(value: unknown) {
   return Number.isFinite(number) ? number : null;
 }
 
-function money(value: number | null) {
-  if (value == null) return '—';
-  const sign = value < 0 ? '-' : '';
-  return `${sign}$${Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+function money(value: number) {
+  return `$${Math.abs(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function buildPatterns(input: {
+  lateNight: number | null;
+  social: number | null;
+  spent: number | null;
+  connected: boolean;
+  steps: number | null;
+  sleep: number | null;
+  stability: number | null;
+  pickups: number | null;
+}): PatternInsight[] {
+  const patterns: PatternInsight[] = [];
+  const late = input.lateNight;
+  const social = input.social;
+  const lateHot = late != null && late >= 30;
+  const socialHot = social != null && social >= 30;
+  const spendHot = input.connected && input.spent != null && Math.abs(input.spent) >= 40;
+
+  if (lateHot || socialHot) {
+    const screenBits = [
+      late != null ? `${Math.round(late)} min of late-night screen` : null,
+      social != null ? `${Math.round(social)} min of social apps` : null,
+    ].filter((bit): bit is string => Boolean(bit));
+    const spendBit = spendHot && input.spent != null ? ` Spend ${money(input.spent)}.` : '';
+    patterns.push({
+      id: 'late-spend',
+      title: 'Late night and spend',
+      body: `${screenBits.join(' · ')}.${spendBit}`,
+      trajectory: late != null && late > 15
+        ? 'Trajectory: late-night screen above 15 minutes marks yesterday’s directive missed.'
+        : 'Trajectory: keep late-night screen at or under 15 minutes and yesterday’s directive can verify.',
+      impact: 'High friction',
+      tone: spendHot ? 'rose' : 'amber',
+    });
+  }
+
+  if (input.stability != null && input.stability >= 0.85 && input.pickups != null) {
+    const isolatedSpike = input.pickups >= 30;
+    patterns.push({
+      id: 'location-pickups',
+      title: 'Stillness and pickups',
+      body: `Stability ${input.stability.toFixed(2)} · ${Math.round(input.pickups).toLocaleString()} pickups.`,
+      trajectory: isolatedSpike
+        ? 'Trajectory: another isolated, high-pickup day keeps the digital-balance directive in the missed range.'
+        : 'Trajectory: holding pickups down while stationary keeps this loop quiet.',
+      impact: isolatedSpike ? 'High friction' : 'Stable',
+      tone: isolatedSpike ? 'amber' : 'indigo',
+    });
+  }
+
+  if (input.steps != null && input.sleep != null) {
+    const lowMove = input.steps < 5000;
+    const shortSleep = input.sleep < 6.5;
+    const friction = lowMove && shortSleep;
+    patterns.push({
+      id: 'steps-sleep',
+      title: 'Steps and sleep',
+      body: `${Math.round(input.steps).toLocaleString()} steps · ${input.sleep.toFixed(1)} hrs sleep.`,
+      trajectory: friction
+        ? 'Trajectory: another short-sleep day keeps the morning directive on recovery instead of output.'
+        : 'Trajectory: holding this pairing keeps the sleep directive in verification range.',
+      impact: friction ? 'High friction' : 'Stable',
+      tone: friction ? 'amber' : 'indigo',
+    });
+  }
+
+  if (!patterns.length) {
+    patterns.push({
+      id: 'waiting',
+      title: 'Waiting on two signals',
+      body: 'Sync sleep or screen time, or link a bank.',
+      trajectory: 'Trajectory: the first paired day replaces this card with a live pattern.',
+      impact: 'Waiting',
+      tone: 'indigo',
+    });
+  }
+
+  return patterns;
 }
 
 export default function TrendsScreen() {
-  const navigation = useNavigation() as { navigate: (name: 'ForMeLedger') => void };
-  const { healthData, plaidData } = useAppContext() as {
+  const { healthData, plaidData, connectPlaid, syncHealth } = useAppContext() as {
     healthData?: HealthPayload;
     plaidData?: PlaidPayload;
+    connectPlaid?: () => Promise<unknown> | void;
+    syncHealth?: () => Promise<unknown> | void;
   };
+  const { entries, stats, loading: historyLoading, error: historyError, refresh } = useFocusHistory();
+  const { week, today: habitToday, error: habitError, refetch: refetchHabits } = useDeviceHabits();
+  const [refreshing, setRefreshing] = useState(false);
+
   const health = healthData || null;
   const plaid = plaidData || null;
   const steps = finite(health?.steps);
   const sleep = finite(health?.sleepHours ?? health?.sleep);
   const spent = finite(plaid?.spent);
-  const transactions = Array.isArray(plaid?.transactions) ? plaid.transactions : [];
+  const balance = finite(plaid?.accountBalance);
+  const days: TelemetryDay[] = week.map((day) => ({
+    date: day.log_date,
+    screen: day.total_screen_minutes,
+    lateNight: day.late_night_screen_minutes,
+    pickups: day.phone_pickups,
+    daylight: day.daylight_minutes,
+    transit: day.transit_minutes,
+    headphones: day.headphone_minutes,
+    stability: day.location_stability_score,
+    lowBattery: day.low_battery_events,
+  }));
+  const socialToday = habitToday?.social_minutes ?? null;
+  const lateToday = habitToday?.late_night_screen_minutes ?? null;
 
-  const correlation =
-    sleep != null && sleep < 6
-      ? `${sleep.toFixed(1)} hrs of sleep lines up with a higher chance of impulse delivery spend.`
-      : spent != null && steps != null
-        ? `${Math.round(steps).toLocaleString()} steps against ${money(spent)} recent spend. Short movement days are the ones to watch.`
-        : 'Sleep is not synced yet, so this correlation is only using steps and spend.';
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([syncHealth?.(), refetchHabits(), refresh()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchHabits, refresh, syncHealth]);
+
+  const patterns = useMemo(
+    () =>
+      buildPatterns({
+        lateNight: lateToday,
+        social: socialToday,
+        stability: habitToday?.location_stability_score ?? null,
+        pickups: habitToday?.phone_pickups ?? null,
+        spent,
+        connected: Boolean(plaid?.isConnected),
+        steps,
+        sleep,
+      }),
+    [habitToday, lateToday, plaid?.isConnected, sleep, socialToday, spent, steps],
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={styles.kicker}>Trends</Text>
-        <Text style={styles.title}>Cross-domain</Text>
-        <Text style={styles.subtitle}>How health and spending move together.</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void onRefresh()} tintColor="#818CF8" />}
+      >
+        <Text style={styles.kicker}>Behavioral Radar</Text>
+        <Text style={styles.title}>Patterns</Text>
+        <Text style={styles.subtitle}>Screen time, sleep, and spend.</Text>
 
-        <View style={styles.hero}>
-          <Text style={styles.heroLabel}>Correlation</Text>
-          <Text style={styles.heroBody}>{correlation}</Text>
+        <View style={styles.sectionRow}>
+          <Ionicons name="flash" color="#818CF8" size={14} />
+          <Text style={styles.section}>Active patterns</Text>
         </View>
+        <ActivePatternsCard patterns={patterns} />
 
-        <View style={styles.row}>
-          <View style={styles.stat}>
-            <Text style={styles.statLabel}>Steps</Text>
-            <Text style={styles.statValue}>{steps == null ? '—' : Math.round(steps).toLocaleString()}</Text>
-          </View>
-          <View style={styles.stat}>
-            <Text style={styles.statLabel}>Sleep</Text>
-            <Text style={styles.statValue}>{sleep == null ? '—' : `${sleep.toFixed(1)}h`}</Text>
-          </View>
-          <View style={styles.stat}>
-            <Text style={styles.statLabel}>Spend</Text>
-            <Text style={styles.statValue}>{money(spent)}</Text>
-          </View>
+        <DomainTelemetryDrawers
+          days={days}
+          steps={steps}
+          sleepHours={sleep}
+          spent={spent}
+          balance={balance}
+          connected={Boolean(plaid?.isConnected)}
+          pluggedIn={habitToday?.plugged_in_timestamp}
+          unplugged={habitToday?.unplugged_timestamp}
+          onLinkBank={() => {
+            void connectPlaid?.();
+          }}
+        />
+        {habitError ? <Text style={styles.habitError}>{habitError}</Text> : null}
+
+        <View style={styles.log}>
+          <FocusHistoryList
+            entries={entries}
+            stats={stats}
+            loading={historyLoading}
+            error={historyError}
+            defaultOpen
+          />
         </View>
-
-        <Text style={styles.section}>Spend detail</Text>
-        {plaid?.isConnected && transactions.length ? (
-          transactions.slice(0, 8).map((row, index) => (
-            <View key={row.id || `${row.name}-${index}`} style={styles.tx}>
-              <View style={styles.txCopy}>
-                <Text style={styles.txName}>{row.name || 'Transaction'}</Text>
-                <Text style={styles.txMeta}>{row.date || plaid.bankName || 'Linked account'}</Text>
-              </View>
-              <Text style={styles.txAmount}>{typeof row.amount === 'number' ? money(row.amount) : '—'}</Text>
-            </View>
-          ))
-        ) : (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>
-              {plaid?.isConnected ? 'No transactions on this payload yet.' : 'Link a bank from Hub to open the spend dive.'}
-            </Text>
-          </View>
-        )}
-        {health?.status ? <Text style={styles.meta}>{health.status}</Text> : null}
-        <TouchableOpacity style={styles.ledger} onPress={() => navigation.navigate('ForMeLedger')}>
-          <Text style={styles.ledgerText}>Open the full ledger</Text>
-        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -108,55 +213,24 @@ export default function TrendsScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#020617' },
-  scroll: { padding: 20, paddingBottom: 36 },
-  kicker: { color: '#818CF8', fontFamily: fonts.semibold, fontSize: 12, letterSpacing: 1.4, textTransform: 'uppercase' },
+  scroll: { padding: 20, paddingBottom: 40 },
+  kicker: {
+    color: '#818CF8',
+    fontFamily: fonts.semibold,
+    fontSize: 12,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
   title: { color: '#F8FAFC', fontFamily: fonts.bold, fontSize: 28, marginTop: 6 },
-  subtitle: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 14, marginTop: 6, marginBottom: 16 },
-  hero: {
-    backgroundColor: '#0F172A',
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    borderRadius: 20,
-    padding: 16,
+  subtitle: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20, marginTop: 6, marginBottom: 18 },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 },
+  section: {
+    color: '#94A3B8',
+    fontFamily: fonts.semibold,
+    fontSize: 12,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
-  heroLabel: { color: '#A5B4FC', fontFamily: fonts.semibold, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase' },
-  heroBody: { color: '#F8FAFC', fontFamily: fonts.medium, fontSize: 16, lineHeight: 24, marginTop: 8 },
-  row: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  stat: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    borderRadius: 16,
-    padding: 12,
-  },
-  statLabel: { color: '#64748B', fontFamily: fonts.medium, fontSize: 12 },
-  statValue: { color: '#F8FAFC', fontFamily: fonts.bold, fontSize: 16, marginTop: 6 },
-  section: { color: '#94A3B8', fontFamily: fonts.semibold, fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 22, marginBottom: 10 },
-  tx: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#0F172A',
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    borderRadius: 14,
-    padding: 12,
-    marginBottom: 8,
-  },
-  txCopy: { flex: 1 },
-  txName: { color: '#F8FAFC', fontFamily: fonts.semibold, fontSize: 14 },
-  txMeta: { color: '#64748B', fontFamily: fonts.regular, fontSize: 12, marginTop: 2 },
-  txAmount: { color: '#C7D2FE', fontFamily: fonts.semibold, fontSize: 14 },
-  empty: {
-    backgroundColor: '#0F172A',
-    borderWidth: 1,
-    borderColor: '#1E293B',
-    borderRadius: 14,
-    padding: 14,
-  },
-  emptyText: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 14, lineHeight: 20 },
-  meta: { color: '#64748B', fontFamily: fonts.regular, fontSize: 12, marginTop: 12 },
-  ledger: { marginTop: 16, alignSelf: 'flex-start' },
-  ledgerText: { color: '#818CF8', fontFamily: fonts.semibold, fontSize: 14 },
+  log: { marginTop: 12 },
+  habitError: { color: '#FB7185', fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, marginTop: 8 },
 });

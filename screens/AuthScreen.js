@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -10,23 +12,38 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Constants from 'expo-constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { LogoFull, LogoMark } from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 
-import { colors, fonts, glow, radii } from './theme';
+import { fonts } from './theme';
 
-const BG = colors.bg;
-const SURFACE = colors.card;
-const WHITE = colors.text;
-const MUTED = colors.muted;
-const EMERALD = colors.accent;
+async function openLegal(url) {
+  try {
+    const supported = await Linking.canOpenURL(url);
+    if (!supported) {
+      Alert.alert('Link unavailable', 'Open quanti-app.com in a browser to read this document.');
+      return;
+    }
+    await Linking.openURL(url);
+  } catch {
+    Alert.alert('Link unavailable', 'Open quanti-app.com in a browser to read this document.');
+  }
+}
+
+const SPACE = '#050508';
+const SURFACE = '#101014';
+const LINE = 'rgba(30, 30, 36, 0.5)';
+const INK = '#F4F4F5';
+const MUTED = '#71717A';
+const PLACEHOLDER = '#52525B';
+const CYAN = '#00F0FF';
 const ERROR_BG = '#3F1D1D';
 const ERROR_TEXT = '#FECACA';
 
 export default function AuthScreen() {
-  const { signInWithEmail, signUpWithEmail, signInWithApple, bypassAuthForTesting } = useAuth();
+  const { signInWithEmail, signUpWithEmail, signInWithApple, continueAsGuest } = useAuth();
   const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,6 +51,8 @@ export default function AuthScreen() {
   const [isError, setIsError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
+  const version = Constants.expoConfig?.version ?? '1.0.0';
+  const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
 
   useEffect(() => {
     let mounted = true;
@@ -109,12 +128,12 @@ export default function AuthScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-          <LogoMark width={72} glowing />
-          <View style={styles.wordmark}>
-            <LogoFull width={180} />
+          <Text style={styles.wordmark}>QUANTI</Text>
+          <Text style={styles.subtitle}>Passive Telemetry Decision Engine</Text>
+          <View style={styles.accentTrack}>
+            <View style={styles.accentCyan} />
+            <View style={styles.accentEmerald} />
           </View>
-          <Text style={styles.brand}>The verified social ledger</Text>
-          <Text style={styles.title}>{mode === 'signup' ? 'Create Account' : 'Sign In'}</Text>
 
           {status ? (
             <View style={[styles.banner, isError ? styles.bannerError : styles.bannerInfo]}>
@@ -127,17 +146,23 @@ export default function AuthScreen() {
           {appleAvailable ? (
             <AppleAuthentication.AppleAuthenticationButton
               buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
-              cornerRadius={14}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE_OUTLINE}
+              cornerRadius={12}
               style={styles.appleButton}
               onPress={apple}
             />
           ) : (
-            <Text style={styles.hint}>
-              Sign in with Apple isn’t available on this simulator or device. Continue with email.
-            </Text>
+            <TouchableOpacity style={styles.appleFallback} onPress={apple} disabled={busy}>
+              <Text style={styles.appleFallbackText}>Sign in with Apple</Text>
+            </TouchableOpacity>
           )}
 
+          <TouchableOpacity style={styles.guest} onPress={continueAsGuest} disabled={busy}>
+            <Text style={styles.guestText}>Continue as Guest / Sandbox Mode</Text>
+          </TouchableOpacity>
+          <Text style={styles.guestNote}>⚡ Instant access • 100% On-Device Processing</Text>
+
+          <View style={styles.form}>
           <View style={styles.dividerRow}>
             <View style={styles.line} />
             <Text style={styles.or}>or</Text>
@@ -170,7 +195,7 @@ export default function AuthScreen() {
             keyboardType="email-address"
             textContentType="emailAddress"
             placeholder="Email"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={PLACEHOLDER}
             value={email}
             onChangeText={setEmail}
           />
@@ -179,22 +204,31 @@ export default function AuthScreen() {
             secureTextEntry
             textContentType={mode === 'signup' ? 'newPassword' : 'password'}
             placeholder="Password"
-            placeholderTextColor="#6B7280"
+            placeholderTextColor={PLACEHOLDER}
             value={password}
             onChangeText={setPassword}
           />
 
           <TouchableOpacity style={styles.primary} onPress={submit} disabled={busy}>
             {busy ? (
-              <ActivityIndicator color={colors.text} />
+              <ActivityIndicator color={INK} />
             ) : (
-              <Text style={styles.primaryText}>Continue with Email</Text>
+              <Text style={styles.primaryText}>{mode === 'signup' ? 'Create Account' : 'Continue with Email'}</Text>
             )}
           </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity style={styles.devBypass} onPress={bypassAuthForTesting}>
-            <Text style={styles.devBypassText}>⚡ Skip Login (Dev Mode)</Text>
-          </TouchableOpacity>
+          <View style={styles.spacer} />
+          <View style={styles.legalRow}>
+            <TouchableOpacity onPress={() => openLegal('https://quanti-app.com/privacy')}>
+              <Text style={styles.legalLink}>Privacy Policy</Text>
+            </TouchableOpacity>
+            <Text style={styles.legalDot}>·</Text>
+            <TouchableOpacity onPress={() => openLegal('https://quanti-app.com/terms')}>
+              <Text style={styles.legalLink}>Terms of Service</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.version}>Quanti v{version} (Build {build}) • On-Device Sandbox</Text>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -202,83 +236,119 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
-  flex: { flex: 1, backgroundColor: BG },
-  body: { padding: 24, paddingTop: 36, flexGrow: 1 },
-  wordmark: { marginTop: 18 },
-  brand: {
+  safe: { flex: 1, backgroundColor: SPACE },
+  flex: { flex: 1, backgroundColor: SPACE },
+  body: { padding: 24, paddingTop: 48, paddingBottom: 20, flexGrow: 1 },
+  wordmark: { color: INK, fontFamily: fonts.bold, fontSize: 28, letterSpacing: 1.5 },
+  subtitle: {
     color: MUTED,
-    fontFamily: fonts.regular,
-    fontSize: 15,
-    marginTop: 10,
+    fontFamily: fonts.medium,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginTop: 8,
+  },
+  accentTrack: {
+    flexDirection: 'row',
+    width: 72,
+    height: 2,
+    marginTop: 16,
     marginBottom: 28,
+    borderRadius: 2,
+    overflow: 'hidden',
+    backgroundColor: CYAN,
   },
-  title: {
-    color: WHITE,
-    fontFamily: fonts.bold,
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
+  accentCyan: { flex: 1, backgroundColor: CYAN },
+  accentEmerald: { flex: 1, backgroundColor: '#10B981' },
   banner: {
     borderRadius: 12,
+    borderWidth: 1,
+    borderColor: LINE,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginBottom: 16,
   },
   bannerError: { backgroundColor: ERROR_BG },
-  bannerInfo: { backgroundColor: colors.input },
-  bannerText: { fontSize: 13, lineHeight: 18 },
+  bannerInfo: { backgroundColor: SURFACE },
+  bannerText: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 18 },
   bannerErrorText: { color: ERROR_TEXT },
-  bannerInfoText: { color: EMERALD },
+  bannerInfoText: { color: CYAN },
   appleButton: { width: '100%', height: 48 },
-  hint: { color: MUTED, fontSize: 13, lineHeight: 19, marginBottom: 4 },
-  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 22 },
-  line: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
-  or: { color: MUTED, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  toggleRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  appleFallback: {
+    width: '100%',
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: SURFACE,
+    borderWidth: 1,
+    borderColor: INK,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  appleFallbackText: { color: INK, fontFamily: fonts.semibold, fontSize: 16, letterSpacing: 0.3 },
+  guest: {
+    marginTop: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 240, 255, 0.3)',
+    backgroundColor: SURFACE,
+    paddingVertical: 14,
+    alignItems: 'center',
+    shadowColor: CYAN,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  guestText: { color: CYAN, fontFamily: fonts.semibold, fontSize: 15, letterSpacing: 0.3 },
+  guestNote: { color: MUTED, fontFamily: fonts.medium, fontSize: 12, letterSpacing: 0.3, textAlign: 'center', marginTop: 8 },
+  form: {
+    marginTop: 22,
+    backgroundColor: SURFACE,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: LINE,
+    padding: 14,
+  },
+  spacer: { flex: 1, minHeight: 28 },
+  legalRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
+  legalLink: { color: MUTED, fontFamily: fonts.medium, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase' },
+  legalDot: { color: MUTED, fontSize: 11 },
+  version: { color: MUTED, fontFamily: fonts.medium, fontSize: 12, letterSpacing: 0.3, textAlign: 'center', marginTop: 12 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
+  line: { flex: 1, height: 1, backgroundColor: LINE },
+  or: { color: MUTED, fontFamily: fonts.medium, fontSize: 11, letterSpacing: 1.2, textTransform: 'uppercase' },
+  toggleRow: { flexDirection: 'row', gap: 8, marginBottom: 14 },
   toggleChip: {
     flex: 1,
-    backgroundColor: SURFACE,
+    backgroundColor: SPACE,
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: LINE,
   },
-  toggleChipActive: {
-    borderColor: EMERALD,
-  },
-  toggleChipText: { color: MUTED, fontWeight: '600' },
-  toggleChipTextActive: { color: WHITE },
+  toggleChipActive: { borderColor: 'rgba(0, 240, 255, 0.45)' },
+  toggleChipText: { color: MUTED, fontFamily: fonts.semibold, fontSize: 13 },
+  toggleChipTextActive: { color: INK },
   input: {
-    backgroundColor: colors.input,
-    borderColor: colors.border,
+    backgroundColor: SURFACE,
+    borderColor: LINE,
     borderWidth: 1,
     borderRadius: 12,
-    color: WHITE,
+    color: INK,
+    fontFamily: fonts.regular,
+    fontSize: 16,
     paddingHorizontal: 14,
     paddingVertical: 13,
     marginBottom: 12,
-    fontSize: 16,
   },
   primary: {
-    backgroundColor: colors.accent,
-    borderRadius: radii.md,
+    backgroundColor: SPACE,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: LINE,
     paddingVertical: 14,
     alignItems: 'center',
-    marginTop: 4,
-    ...glow,
+    marginTop: 2,
   },
-  primaryText: { color: colors.text, fontFamily: fonts.bold, fontWeight: '700', fontSize: 16 },
-  devBypass: {
-    marginTop: 28,
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  devBypassText: {
-    color: colors.inactive,
-    fontSize: 13,
-    fontWeight: '600',
-  },
+  primaryText: { color: INK, fontFamily: fonts.semibold, fontSize: 16, letterSpacing: 0.3 },
 });

@@ -190,7 +190,7 @@ export default function ProfileScreen() {
                     {plaidData.bankName} · ${Number(plaidData.accountBalance).toLocaleString()}
                   </Text>
                 ) : (
-                  <Text style={styles.muted}>Sandbox connection available in Expo Go.</Text>
+                  <Text style={styles.muted}>Link a bank from here when you are ready. Reviewers can turn on demo data in Hub instead.</Text>
                 )}
                 <TouchableOpacity style={styles.primaryBtn} onPress={connectPlaid}>
                   <Text style={styles.primaryBtnText}>
@@ -307,6 +307,13 @@ export default function ProfileScreen() {
           setSettingsOpen(true);
         }}
         onSelectTier={(tierId) => {
+          if (tierId !== 'free') {
+            Alert.alert(
+              'Subscriptions open in the App Store',
+              'Paid plans are not available in this build. Reviewers can use the free tier and the demo data switch in Hub.',
+            );
+            return;
+          }
           setTier(tierId);
           setPaywallOpen(false);
           setSettingsOpen(true);

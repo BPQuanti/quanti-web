@@ -19,6 +19,7 @@ import { fonts } from '../../constants/theme';
 import { useAppContext } from '../../context/AppContext';
 import { type DuelDuration, useDuels } from '../../hooks/useDuels';
 import { type Friend, useFriends } from '../../hooks/useFriends';
+import { isSampleId } from '../lib/reviewSocial';
 
 type Mode = 'friend' | 'duel';
 type Busy = 'request' | 'share' | 'duel' | null;
@@ -27,6 +28,12 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onChanged?: () => void;
+  extraFriends?: Friend[];
+  onLocalChallenge?: (opponentId: string, duration: DuelDuration) => void;
+  searching?: boolean;
+  searchNote?: string | null;
+  onQueueStranger?: () => void;
+  onCancelQueue?: () => void;
 };
 
 const DURATIONS: DuelDuration[] = [3, 7, 14];
@@ -35,7 +42,17 @@ function messageFrom(error: unknown) {
   return error instanceof Error && error.message ? error.message : 'Something went wrong.';
 }
 
-export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
+export default function AddSocialModal({
+  visible,
+  onClose,
+  onChanged,
+  extraFriends = [],
+  onLocalChallenge,
+  searching = false,
+  searchNote = null,
+  onQueueStranger,
+  onCancelQueue,
+}: Props) {
   const insets = useSafeAreaInsets();
   const { userProfile } = useAppContext() as {
     userProfile?: { username?: string | null } | null;
@@ -50,6 +67,7 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
 
   const handle = String(userProfile?.username || 'you').replace(/^@+/, '');
+  const friendChoices = [...extraFriends, ...friends.filter((friend) => !extraFriends.some((extra) => extra.userId === friend.userId))];
 
   useEffect(() => {
     if (!visible) {
@@ -95,14 +113,18 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
 
   async function onIssueChallenge() {
     if (!opponentId) {
-      Alert.alert('Choose a friend', 'Select someone from your accepted friends list.');
+      Alert.alert('Choose a friend', 'Or queue for a stranger above.');
       return;
     }
     setBusy('duel');
     setNotice(null);
     try {
-      await createDuel(opponentId, duration);
-      setNotice(`Challenge issued for ${duration} days.`);
+      if (isSampleId(opponentId)) {
+        onLocalChallenge?.(opponentId, duration);
+      } else {
+        await createDuel(opponentId, duration);
+      }
+      setNotice(`Challenge sent for ${duration} days. It stays pending until they accept.`);
       onChanged?.();
     } catch (error) {
       Alert.alert('Could not issue challenge', messageFrom(error));
@@ -201,21 +223,43 @@ export default function AddSocialModal({ visible, onClose, onChanged }: Props) {
               </View>
             ) : (
               <View>
+                <Pressable
+                  style={styles.stranger}
+                  onPress={() => (searching ? onCancelQueue?.() : onQueueStranger?.())}
+                >
+                  <View style={styles.strangerCopy}>
+                    <Text style={styles.strangerTitle}>Duel a stranger</Text>
+                    <Text style={styles.strangerMeta}>
+                      {searching
+                        ? 'Looking for the closest queue.'
+                        : 'Pays double. Matches whoever queued closest to you.'}
+                    </Text>
+                    {searchNote && !searching ? <Text style={styles.strangerMeta}>{searchNote}</Text> : null}
+                  </View>
+                  <Text style={styles.strangerAction}>{searching ? 'Cancel' : 'Duel'}</Text>
+                </Pressable>
                 {friendsLoading ? (
                   <ActivityIndicator color="#818CF8" style={styles.listLoading} />
                 ) : (
                   <FlatList
-                    data={friends}
-                    keyExtractor={(item) => item.userId}
+                    data={[{ key: 'choices' }]}
+                    keyExtractor={(item) => item.key}
                     style={styles.list}
                     keyboardShouldPersistTaps="handled"
-                    ListEmptyComponent={<Text style={styles.empty}>No accepted friends yet.</Text>}
-                    renderItem={({ item }) => (
-                      <FriendChoice
-                        friend={item}
-                        selected={item.userId === opponentId}
-                        onPress={() => setOpponentId(item.userId)}
-                      />
+                    renderItem={() => (
+                      <View>
+                        <Text style={styles.group}>Friends</Text>
+                        <Text style={styles.friendHint}>Duel a friend so someone you know can hold you to the goal on your focus card.</Text>
+                        {friendChoices.length === 0 ? <Text style={styles.empty}>No accepted friends yet.</Text> : null}
+                        {friendChoices.map((friend) => (
+                          <FriendChoice
+                            key={friend.userId}
+                            friend={friend}
+                            selected={friend.userId === opponentId}
+                            onPress={() => setOpponentId(friend.userId)}
+                          />
+                        ))}
+                      </View>
                     )}
                   />
                 )}
@@ -370,7 +414,17 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.7 },
   list: { maxHeight: 240, marginBottom: 12 },
   listLoading: { marginVertical: 24 },
-  empty: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 14, paddingVertical: 12 },
+  empty: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 14, paddingVertical: 8 },
+  friendHint: { color: '#CBD5E1', fontFamily: fonts.regular, fontSize: 13, lineHeight: 18, marginBottom: 8 },
+  group: {
+    color: '#94A3B8',
+    fontFamily: fonts.semibold,
+    fontSize: 11,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+    marginTop: 4,
+  },
   friend: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -410,4 +464,19 @@ const styles = StyleSheet.create({
     minHeight: 48,
   },
   challengeText: { color: '#FFF1F2', fontFamily: fonts.bold, fontSize: 15 },
+  stranger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: '#818CF8',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 12,
+  },
+  strangerCopy: { flex: 1 },
+  strangerTitle: { color: '#F8FAFC', fontFamily: fonts.semibold, fontSize: 15 },
+  strangerMeta: { color: '#94A3B8', fontFamily: fonts.regular, fontSize: 12, lineHeight: 16, marginTop: 2 },
+  strangerAction: { color: '#E0E7FF', fontFamily: fonts.bold, fontSize: 13 },
 });

@@ -8,8 +8,12 @@ const QUESTIONS = [
     a: "The 15-second voice check is processed on your phone. Voice never leaves the device. It is not used to train models in a cloud you don't control.",
   },
   {
+    q: "Where does the daily directive come from?",
+    a: "You name where you are and where you want to go. Overnight telemetry only sizes how hard today can go. A 15-second check fills one blank. Yesterday’s mark (executed, partial, or shifted) changes tomorrow’s 1%. The card is that move—not a season or streak.",
+  },
+  {
     q: "How does Quanti synthesize my voice and biometrics?",
-    a: "Quanti uses local, on-device AI models to parse your morning voice note and correlate it with your background signals (like Apple Watch data or calendar density). Because processing happens directly on your phone, your personal thoughts and health metrics never leave your device or get trained on external servers.",
+    a: "The synthesizer compresses destination, sleep/HRV, yesterday’s mark, and the morning check into one concrete action. Raw health and bank details stay summarized. Nothing is sold. The model does not get a new life story from you each morning.",
   },
   {
     q: "What if I can't speak out loud every morning?",

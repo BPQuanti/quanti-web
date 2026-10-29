@@ -10,7 +10,7 @@ export async function getCurrentLocation() {
         longitude: null,
         city: null,
         isPermissionGranted: false,
-        error: 'Location permission was denied. Enable it in system settings to verify local fitness activities.',
+        error: 'Location permission was denied. The daily rule still works from schedule and check-in context.',
       };
     }
 

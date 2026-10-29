@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import IPhoneFocusFrame, { ARC_OPTIONS, type FocusArcId } from "@/components/IPhoneFocusFrame";
+import IPhoneFocusFrame, { DESTINATION_OPTIONS, type DestinationId } from "@/components/IPhoneFocusFrame";
 
 export default function FocusDemoSection() {
-  const [arc, setArc] = useState<FocusArcId>("founder-sprint");
+  const [destination, setDestination] = useState<DestinationId>("own-place");
 
   return (
     <section
@@ -18,22 +18,22 @@ export default function FocusDemoSection() {
         <div className="max-w-xl text-left">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Live Engine Preview</p>
           <h2 id="focus-demo-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Name the season. Watch the 1% daily rule move.
+            Name where you are going. Watch the 1% daily rule move.
           </h2>
           <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
-            Example seasons you define—Founder Sprint, Creative Flow, Parenting Presence. The morning rule and gentle
-            speed bumps reorient around the chapter you&apos;re in.
+            Destination is identity. Telemetry only sizes the move. A 15-second check fills the one blank sensors cannot
+            see.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Arc selector">
-            {ARC_OPTIONS.map((option) => {
-              const active = option.id === arc;
+          <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Example destinations">
+            {DESTINATION_OPTIONS.map((option) => {
+              const active = option.id === destination;
               return (
                 <button
                   key={option.id}
                   type="button"
                   role="tab"
                   aria-selected={active}
-                  onClick={() => setArc(option.id)}
+                  onClick={() => setDestination(option.id)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                     active
                       ? "border-indigo-300/50 bg-indigo-500/20 text-indigo-100 shadow-[0_0_18px_rgba(99,102,241,0.28)]"
@@ -47,7 +47,7 @@ export default function FocusDemoSection() {
             })}
           </div>
         </div>
-        <IPhoneFocusFrame arc={arc} onArcChange={setArc} />
+        <IPhoneFocusFrame destination={destination} onDestinationChange={setDestination} />
       </div>
     </section>
   );

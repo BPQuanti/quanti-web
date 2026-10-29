@@ -16,11 +16,9 @@ export default function FooterCta() {
           Built to stand in your corner.
         </h2>
         <p className="mx-auto mt-5 text-lg leading-relaxed text-slate-400">
-          Most tools judge you by raw numbers—how many steps you missed, how much you spent, or how long you scrolled.
-          Quanti is different. It learns the rhythm of your real life, honors your energy, and speaks to you with
-          empathy when you&apos;re exhausted and momentum when you&apos;re ready. No cold graphs. No guilt. Just a
-          trusted companion that knows you, respects your season, and keeps you effortlessly aligned with the path you
-          want to walk.
+          Most tools judge you by raw numbers. Quanti asks where you are and where you want to go, then writes one 1%
+          move for today. Overnight signals only size the window. A 15-second check fills the blank. Yesterday&apos;s
+          mark writes tomorrow. No season badge. No guilt dashboard.
         </p>
 
         <div id="waitlist-footer" className="mx-auto mt-8 max-w-xl scroll-mt-24 text-left">

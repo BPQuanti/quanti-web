@@ -14,18 +14,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quanti | The Operating System That Truly Sees You",
+  title: "Quanti | Name now. Move 1% toward next.",
   description:
-    "Stop letting fragmented data and burnout run your life. Quanti connects your biometrics, schedule, spending, and voice checks to give you one empathetic, actionable rule each morning.",
+    "Say where you are and where you want to go. Quanti turns overnight signals and a 15-second check into one 1% move for today.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
     apple: "/logo-mark.svg",
   },
   openGraph: {
-    title: "Quanti | The Operating System That Truly Sees You",
+    title: "Quanti | Name now. Move 1% toward next.",
     description:
-      "Stop letting fragmented data and burnout run your life. Quanti connects your biometrics, schedule, spending, and voice checks to give you one empathetic, actionable rule each morning.",
+      "Say where you are and where you want to go. Quanti turns overnight signals and a 15-second check into one 1% move for today.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Quanti | The Operating System That Truly Sees You",
+    title: "Quanti | Name now. Move 1% toward next.",
     description:
-      "Stop letting fragmented data and burnout run your life. Quanti connects your biometrics, schedule, spending, and voice checks to give you one empathetic, actionable rule each morning.",
+      "Say where you are and where you want to go. Quanti turns overnight signals and a 15-second check into one 1% move for today.",
     images: ["https://quanti-app.com/og-image.png"],
   },
   other: {

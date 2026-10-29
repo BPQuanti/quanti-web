@@ -1,20 +1,32 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { fonts } from '../constants/theme';
+import CommonQuestions from '../src/components/CommonQuestions';
+import DeleteAccountModal from '../src/features/settings/DeleteAccountModal';
 
 type HubNav = {
-  navigate: (name: 'Profile' | 'QuantiAI' | 'ForYou') => void;
+  navigate: (name: 'Privacy' | 'Terms') => void;
 };
 
 export default function HubScreen() {
   const navigation = useNavigation() as HubNav;
-  const { healthData, plaidData, connectPlaid, syncHealth } = useAppContext() as {
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const { session, signOut } = useAuth() as {
+    session?: { access_token?: string } | null;
+    signOut?: () => Promise<unknown>;
+  };
+  const { healthData, plaidData, connectPlaid, syncHealth, resetAppData, reviewDemoEnabled, setReviewDemo } = useAppContext() as {
     healthData?: { status?: string | null; isMock?: boolean; badge?: string | null } | null;
     plaidData?: { isConnected?: boolean; bankName?: string | null; status?: string | null } | null;
     connectPlaid?: () => Promise<unknown> | void;
     syncHealth?: () => Promise<unknown> | void;
+    resetAppData?: () => Promise<unknown>;
+    reviewDemoEnabled?: boolean;
+    setReviewDemo?: (enabled: boolean) => void;
   };
   const health = healthData || null;
   const plaid = plaidData || null;
@@ -24,7 +36,22 @@ export default function HubScreen() {
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Text style={styles.kicker}>Hub</Text>
         <Text style={styles.title}>Integrations</Text>
-        <Text style={styles.subtitle}>Bank, health, and the rest of the account.</Text>
+        <Text style={styles.subtitle}>How it works, then bank and health.</Text>
+        <CommonQuestions />
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Review demo data</Text>
+          <Text style={styles.meta}>Sample numbers. Not a live login.</Text>
+          <View style={styles.toggleRow}>
+            <Text style={styles.status}>{reviewDemoEnabled ? 'Demo data on' : 'Demo data off'}</Text>
+            <Switch
+              value={Boolean(reviewDemoEnabled)}
+              onValueChange={(value) => setReviewDemo?.(value)}
+              trackColor={{ false: '#1E293B', true: '#4F46E5' }}
+              thumbColor={reviewDemoEnabled ? '#E0E7FF' : '#94A3B8'}
+            />
+          </View>
+        </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Plaid</Text>
@@ -44,20 +71,47 @@ export default function HubScreen() {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.section}>App</Text>
-        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.linkText}>Account & privacy</Text>
+        <Text style={styles.section}>Legal & Privacy</Text>
+        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Privacy')}>
+          <Text style={styles.linkText}>Privacy Policy</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('QuantiAI')}>
-          <Text style={styles.linkText}>Quanti AI</Text>
+        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('Terms')}>
+          <Text style={styles.linkText}>Terms of Service</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.linkRow} onPress={() => navigation.navigate('ForYou')}>
-          <Text style={styles.linkText}>Shared ledger</Text>
+        <TouchableOpacity style={styles.linkRow} onPress={() => setDeleteOpen(true)}>
+          <Text style={styles.deleteText}>Account Data Deletion</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.linkRow}
+          onPress={() => {
+            Alert.alert('Sign out', 'You will need to sign in again.', [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Sign out', style: 'destructive', onPress: () => { void signOut?.(); } },
+            ]);
+          }}
+        >
+          <Text style={styles.linkText}>Sign out</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
       </ScrollView>
+      <DeleteAccountModal
+        visible={deleteOpen}
+        accessToken={session?.access_token}
+        onClose={() => setDeleteOpen(false)}
+        onDeleted={async (result) => {
+          setDeleteOpen(false);
+          await resetAppData?.();
+          await signOut?.();
+          if (result?.success) {
+            Alert.alert('Account deleted', result.message || 'Your Quanti profile was removed.');
+            return;
+          }
+          Alert.alert('On-device data cleared', result?.message || 'The cloud account was not deleted.');
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -78,7 +132,8 @@ const styles = StyleSheet.create({
   },
   cardTitle: { color: '#F8FAFC', fontFamily: fonts.semibold, fontSize: 16 },
   status: { color: '#E2E8F0', fontFamily: fonts.medium, fontSize: 15, marginTop: 8 },
-  meta: { color: '#64748B', fontFamily: fonts.regular, fontSize: 13, marginTop: 4 },
+  meta: { color: '#64748B', fontFamily: fonts.regular, fontSize: 13, marginTop: 4, lineHeight: 18 },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12 },
   button: {
     alignSelf: 'flex-start',
     marginTop: 12,
@@ -102,5 +157,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   linkText: { color: '#F8FAFC', fontFamily: fonts.semibold, fontSize: 15 },
+  deleteText: { color: '#FB7185', fontFamily: fonts.semibold, fontSize: 15 },
   chevron: { color: '#64748B', fontSize: 22 },
 });

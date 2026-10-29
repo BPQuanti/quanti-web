@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { fonts } from '../../../constants/theme';
-import type { HabitStreak, HealthSnapshot, WealthSnapshot } from './types';
+import type { DeviceHabitSnapshot, HabitStreak, HealthSnapshot, WealthSnapshot } from './types';
 
 type Props = {
   wealth: WealthSnapshot;
   health: HealthSnapshot;
+  device: DeviceHabitSnapshot;
   habits: HabitStreak[];
   onLinkBank?: () => void;
 };
@@ -49,25 +50,48 @@ function Drawer({
   );
 }
 
-export default function MetricDrawers({ wealth, health, habits, onLinkBank }: Props) {
-  const [open, setOpen] = useState<'wealth' | 'health' | 'habits' | null>(null);
-  const toggle = (key: 'wealth' | 'health' | 'habits') => {
+function minutes(value: number | null) {
+  if (value == null || !Number.isFinite(value)) return null;
+  return `${Math.round(value).toLocaleString()} min`;
+}
+
+export default function MetricDrawers({ wealth, health, device, habits, onLinkBank }: Props) {
+  const [open, setOpen] = useState<'health' | 'wealth' | 'digital' | null>('health');
+  const toggle = (key: 'health' | 'wealth' | 'digital') => {
     setOpen((current) => (current === key ? null : key));
   };
 
-  const wealthSummary = wealth.connected
-    ? `${money(wealth.balance)} balance · ${money(wealth.spent)} spend`
-    : 'Bank not linked';
   const sleepLabel = health.sleepHours == null ? 'Sleep not synced' : `${health.sleepHours.toFixed(1)} hrs sleep`;
-  const healthSummary = `${count(health.steps)} steps · ${sleepLabel}`;
-  const habitSummary = habits.length ? `${habits.length} active` : 'No active streaks';
+  const daylightLabel = minutes(device.daylightMinutes);
+  const healthSummary = daylightLabel ? `${sleepLabel} · ${daylightLabel} daylight` : sleepLabel;
+  const spendLabel = wealth.connected && wealth.spent != null ? `${money(wealth.spent)} spend` : 'Spend not synced';
+  const wealthSummary = wealth.connected ? `${spendLabel} · no daily target` : 'Bank not linked';
+  const screenLabel = minutes(device.screenMinutes);
+  const digitalSummary = screenLabel ? `${screenLabel} screen` : 'No device log today';
+  const impulse =
+    wealth.connected && wealth.spent != null && Math.abs(wealth.spent) >= 80
+      ? 'Spend is high enough to count as an impulse trigger.'
+      : 'No impulse trigger logged.';
 
   return (
     <View style={styles.wrap}>
       <Text style={styles.section}>Supporting metrics</Text>
       <Drawer
+        icon="☀"
+        title="Health & Circadian"
+        summary={healthSummary}
+        open={open === 'health'}
+        onPress={() => toggle('health')}
+      >
+        <Text style={styles.line}>{sleepLabel}</Text>
+        <Text style={styles.line}>{daylightLabel ? `${daylightLabel} daylight` : 'Daylight not logged'}</Text>
+        <Text style={styles.line}>{health.steps == null ? 'Steps not synced' : `${count(health.steps)} steps`}</Text>
+        {health.status ? <Text style={styles.meta}>{health.status}</Text> : null}
+        {habits.length ? <Text style={styles.meta}>{habits.length} saved streaks</Text> : null}
+      </Drawer>
+      <Drawer
         icon="🏦"
-        title="Wealth"
+        title="Financial Velocity"
         summary={wealthSummary}
         open={open === 'wealth'}
         onPress={() => toggle('wealth')}
@@ -76,11 +100,13 @@ export default function MetricDrawers({ wealth, health, habits, onLinkBank }: Pr
           <>
             <Text style={styles.line}>{wealth.bankName || 'Linked bank'}</Text>
             <Text style={styles.line}>Balance {money(wealth.balance)}</Text>
-            <Text style={styles.line}>Spend {money(wealth.spent)}</Text>
+            <Text style={styles.line}>Daily spend {money(wealth.spent)}</Text>
+            <Text style={styles.line}>Daily target not set</Text>
+            <Text style={styles.line}>{impulse}</Text>
           </>
         ) : (
           <>
-            <Text style={styles.line}>Connect a bank to show balance and daily spend.</Text>
+            <Text style={styles.line}>Connect a bank to compare spend with a target.</Text>
             {onLinkBank ? (
               <TouchableOpacity style={styles.link} onPress={onLinkBank}>
                 <Text style={styles.linkText}>Link account</Text>
@@ -90,33 +116,17 @@ export default function MetricDrawers({ wealth, health, habits, onLinkBank }: Pr
         )}
       </Drawer>
       <Drawer
-        icon="⌚"
-        title="Health"
-        summary={healthSummary}
-        open={open === 'health'}
-        onPress={() => toggle('health')}
+        icon="📱"
+        title="Digital Balance"
+        summary={digitalSummary}
+        open={open === 'digital'}
+        onPress={() => toggle('digital')}
       >
-        <Text style={styles.line}>Steps {count(health.steps)}</Text>
-        <Text style={styles.line}>{sleepLabel}</Text>
-        <Text style={styles.line}>Active energy {count(health.calories)} kcal</Text>
-        {health.status ? <Text style={styles.meta}>{health.status}</Text> : null}
-      </Drawer>
-      <Drawer
-        icon="⚡"
-        title="Habits"
-        summary={habitSummary}
-        open={open === 'habits'}
-        onPress={() => toggle('habits')}
-      >
-        {habits.length ? (
-          habits.map((habit) => (
-            <Text key={habit.id} style={styles.line}>
-              {habit.label}
-            </Text>
-          ))
-        ) : (
-          <Text style={styles.line}>Streaks show up here after you save a verified stat.</Text>
-        )}
+        <Text style={styles.line}>{screenLabel ? `${screenLabel} screen time` : 'Screen time not logged'}</Text>
+        <Text style={styles.line}>
+          {minutes(device.lateNightMinutes) ? `${minutes(device.lateNightMinutes)} late night` : 'Late-night usage not logged'}
+        </Text>
+        <Text style={styles.line}>{device.pickups == null ? 'Pickups not logged' : `${count(device.pickups)} pickups`}</Text>
       </Drawer>
     </View>
   );

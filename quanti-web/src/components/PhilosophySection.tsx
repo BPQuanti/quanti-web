@@ -18,7 +18,7 @@ const PILLARS = [
   },
   {
     title: "The Mirror Effect",
-    body: "Data isn't neutral—it depends on what you care about. Your baseline is filtered through your selected Focus Arc to deliver guidance tailored to your active priority.",
+    body: "Data isn't neutral—it depends on where you are going. Your baseline is filtered through that destination so today's rule is a 1% move, not a generic season badge.",
     icon: ScanEye,
   },
 ] as const;
@@ -43,7 +43,7 @@ export default function PhilosophySection() {
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-400 sm:text-lg">
             Modern software optimizes for continuous engagement and cognitive noise. Quanti is designed as a quiet,
-            privacy-first decision mirror—giving you clarity and getting out of the way.
+            privacy-first destination GPS—one 1% rule, then it gets out of the way.
           </p>
         </div>
 

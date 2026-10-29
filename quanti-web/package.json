@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "generate-drafts": "npx tsx scripts/generate-drafts.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
@@ -14,6 +15,7 @@
     "html-to-image": "^1.11.13",
     "lucide-react": "^1.52.0",
     "next": "16.3.8",
+    "openai": "^7.32.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "resend": "^6.32.1"
@@ -26,6 +28,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.8",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

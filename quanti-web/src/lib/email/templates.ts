@@ -40,10 +40,10 @@ export function getWelcomeEmailHtml({
                 <p style="margin:0 0 20px;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:#a5b4fc;">Quanti</p>
                 <h1 style="margin:0 0 16px;font-size:24px;line-height:1.3;font-weight:600;color:#f8fafc;">Welcome to the Quanti waitlist.</h1>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  Most health and productivity tools act like vitamins—showing you raw graphs after the damage is done. Quanti is built differently.
+                  Most tools show graphs after the fact. Quanti is a destination GPS: you name where you are and where you want to go.
                 </p>
                 <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:#94a3b8;">
-                  Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks so it can spot the daily burnout chain before a rough night becomes a rough week. Instead of locking your apps, it uses gentle speed bumps and one simple morning rule—so you stay in control of your day.
+                  Overnight signals only size how hard today can go. A 15-second check fills one blank. Yesterday’s mark writes tomorrow. You get one 1% move—not a season, streak, or dashboard.
                 </p>
                 <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:#94a3b8;">
                   Your referral link to skip the line:
@@ -55,7 +55,7 @@ export function getWelcomeEmailHtml({
                   Share with 3 friends to unlock early beta access and direct founder feedback.
                 </p>
                 <p style="margin:0 0 4px;font-size:15px;line-height:1.6;color:#f8fafc;">The Quanti Team</p>
-                <p style="margin:0 0 28px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Privacy-first behavioral OS</p>
+                  <p style="margin:0 0 28px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#64748b;">Privacy-first destination GPS</p>
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">
                   <a href="https://quanti-app.com" style="color:#818cf8;text-decoration:none;">quanti-app.com</a>
                   &nbsp;·&nbsp;
@@ -88,9 +88,9 @@ export function getWelcomeEmailText({
     "",
     "Welcome to the Quanti waitlist.",
     "",
-    "Most health and productivity tools act like vitamins—showing you raw graphs after the damage is done. Quanti is built differently.",
+    "Most tools show graphs after the fact. Quanti is a destination GPS: you name where you are and where you want to go.",
     "",
-    "Quanti connects your sleep, screen time, schedule, spending, and 15-second voice checks so it can spot the daily burnout chain before a rough night becomes a rough week. Instead of locking your apps, it uses gentle speed bumps and one simple morning rule—so you stay in control of your day.",
+    "Overnight signals only size how hard today can go. A 15-second check fills one blank. Yesterday’s mark writes tomorrow. You get one 1% move—not a season, streak, or dashboard.",
     "",
     `Your referral link to skip the line: ${referralUrl}`,
     "",

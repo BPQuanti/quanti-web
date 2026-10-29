@@ -21,11 +21,11 @@ export type WeeklyPostDraft = {
 
 const PERSONA_BRIEF: Record<GrowthPersona, string> = {
   "Biohackers & Quantified-Self":
-    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti turns sleep, screens, schedule, spend, and 15-second voice checks into one morning rule with gentle speed bumps—never app locks.",
+    "Oura/WHOOP/HealthKit users who already wear the stack. They hate turning recovery data into another spreadsheet. Quanti is a destination GPS: name now and next; sleep and screens only size today’s 1%.",
   "Founders & Executives":
-    "Operators drowning in decision fatigue. Bank + calendar + health already exist as telemetry. Quanti gives one high-leverage move for the morning instead of 40 charts.",
+    "Operators drowning in decision fatigue. Telemetry already exists. Quanti writes one 1% move toward the destination they named—not another season or dashboard.",
   "Deep Work Engineers":
-    "Builders who track focus in Notion/Sheets by hand. Quanti kills the homework: Screen Time, HealthKit, Plaid spend, and voice reflections become one 1% directive plus choice-based guardrails.",
+    "Builders who track focus in Notion/Sheets by hand. Destination is the plot. Screen Time, HealthKit, spend, and a 15-second check become one named action, then stop.",
 };
 
 function xaiApiKey() {

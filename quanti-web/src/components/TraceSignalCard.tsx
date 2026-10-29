@@ -2,72 +2,72 @@
 
 import { useId, useState } from "react";
 import { Search } from "lucide-react";
-import type { FocusArcId } from "@/components/IPhoneFocusFrame";
+import type { DestinationId } from "@/components/IPhoneFocusFrame";
 
-const ARC_TRACES: Record<
-  FocusArcId,
+const SCENES: Record<
+  DestinationId,
   {
-    label: string;
+    now: string;
+    next: string;
     directive: string;
+    why: string;
     signals: string[];
-    impact: string;
   }
 > = {
-  "founder-sprint": {
-    label: "Founder Sprint",
-    directive: "5-second pause before late Slack. Keep the 9:00 AM decision window.",
+  "own-place": {
+    now: "Living at home",
+    next: "Own place",
+    directive: "Send the one listing follow-up, then stop. Twenty minutes toward your own place.",
+    why: "Yesterday was partial. Sleep is short, so the 1% is smaller and named.",
     signals: [
-      "Sleep: recovery down vs your usual week",
-      "Screens: Slack + social after 10:12 PM",
-      "Calendar: back-to-back meetings until 6:40 PM",
-      "Location: left the gym at 8:51 PM, home after 9:20",
-      "Spend: late checkout when you were already tired",
-      "Voice check: 'I was avoiding the hard email.'",
+      "Destination: at home → own place",
+      "Sleep: 5.8h, HRV down vs your week",
+      "Yesterday: partial on the listing email",
+      "Voice: 'The listing is still open; I froze.'",
     ],
-    impact: "A gentle speed bump, not a lock—you still choose. Pre-commit the morning block.",
   },
-  "creative-flow": {
-    label: "Creative Flow",
-    directive: "Cap caffeine by 11:30 AM. Suggested 90-minute deep-work block—accept or skip.",
+  "first-revenue": {
+    now: "Building the app",
+    next: "First revenue",
+    directive: "Ship one paid-path screen before noon. That is today’s 1% toward first revenue.",
+    why: "Recovery is fine. The blank was the named object—not another planning hour.",
     signals: [
-      "Sleep: you cooled down 2 hours later than usual",
-      "Screens: high-stimulus apps after 10:00 PM",
-      "Calendar: only one deep-work block, stacked after 3 PM",
-      "Location: studio until 9:10 PM, then home",
-      "Spend: late delivery $45.80 at 10:15 PM",
-      "Voice check: 'I needed noise so I wouldn't sit with the draft.'",
+      "Destination: building → first revenue",
+      "Sleep: 7.6h, recovery usable",
+      "Yesterday: executed a smaller ship",
+      "Voice: 'I keep polishing instead of charging.'",
     ],
-    impact: "The voice check gives the why. The morning rule is a nudge, not a calendar takeover.",
   },
-  "parenting-presence": {
-    label: "Parenting Presence",
-    directive: "Pause-screen on checkout after 8:30 PM. Keep surplus for tomorrow's 7:00 AM window.",
+  "present-evenings": {
+    now: "Days run long",
+    next: "Present evenings",
+    directive: "Hard stop at 6:30. One protected hour at home—today’s 1% toward present evenings.",
+    why: "Yesterday you shifted. The move is friction-free: a clock, not a new plot.",
     signals: [
-      "Spend: impulse delivery after bedtime",
-      "Screens: checkout flows after 9:40 PM",
-      "Calendar: school pickup + evening activities stacked",
-      "Location: home after 7:05 PM, stayed home",
-      "Sleep: wired late, slow to fall asleep",
-      "Voice check: 'I was buying calm after bedtime chaos.'",
+      "Destination: stretched days → present evenings",
+      "Calendar density: stacked past 7 PM",
+      "Yesterday: shifted the shutdown",
+      "Voice: 'Pickup chaos ate the evening.'",
     ],
-    impact: "A skippable pause. No app lock. You keep the last move.",
   },
 };
 
 type TraceSignalCardProps = {
-  arc?: FocusArcId;
+  destination?: DestinationId;
+  arc?: DestinationId;
   compact?: boolean;
   dateLabel?: string;
 };
 
 export default function TraceSignalCard({
-  arc = "founder-sprint",
+  destination,
+  arc,
   compact = false,
   dateLabel = "Oct 12",
 }: TraceSignalCardProps) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
-  const scene = ARC_TRACES[arc];
+  const scene = SCENES[destination ?? arc ?? "own-place"];
 
   return (
     <article
@@ -78,21 +78,24 @@ export default function TraceSignalCard({
       {compact ? (
         <div className="font-mono font-semibold uppercase tracking-[0.12em] text-indigo-300">
           <p className="text-[9px] leading-4">1% Daily Directive // {dateLabel}</p>
-          <p className="mt-0.5 text-[9px] leading-4">Season: {scene.label}</p>
+          <p className="mt-0.5 text-[9px] leading-4">
+            {scene.now} → {scene.next}
+          </p>
         </div>
       ) : (
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-300">
-          1% Daily Directive // {dateLabel} • Season: {scene.label}
+          1% Daily Directive // {dateLabel} • {scene.now} → {scene.next}
         </p>
       )}
       <p
-        key={scene.label}
+        key={scene.next}
         className={`mt-3 font-semibold text-slate-50 ${
           compact ? "text-[13px] leading-5" : "mt-4 text-base leading-7 sm:text-lg"
         }`}
       >
         {scene.directive}
       </p>
+      <p className={`mt-2 text-indigo-200/90 ${compact ? "text-[11px] leading-4" : "text-sm leading-6"}`}>{scene.why}</p>
 
       <button
         type="button"
@@ -104,7 +107,7 @@ export default function TraceSignalCard({
         }`}
       >
         <Search className={compact ? "h-3.5 w-3.5 shrink-0" : "h-4 w-4"} strokeWidth={2} />
-        {compact ? "Trace Signal — tap to reveal" : "Trace Signal — Click to reveal pattern"}
+        {compact ? "Why this 1% — tap" : "Why this 1% — see what the synthesizer used"}
       </button>
 
       <div
@@ -113,14 +116,12 @@ export default function TraceSignalCard({
       >
         <div className={`overflow-hidden ${open ? "opacity-100" : "opacity-0"} transition-opacity duration-300`}>
           <div className={`rounded-xl border border-slate-700 bg-slate-950/80 text-left ${compact ? "mt-3 p-3" : "mt-4 p-4"}`}>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">Connected signals</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">What the synthesizer used</p>
             <ul className={`mt-3 space-y-2 text-slate-300 ${compact ? "text-[11px] leading-5" : "text-sm leading-6"}`}>
               {scene.signals.map((signal) => (
                 <li key={signal}>{signal}</li>
               ))}
             </ul>
-            <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-200">Gentle speed bump</p>
-            <p className={`mt-1.5 text-slate-300 ${compact ? "text-[11px] leading-5" : "text-sm leading-6"}`}>{scene.impact}</p>
           </div>
         </div>
       </div>

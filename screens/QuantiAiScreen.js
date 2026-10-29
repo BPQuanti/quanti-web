@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogoFull } from '../components/Logo';
 import { useAppContext } from '../context/AppContext';
+import { useAuth } from '../context/AuthContext';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 
 import { colors, fonts, glow, radii } from './theme';
@@ -83,6 +84,7 @@ function getErrorMessage(error) {
 }
 
 export default function QuantiAiScreen() {
+  const { user } = useAuth();
   const { healthData, locationData, plaidData, saveAiStatToForMe, savedStats } = useAppContext();
   const listRef = useRef(null);
   const toastTimer = useRef(null);
@@ -108,13 +110,15 @@ export default function QuantiAiScreen() {
     let cancelled = false;
 
     (async () => {
-      if (!isSupabaseConfigured) {
+      if (!isSupabaseConfigured || !user?.id) {
+        setMessages([WELCOME_MESSAGE]);
         return;
       }
       try {
         const { data, error } = await supabase
           .from('ai_chat_history')
           .select('*')
+          .eq('user_id', user.id)
           .order('created_at', { ascending: true });
         if (cancelled) {
           return;
@@ -139,7 +143,7 @@ export default function QuantiAiScreen() {
         clearTimeout(toastTimer.current);
       }
     };
-  }, []);
+  }, [user?.id]);
 
   const scrollToEnd = () => {
     requestAnimationFrame(() => {

@@ -11,8 +11,8 @@ export default function SettingsPage() {
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#C084FC]">Account</p>
       <h1 className="mt-3 text-3xl font-bold text-[#FAFAFA]">Settings</h1>
       <p className="mt-4 max-w-2xl leading-7">
-        Account deletion for the Quanti app runs from Profile, then Settings, then Delete account. That
-        action revokes stored bank connections, removes chat and profile records, and deletes the login.
+        Account deletion for the Quanti app runs from Hub, then Legal & Privacy, then Account Data
+        Deletion. That action revokes stored bank connections, removes the profile, and deletes the login.
       </p>
       <section className="mt-8 rounded-2xl border border-[#27272A] bg-[#18181B] p-6">
         <h2 className="text-lg font-semibold text-[#FAFAFA]">Delete account</h2>

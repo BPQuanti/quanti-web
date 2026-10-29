@@ -40,7 +40,7 @@ const steps = [
     badge: "256-bit Encrypted Cloud",
     badgeClass: "border-sky-400/30 bg-sky-400/10 text-sky-300",
     icon: Sparkles,
-    body: "Only normalized summary vectors reach our backend to synthesize your Daily Focus Card. No raw health or financial data is ever stored, sold, or used for AI training.",
+    body: "Only normalized summary vectors reach our backend to synthesize today’s 1% directive. No raw health or financial data is ever stored, sold, or used for AI training.",
     sources: [] as { label: string; icon: typeof Activity }[],
   },
 ];
@@ -67,7 +67,7 @@ export default function PrivacyPipeline() {
           Privacy First Architecture
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          How your data moves from raw telemetry to your Daily Focus Card—without ever compromising privacy.
+          How your data moves from raw telemetry to today’s 1% directive—without ever compromising privacy.
         </p>
       </div>
 

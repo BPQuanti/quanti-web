@@ -17,9 +17,9 @@ export default function FounderNote() {
         </blockquote>
 
         <div className="relative mt-8 flex flex-col items-center gap-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-300">Behavioral Telemetry</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-300">Daily Synthesizer</p>
           <span className="inline-flex items-center rounded-full border border-indigo-400/35 bg-indigo-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-200">
-            Automated Daily Alignment
+            One 1% toward next
           </span>
         </div>
       </div>

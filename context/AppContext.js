@@ -12,9 +12,10 @@ import { getCurrentLocation } from '../services/locationService';
 import { openPlaidLink } from '../services/plaidService';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { displayNameFromAuthUser } from '../src/services/displayName';
+import { LEGACY_ASYNC_KEYS } from '../src/services/sessionIsolation';
 
 const STEP_GOAL = 10000;
-const MOCK_BALANCE = 2847.32;
 
 const STORAGE_KEYS = {
   profile: '@quanti_profile',
@@ -27,16 +28,16 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_PROFILE = {
-  name: 'Brian Parr',
-  username: 'brian_quanti',
-  bio: 'Quantifying daily life | Verified Fitness & Finance',
+  name: '',
+  username: '',
+  bio: '',
   avatarUri: null,
 };
 
 const DEFAULT_HEALTH = {
-  steps: 8420,
-  activeCalories: 412,
-  isMock: true,
+  steps: null,
+  activeCalories: null,
+  isMock: false,
   lastSynced: null,
   status: 'Not synced',
   error: null,
@@ -59,59 +60,41 @@ const DEFAULT_PLAID = {
   status: 'Bank not connected',
 };
 
-export const DEFAULT_RECAPS = [
-  {
-    id: 'weekly',
-    period: 'Weekly Recap',
-    range: 'This week',
-    headline: '32,450 Steps this week',
-    percentile: 'Top 5% Fitness Percentile',
-    metrics: ['32,450 steps', '2,180 active kcal', '14 Coffee Trips'],
-    emoji: '📊',
-  },
-  {
-    id: 'monthly',
-    period: 'Monthly Recap',
-    range: 'This month',
-    headline: '128,900 Steps this month',
-    percentile: 'Top 8% Consistency',
-    metrics: ['128,900 steps', '8,640 active kcal', '42 Coffee Trips'],
-    emoji: '📅',
-  },
-  {
-    id: 'yearly',
-    period: 'Yearly Recap',
-    range: '2026 YTD',
-    headline: '1.2M Steps in 2026',
-    percentile: 'Top 3% Yearly Walker',
-    metrics: ['1.24M steps', '94,200 active kcal', '18 Golf Rounds'],
-    emoji: '🏆',
-  },
-];
+export const DEFAULT_RECAPS = [];
 
-export const DEFAULT_SAVED_STATS = [
-  {
-    id: 'stat-golf',
-    emoji: '⛳',
-    title: 'Golfed 18 Times in 2026',
-    subtitle: '18 Rounds of Golf',
-    verified: true,
-  },
-  {
-    id: 'stat-miles',
-    emoji: '🏃',
-    title: '100 Mile Club',
-    subtitle: 'Verified distance stamp',
-    verified: true,
-  },
-  {
-    id: 'stat-espresso',
-    emoji: '☕',
-    title: 'Top 2% Espresso Fan',
-    subtitle: 'Coffee percentile stamp',
-    verified: true,
-  },
-];
+export const DEFAULT_SAVED_STATS = [];
+
+const SEEDED_RECAP_IDS = new Set(['weekly', 'monthly', 'yearly']);
+const SEEDED_STAT_IDS = new Set(['stat-golf', 'stat-miles', 'stat-espresso']);
+
+function withoutSeededRows(rows, ids) {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row) => row && !ids.has(String(row.id)));
+}
+
+function mergeAuthName(profile, user) {
+  const authName = displayNameFromAuthUser(user);
+  if (profile?.name) {
+    return profile;
+  }
+  if (!authName) {
+    return profile;
+  }
+  return { ...profile, name: authName };
+}
+
+function withoutSeededHealth(health) {
+  if (!health || typeof health !== 'object') return null;
+  const seededSteps = health.steps === 8420 && health.activeCalories === 412 && !health.lastSynced;
+  if (!seededSteps) return health;
+  return {
+    ...health,
+    steps: null,
+    activeCalories: null,
+    isMock: false,
+    status: 'Not synced',
+  };
+}
 
 const AppContext = createContext(null);
 
@@ -158,9 +141,9 @@ async function persistCloudProfile(userId, profile) {
   try {
     const { error } = await supabase.from('profiles').upsert({
       id: userId,
-      full_name: profile.name,
-      username: profile.username,
-      bio: profile.bio,
+      full_name: profile.name || null,
+      username: profile.username ? String(profile.username).replace(/^@/, '').trim() : null,
+      bio: profile.bio || null,
       avatar_url: profile.avatar_url || profile.avatarUri || profile.avatarUrl || null,
       updated_at: new Date(),
     });
@@ -184,6 +167,25 @@ export function AppProvider({ children }) {
   const [savedStats, setSavedStats] = useState(DEFAULT_SAVED_STATS);
   const [reviewDemoEnabled, setReviewDemoState] = useState(IS_APP_REVIEW_DEMO);
 
+  const previousUserId = useRef(undefined);
+
+  useEffect(() => {
+    if (previousUserId.current === user?.id) {
+      return undefined;
+    }
+    previousUserId.current = user?.id;
+    setUserProfile({
+      ...DEFAULT_PROFILE,
+      name: displayNameFromAuthUser(user),
+    });
+    setHealthData(DEFAULT_HEALTH);
+    setLocationData(DEFAULT_LOCATION);
+    setPlaidData(DEFAULT_PLAID);
+    setRecaps(DEFAULT_RECAPS);
+    setSavedStats(DEFAULT_SAVED_STATS);
+    return undefined;
+  }, [user?.id]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -205,7 +207,12 @@ export function AppProvider({ children }) {
         setReviewDemoEnabled(demoOn);
         setReviewDemoState(demoOn);
         if (profile && typeof profile === 'object') {
-          setUserProfile({ ...DEFAULT_PROFILE, ...profile });
+          setUserProfile((current) => {
+            if (current?.name) {
+              return current;
+            }
+            return mergeAuthName({ ...DEFAULT_PROFILE, ...profile }, user);
+          });
         }
         if (demoOn) {
           const healthSnapshot = getReviewHealthSnapshot();
@@ -214,6 +221,7 @@ export function AppProvider({ children }) {
             ...DEFAULT_HEALTH,
             steps: healthSnapshot.steps,
             activeCalories: healthSnapshot.activeEnergyKcal,
+            sleepHours: healthSnapshot.sleepHours ?? null,
             workouts: healthSnapshot.workouts || null,
             isMock: true,
             status: healthSnapshot.status,
@@ -221,7 +229,11 @@ export function AppProvider({ children }) {
           });
           setPlaidData({ ...DEFAULT_PLAID, ...plaidSnapshot });
         } else if (health && typeof health === 'object') {
-          setHealthData({ ...DEFAULT_HEALTH, ...health });
+          const cleanedHealth = withoutSeededHealth(health);
+          setHealthData({ ...DEFAULT_HEALTH, ...cleanedHealth });
+          if (cleanedHealth !== health) {
+            void saveItem(STORAGE_KEYS.health, { ...DEFAULT_HEALTH, ...cleanedHealth });
+          }
         }
         if (location && typeof location === 'object') {
           setLocationData({ ...DEFAULT_LOCATION, ...location });
@@ -229,11 +241,19 @@ export function AppProvider({ children }) {
         if (!demoOn && plaid && typeof plaid === 'object') {
           setPlaidData({ ...DEFAULT_PLAID, ...plaid });
         }
-        if (Array.isArray(recapsStored) && recapsStored.length) {
-          setRecaps(recapsStored);
+        if (Array.isArray(recapsStored)) {
+          const cleanedRecaps = withoutSeededRows(recapsStored, SEEDED_RECAP_IDS);
+          setRecaps(cleanedRecaps);
+          if (cleanedRecaps.length !== recapsStored.length) {
+            void saveItem(STORAGE_KEYS.recaps, cleanedRecaps);
+          }
         }
-        if (Array.isArray(statsStored) && statsStored.length) {
-          setSavedStats(statsStored);
+        if (Array.isArray(statsStored)) {
+          const cleanedStats = withoutSeededRows(statsStored, SEEDED_STAT_IDS);
+          setSavedStats(cleanedStats);
+          if (cleanedStats.length !== statsStored.length) {
+            void saveItem(STORAGE_KEYS.savedStats, cleanedStats);
+          }
         }
       } catch (error) {
         console.log('AsyncStorage hydrate failed', error);
@@ -251,20 +271,27 @@ export function AppProvider({ children }) {
     }
     try {
       const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (error) {
-        if (error.code === 'PGRST116') {
-          return { data: null, error: null };
-        }
+      if (error && error.code !== 'PGRST116') {
         console.log('Supabase profile fetch failed', error.message);
         return { data: null, error };
       }
-      if (data) {
-        const mapped = mapRowToProfile(data);
-        setUserProfile(mapped);
-        void saveItem(STORAGE_KEYS.profile, mapped);
-        return { data: mapped, error: null };
+      if (error?.code === 'PGRST116' || !data) {
+        const fromAuth = mergeAuthName({ ...DEFAULT_PROFILE }, user);
+        if (fromAuth.name) {
+          setUserProfile(fromAuth);
+          void saveItem(STORAGE_KEYS.profile, fromAuth);
+          void persistCloudProfile(user.id, fromAuth);
+          return { data: fromAuth, error: null };
+        }
+        return { data: null, error: null };
       }
-      return { data: null, error: null };
+      const mapped = mergeAuthName(mapRowToProfile(data), user);
+      setUserProfile(mapped);
+      void saveItem(STORAGE_KEYS.profile, mapped);
+      if (mapped.name && mapped.name !== (data.full_name || data.name || '')) {
+        void persistCloudProfile(user.id, mapped);
+      }
+      return { data: mapped, error: null };
     } catch (error) {
       console.log('Supabase profile fetch failed', error);
       return { data: null, error };
@@ -379,13 +406,14 @@ export function AppProvider({ children }) {
     await openPlaidLink({
       onSuccess: (result) => {
         const bankName = result?.institution?.name || 'Sandbox bank';
+        const mocked = result?.source === 'mock' || result?.publicToken === 'mock-public-token-sandbox';
         applyPlaid({
-          isConnected: true,
-          bankName,
-          accountBalance: MOCK_BALANCE,
+          isConnected: !mocked,
+          bankName: mocked ? null : bankName,
+          accountBalance: mocked ? null : result?.accountBalance ?? null,
           publicToken: result?.publicToken || null,
-          accounts: result?.accounts || [],
-          status: `Connected · ${bankName}`,
+          accounts: mocked ? [] : result?.accounts || [],
+          status: mocked ? 'Expo Go cannot read a bank balance.' : `Connected · ${bankName}`,
         });
       },
       onExit: (exit) => {
@@ -442,6 +470,7 @@ export function AppProvider({ children }) {
         ...DEFAULT_HEALTH,
         steps: healthSnapshot.steps,
         activeCalories: healthSnapshot.activeEnergyKcal,
+        sleepHours: healthSnapshot.sleepHours ?? null,
         workouts: healthSnapshot.workouts || null,
         isMock: true,
         status: healthSnapshot.status,
@@ -470,9 +499,9 @@ export function AppProvider({ children }) {
 
   const resetAppData = useCallback(async () => {
     try {
-      await AsyncStorage.clear();
+      await Promise.all(LEGACY_ASYNC_KEYS.map((key) => AsyncStorage.removeItem(key)));
     } catch (error) {
-      console.log('AsyncStorage clear failed', error);
+      console.log('AsyncStorage user-data clear failed', error);
     }
     setUserProfile(DEFAULT_PROFILE);
     setHealthData(DEFAULT_HEALTH);

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useFonts } from 'expo-font';
@@ -10,8 +10,8 @@ import {
   Geist_600SemiBold,
   Geist_700Bold,
 } from '@expo-google-fonts/geist';
-import { GeistMono_500Medium } from '@expo-google-fonts/geist-mono';
-import { StyleSheet } from 'react-native';
+import { GeistMono_500Medium, GeistMono_700Bold } from '@expo-google-fonts/geist-mono';
+import { Animated, Easing, Modal, StyleSheet, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -19,13 +19,11 @@ import { AppProvider } from './context/AppContext';
 import BootScreen from './components/BootScreen';
 import AuthScreen from './screens/AuthScreen';
 import DashboardScreen from './screens/DashboardScreen';
-import TrendsScreen from './screens/TrendsScreen';
-import LeaderboardScreen from './screens/LeaderboardScreen';
-import HubScreen from './screens/HubScreen';
-import ForYouScreen from './screens/ForYouScreen';
-import ForMeScreen from './screens/ForMeScreen';
-import QuantiAiScreen from './screens/QuantiAiScreen';
-import ProfileScreen from './screens/ProfileScreen';
+import ArcsScreen from './screens/ArcsScreen';
+import SignalVaultScreen from './screens/SignalVaultScreen';
+import PermissionsGate from './src/components/PermissionsGate';
+import OnboardingGate from './src/components/onboarding/OnboardingGate';
+import { checkAllPermissions } from './src/services/permissions';
 import { colors, fonts } from './screens/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -38,70 +36,105 @@ const navTheme = {
   colors: {
     ...DefaultTheme.colors,
     background: colors.bg,
-    card: '#020617',
+    card: colors.bg,
     text: colors.white,
     border: colors.border,
     primary: colors.tabActive,
   },
 };
 
-const hiddenTab = {
-  tabBarButton: () => null,
-  tabBarItemStyle: { display: 'none', width: 0, maxWidth: 0, height: 0 },
-};
-
 function MainTabs() {
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator
-        initialRouteName="Focus"
+        initialRouteName="Today"
+        backBehavior="history"
         screenOptions={{
           headerShown: false,
           unmountOnBlur: false,
           tabBarStyle: styles.tabBar,
-          tabBarActiveTintColor: '#818CF8',
-          tabBarInactiveTintColor: '#64748B',
+          tabBarActiveTintColor: colors.tabActive,
+          tabBarInactiveTintColor: colors.inactive,
           tabBarLabelStyle: styles.tabLabel,
         }}
       >
         <Tab.Screen
-          name="Focus"
+          name="Today"
           component={DashboardScreen}
           options={{
-            title: 'Focus',
-            tabBarIcon: ({ color, size }) => <Ionicons name="flash" color={color} size={size} />,
+            title: 'Today',
+            tabBarIcon: ({ color, size }) => <Ionicons name="sunny" color={color} size={size} />,
           }}
         />
         <Tab.Screen
-          name="Trends"
-          component={TrendsScreen}
+          name="Arcs"
+          component={ArcsScreen}
           options={{
-            title: 'Trends',
-            tabBarIcon: ({ color, size }) => <Ionicons name="trending-up" color={color} size={size} />,
+            title: 'Direction',
+            tabBarAccessibilityLabel: 'Where you are going',
+            tabBarIcon: ({ color, size }) => <Ionicons name="layers" color={color} size={size} />,
           }}
         />
         <Tab.Screen
-          name="Momentum"
-          component={LeaderboardScreen}
+          name="SignalVault"
+          component={SignalVaultScreen}
           options={{
-            title: 'Momentum',
-            tabBarIcon: ({ color, size }) => <Ionicons name="trophy" color={color} size={size} />,
+            title: 'Privacy',
+            tabBarAccessibilityLabel: 'Integrations & Privacy',
+            tabBarIcon: ({ color, size }) => <Ionicons name="shield-checkmark" color={color} size={size} />,
           }}
         />
-        <Tab.Screen
-          name="Hub"
-          component={HubScreen}
-          options={{
-            title: 'Hub',
-            tabBarIcon: ({ color, size }) => <Ionicons name="options" color={color} size={size} />,
-          }}
-        />
-        <Tab.Screen name="Profile" component={ProfileScreen} options={hiddenTab} />
-        <Tab.Screen name="QuantiAI" component={QuantiAiScreen} options={hiddenTab} />
-        <Tab.Screen name="ForYou" component={ForYouScreen} options={hiddenTab} />
-        <Tab.Screen name="ForMeLedger" component={ForMeScreen} options={hiddenTab} />
       </Tab.Navigator>
     </NavigationContainer>
+  );
+}
+
+function Reveal({ token, children }) {
+  const opacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    opacity.setValue(0);
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: 320,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [token, opacity]);
+
+  return <Animated.View style={[styles.reveal, { opacity }]}>{children}</Animated.View>;
+}
+
+function PermissionHandshake({ children }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    checkAllPermissions()
+      .then((status) => {
+        if (!mounted) {
+          return;
+        }
+        const pending = ['healthkit', 'location', 'microphone', 'notifications'].some(
+          (key) => status[key]?.state === 'pending'
+        );
+        setOpen(pending);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  return (
+    <View style={handshakeStyles.fill}>
+      {children}
+      <Modal animationType="fade" transparent visible={open} onRequestClose={() => setOpen(false)}>
+        <View style={handshakeStyles.overlay}>
+          <PermissionsGate onDone={() => setOpen(false)} />
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -113,7 +146,9 @@ function Root() {
     Geist_600SemiBold,
     Geist_700Bold,
     GeistMono_500Medium,
+    GeistMono_700Bold,
   });
+  const signedIn = Boolean(user || isDevBypass);
 
   useEffect(() => {
     if (fontsLoaded && !loading) {
@@ -125,11 +160,19 @@ function Root() {
     return <BootScreen />;
   }
 
-  if (!user && !isDevBypass) {
-    return <AuthScreen />;
-  }
-
-  return <MainTabs />;
+  return (
+    <Reveal token={signedIn ? 'app' : 'auth'}>
+      {signedIn ? (
+        <OnboardingGate>
+          <PermissionHandshake>
+            <MainTabs />
+          </PermissionHandshake>
+        </OnboardingGate>
+      ) : (
+        <AuthScreen />
+      )}
+    </Reveal>
+  );
 }
 
 export default function App() {
@@ -146,17 +189,31 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  reveal: { flex: 1 },
   tabBar: {
-    backgroundColor: '#020617',
-    borderTopColor: '#1E293B',
+    backgroundColor: colors.bg,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
+    elevation: 0,
     height: 64,
     paddingTop: 6,
     paddingBottom: 8,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
   },
   tabLabel: {
     fontFamily: fonts.semibold,
     fontSize: 11,
     fontWeight: '600',
+  },
+});
+
+const handshakeStyles = StyleSheet.create({
+  fill: { flex: 1 },
+  overlay: {
+    backgroundColor: 'rgba(9, 9, 11, 0.88)',
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
   },
 });

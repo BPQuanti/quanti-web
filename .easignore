@@ -1,0 +1,11 @@
+# EAS uploads untracked files that .gitignore would otherwise skip in git.
+# Keep the cloud archive limited to the Expo app.
+quanti-web/
+quanti-app/
+docs/
+supabase/.temp/
+**/*.md
+agent-transcripts/
+.cursor/
+node_modules/
+.git/

@@ -1,8 +1,14 @@
+export type FocusStatus = 'active' | 'verified' | 'missed';
+
 export type FocusDirective = {
   title: string;
   rationale: string;
   ctaLabel: string;
   domains: string;
+  source: string;
+  status: FocusStatus;
+  statusLabel: string;
+  statusDetail: string;
 };
 
 export type WealthSnapshot = {
@@ -17,6 +23,13 @@ export type HealthSnapshot = {
   sleepHours: number | null;
   calories: number | null;
   status: string | null;
+};
+
+export type DeviceHabitSnapshot = {
+  screenMinutes: number | null;
+  lateNightMinutes: number | null;
+  pickups: number | null;
+  daylightMinutes: number | null;
 };
 
 export type HabitStreak = {
