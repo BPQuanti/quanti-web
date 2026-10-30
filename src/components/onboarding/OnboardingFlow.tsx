@@ -27,12 +27,14 @@ import FuturisticVoiceWave from '../../../components/app/FuturisticVoiceWave';
 import { colors, fonts, surfaces, typography } from '../../../constants/theme';
 import { requestHealthKitAuthorization } from '../../services/healthkit';
 import { markOnboardingComplete, setPendingOnboardingVoice } from '../../services/onboarding';
-import { DESTINATION_PLACEHOLDER, parseNorthStarFromSpeech, saveNorthStar } from '../../services/northStar';
-import { VOICE_CHECK_SECONDS } from '../../services/voiceCheckPrompt';
+import { DESTINATION_PLACEHOLDER, parseNorthStarFromSpeech, saveNorthStar, type NorthStar } from '../../services/northStar';
+import { ONBOARDING_BOTTLENECK_PROMPT, VOICE_CHECK_SECONDS } from '../../services/voiceCheckPrompt';
 import { setAIConsent } from '../../services/privacyConsent';
 import { assembleAnonymizedPayload } from '../../services/telemetryPayload';
 import { generateDailyDirective } from '../../services/directiveEngine';
 import { transcribeVoiceRecording } from '../../services/transcribeVoice';
+import { assessBottleneck, assessDestination, heardEcho } from '../../services/destinationQuality';
+import type { DailyDirective, DailyTelemetryPayload } from '../../types/telemetry';
 
 const STEPS = 3;
 const MIN_VOICE_SECONDS = 10;
@@ -60,6 +62,14 @@ export default function OnboardingFlow({ onComplete }: Props) {
   const [finishing, setFinishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [destinationDraft, setDestinationDraft] = useState('');
+  const [star, setStar] = useState<NorthStar | null>(null);
+  const [spoken, setSpoken] = useState('');
+  const [voiceSeconds, setVoiceSeconds] = useState(0);
+  const [card, setCard] = useState<DailyDirective | null>(null);
+  const [echo, setEcho] = useState('');
+  const [healthShaped, setHealthShaped] = useState(false);
+  const [usedRetry, setUsedRetry] = useState(false);
+  const lastPayloadRef = useRef<DailyTelemetryPayload | null>(null);
   const finishVoiceRef = useRef<(opts?: { skipVoice?: boolean }) => Promise<void>>(async () => {});
 
   useEffect(() => {
@@ -126,14 +136,46 @@ export default function OnboardingFlow({ onComplete }: Props) {
     }
   }
 
-  async function completeOnboarding(opts?: { skipVoice?: boolean }) {
+  async function synthesizeFirstCard(opts: {
+    star: NorthStar;
+    transcript: string;
+    durationSeconds: number;
+    retry: boolean;
+  }) {
+    await setAIConsent(true).catch(() => {});
+    await saveNorthStar(opts.star);
+    if (opts.transcript) {
+      setPendingOnboardingVoice({ transcript: opts.transcript, durationSeconds: opts.durationSeconds });
+    }
+    const payload = await assembleAnonymizedPayload(opts.transcript || undefined, {
+      voiceDurationSeconds: opts.transcript ? opts.durationSeconds : undefined,
+      synthesis_mode: 'onboarding',
+      artifact_retry: opts.retry,
+    });
+    const sealed: DailyTelemetryPayload = {
+      ...payload,
+      north_star: opts.star,
+      infer_arc: false,
+      last_execution: undefined,
+      synthesis_mode: 'onboarding',
+      artifact_retry: opts.retry,
+    };
+    lastPayloadRef.current = sealed;
+    const next = await generateDailyDirective(sealed);
+    setCard(next);
+    setEcho(opts.transcript ? heardEcho(opts.transcript) : '');
+    setHealthShaped(payload.healthkit === true);
+  }
+
+  async function captureVoiceAndSynthesize(opts?: { skipVoice?: boolean }) {
     if (finishing) {
       return;
     }
     const typed = destinationDraft.trim();
-    if (!typed) {
-      setError('Name a concrete target first.');
-      go(1);
+    const destination = assessDestination(typed);
+    if (!destination.ok) {
+      setError(destination.reason || 'Name a concrete target first.');
+      go(0);
       return;
     }
     if (!opts?.skipVoice && elapsed < MIN_VOICE_SECONDS && recorder.isRecording) {
@@ -152,42 +194,90 @@ export default function OnboardingFlow({ onComplete }: Props) {
         // Session restore is best-effort.
       }
       setRecording(false);
-      let spoken = '';
+      let transcript = '';
       const durationSeconds = recorder.currentTime || elapsed;
       if (!opts?.skipVoice && recorder.uri) {
         const result = await transcribeVoiceRecording({ uri: recorder.uri, durationSeconds });
-        spoken = result.transcript.trim();
+        transcript = result.transcript.trim();
+        const bottleneck = assessBottleneck(transcript);
+        if (!bottleneck.ok) {
+          setError(bottleneck.reason || 'Name the stall and try once more.');
+          setFinishing(false);
+          return;
+        }
       }
-      const star = parseNorthStarFromSpeech(typed);
-      if (!star.next && !star.now) {
+      const nextStar = parseNorthStarFromSpeech(typed);
+      if (!nextStar.next && !nextStar.now) {
         throw new Error('Name a concrete target so Quanti can point at it.');
       }
-      if (spoken) {
-        setPendingOnboardingVoice({ transcript: spoken, durationSeconds });
-      }
-      await setAIConsent(true).catch(() => {});
-      await saveNorthStar(star);
-      const payload = await assembleAnonymizedPayload(spoken || undefined, {
-        voiceDurationSeconds: spoken ? durationSeconds : undefined,
+      setStar(nextStar);
+      setSpoken(transcript);
+      setVoiceSeconds(durationSeconds);
+      await synthesizeFirstCard({
+        star: nextStar,
+        transcript,
+        durationSeconds,
+        retry: false,
       });
-      await generateDailyDirective({
-        ...payload,
-        north_star: star,
-        infer_arc: false,
-      });
-      await markOnboardingComplete();
-      onComplete();
+      go(2);
+      setFinishing(false);
     } catch (caught) {
       const reason = caught instanceof Error ? caught.message : String(caught);
-      console.error('[Onboarding] complete failed', reason);
+      console.error('[Onboarding] first card failed', reason);
       setError(reason);
       setFinishing(false);
     }
   }
 
-  finishVoiceRef.current = completeOnboarding;
+  async function retryArtifact() {
+    if (usedRetry || finishing || !star) {
+      return;
+    }
+    setUsedRetry(true);
+    setFinishing(true);
+    setError(null);
+    try {
+      const prior = lastPayloadRef.current;
+      await synthesizeFirstCard({
+        star,
+        transcript: spoken,
+        durationSeconds: voiceSeconds,
+        retry: true,
+      });
+      if (prior) {
+        lastPayloadRef.current = { ...prior, artifact_retry: true };
+      }
+    } catch (caught) {
+      const reason = caught instanceof Error ? caught.message : String(caught);
+      setError(reason);
+      setUsedRetry(false);
+    } finally {
+      setFinishing(false);
+    }
+  }
+
+  async function beginToday() {
+    if (finishing) {
+      return;
+    }
+    setFinishing(true);
+    try {
+      await markOnboardingComplete();
+      onComplete();
+    } catch (caught) {
+      const reason = caught instanceof Error ? caught.message : String(caught);
+      setError(reason);
+      setFinishing(false);
+    }
+  }
+
+  useEffect(() => {
+    finishVoiceRef.current = captureVoiceAndSynthesize;
+  });
+
   const paneStyle = { width };
-  const hasTarget = destinationDraft.trim().length > 3;
+  const destinationCheck = assessDestination(destinationDraft);
+  const canLeaveDestination = destinationCheck.ok;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -203,32 +293,26 @@ export default function OnboardingFlow({ onComplete }: Props) {
           </View>
 
           <Animated.View style={[styles.track, { width: width * STEPS, transform: [{ translateX: slide }] }]}>
-            <View style={[styles.pane, paneStyle]}>
-              <LogoMark width={72} />
-              <Text style={styles.kicker}>The Compass</Text>
-              <Text style={styles.headline}>One 1% move toward your target.</Text>
-              <Text style={styles.body}>
-                You name a concrete target. Each morning you get one 15–20 word action on that path. Sleep and a
-                15-second check size the push. Last night&apos;s mark writes tomorrow.
-              </Text>
-              <Text style={styles.contrast}>No dashboards, streaks, or guilt.</Text>
-            </View>
-
             <View style={[styles.pane, paneStyle, styles.loopPane]}>
               <ScrollView
                 contentContainerStyle={styles.destScroll}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.kicker}>The Destination</Text>
+                <LogoMark width={56} />
+                <Text style={styles.kicker}>Calibration</Text>
                 <Text style={styles.headline}>Where are you going?</Text>
                 <Text style={styles.body}>
-                  Name a finish line someone else could check. Vague goals make vague cards. Named targets make named
-                  moves.
+                  Name a 30-day finish line someone else could check. Vague goals make vague cards.
                 </Text>
                 <TextInput
                   value={destinationDraft}
-                  onChangeText={setDestinationDraft}
+                  onChangeText={(value) => {
+                    setDestinationDraft(value);
+                    if (error) {
+                      setError(null);
+                    }
+                  }}
                   placeholder={DESTINATION_PLACEHOLDER}
                   placeholderTextColor={colors.inactive}
                   multiline
@@ -241,16 +325,14 @@ export default function OnboardingFlow({ onComplete }: Props) {
                 <View style={styles.exampleBlock}>
                   <Text style={styles.exampleLine}>
                     <Text style={styles.exampleLabel}>Weak: </Text>
-                    &quot;Get in shape&quot; / &quot;Grow the app&quot;
+                    &quot;Get in shape&quot; / &quot;Be productive&quot;
                   </Text>
                   <Text style={styles.exampleLine}>
                     <Text style={styles.exampleLabelStrong}>Strong: </Text>
                     &quot;Run 5 miles this week&quot; / &quot;Launch iOS alpha to 10 testers&quot;
                   </Text>
                 </View>
-                <Text style={styles.reassure}>
-                  Quanti can only point at what you name. You can change this later.
-                </Text>
+                <Text style={styles.reassure}>You can change this later. Quanti only points at what you name.</Text>
               </ScrollView>
             </View>
 
@@ -260,19 +342,16 @@ export default function OnboardingFlow({ onComplete }: Props) {
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
               >
-                <Text style={styles.kicker}>The Daily Loop</Text>
-                <Text style={styles.headline}>The 30-second daily loop.</Text>
-                <Text style={styles.stepText}>
-                  10–15s Check: Name what&apos;s in the way today (file, person, place, clock time) — that&apos;s what
-                  shapes the card.
-                </Text>
+                <Text style={styles.kicker}>Calibration</Text>
+                <Text style={styles.headline}>What usually stalls this?</Text>
+                <Text style={styles.body}>{ONBOARDING_BOTTLENECK_PROMPT}</Text>
                 <Pressable
                   onPress={() => {
                     if (finishing) {
                       return;
                     }
                     if (recording) {
-                      completeOnboarding().catch(() => {});
+                      captureVoiceAndSynthesize().catch(() => {});
                       return;
                     }
                     startVoice().catch(() => {});
@@ -292,7 +371,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
                 <View style={styles.healthRow}>
                   <View style={styles.healthCopy}>
                     <Text style={styles.stepText}>
-                      Optional HealthKit: Sizes today&apos;s push window based on sleep & HRV.
+                      Optional HealthKit. Sleep and HRV size the window — they do not pick the move.
                     </Text>
                   </View>
                   <Switch
@@ -305,45 +384,77 @@ export default function OnboardingFlow({ onComplete }: Props) {
                     thumbColor={healthOn ? colors.emerald : colors.muted}
                   />
                 </View>
-                <Text style={styles.stepText}>
-                  Tonight: Tap Executed / Partial / Shifted — that&apos;s how tomorrow adapts.
+              </ScrollView>
+            </View>
+
+            <View style={[styles.pane, paneStyle, styles.loopPane]}>
+              <ScrollView
+                contentContainerStyle={styles.loopScroll}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.kicker}>Your first 1%</Text>
+                <Text style={styles.headline}>We heard you.</Text>
+                {echo ? <Text style={styles.echo}>“{echo}”</Text> : null}
+                {card ? (
+                  <View style={styles.cardBox}>
+                    <Text style={styles.cardText}>{card.primary_directive}</Text>
+                    {card.why_today ? <Text style={styles.why}>{card.why_today}</Text> : null}
+                  </View>
+                ) : (
+                  <ActivityIndicator color={colors.heading} />
+                )}
+                <Text style={styles.reassure}>
+                  {healthShaped
+                    ? 'Sleep and HRV sized the window. They did not pick the move.'
+                    : 'Default window — HealthKit did not shape this card.'}
                 </Text>
+                <Text style={styles.stepText}>Tonight: Executed / Partial / Shifted. That writes tomorrow.</Text>
+                {finishing ? <ActivityIndicator color={colors.heading} /> : null}
               </ScrollView>
             </View>
           </Animated.View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {step === 0 ? (
-        <Pressable onPress={() => go(1)} style={styles.next}>
-          <Text style={styles.nextText}>Continue</Text>
-        </Pressable>
-      ) : null}
-      {step === 1 ? (
-        <Pressable
-          onPress={() => {
-            Keyboard.dismiss();
-            if (!hasTarget) {
-              setError('Name a concrete target first.');
-              return;
-            }
-            go(2);
-          }}
-          style={[styles.next, !hasTarget && styles.nextDim]}
-        >
-          <Text style={styles.nextText}>Continue</Text>
-        </Pressable>
-      ) : null}
-      {step === 2 && !recording && !finishing ? (
-        <Pressable
-          onPress={() => {
-            completeOnboarding({ skipVoice: true }).catch(() => {});
-          }}
-          style={styles.skip}
-        >
-          <Text style={styles.skipText}>Skip check-in still works, but the card will be blunter.</Text>
-        </Pressable>
-      ) : null}
+          {step === 0 ? (
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                if (!canLeaveDestination) {
+                  setError(destinationCheck.reason || 'Name a concrete target first.');
+                  return;
+                }
+                saveNorthStar(parseNorthStarFromSpeech(destinationDraft.trim())).catch(() => {});
+                go(1);
+              }}
+              style={[styles.next, !canLeaveDestination && styles.nextDim]}
+            >
+              <Text style={styles.nextText}>Continue</Text>
+            </Pressable>
+          ) : null}
+          {step === 1 && !recording && !finishing ? (
+            <Pressable
+              onPress={() => {
+                captureVoiceAndSynthesize({ skipVoice: true }).catch(() => {});
+              }}
+              style={styles.skip}
+            >
+              <Text style={styles.skipText}>Skip check-in still works, but the card will be blunter.</Text>
+            </Pressable>
+          ) : null}
+          {step === 2 && card && !finishing ? (
+            <View style={styles.cardActions}>
+              {!usedRetry ? (
+                <Pressable onPress={() => retryArtifact().catch(() => {})} style={styles.skip}>
+                  <Text style={styles.skipText}>Not this</Text>
+                </Pressable>
+              ) : null}
+              <Pressable onPress={() => beginToday().catch(() => {})} style={styles.next}>
+                <Text style={styles.nextText}>Begin</Text>
+              </Pressable>
+            </View>
+          ) : null}
         </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -404,12 +515,6 @@ const styles = StyleSheet.create({
   },
   body: {
     ...typography.body,
-    maxWidth: 360,
-  },
-  contrast: {
-    ...typography.body,
-    color: colors.muted,
-    fontFamily: fonts.medium,
     maxWidth: 360,
   },
   destinationInput: {
@@ -475,16 +580,33 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   healthCopy: { flex: 1, gap: 4 },
-  healthTitle: {
+  echo: {
+    color: colors.heading,
+    fontFamily: fonts.medium,
+    fontSize: 18,
+    letterSpacing: -0.3,
+    lineHeight: 26,
+  },
+  cardBox: {
+    ...surfaces.glass,
+    gap: 10,
+    padding: 18,
+  },
+  cardText: {
     color: colors.heading,
     fontFamily: fonts.semibold,
-    fontSize: 15,
+    fontSize: 22,
+    letterSpacing: -0.4,
+    lineHeight: 30,
   },
-  healthBody: {
+  why: {
     color: colors.muted,
     fontFamily: fonts.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  cardActions: {
+    marginBottom: 8,
   },
   error: {
     color: colors.amber,
@@ -507,7 +629,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   skip: {
-    marginBottom: 16,
+    marginBottom: 8,
     marginHorizontal: 28,
     paddingVertical: 10,
   },

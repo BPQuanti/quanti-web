@@ -1,4 +1,4 @@
-import { Activity, Clock, Landmark, Moon } from "lucide-react";
+import { Activity, Check, Mic, Moon } from "lucide-react";
 
 const PROTOCOL = [
   "Send the one listing follow-up. Twenty minutes. Then stop.",
@@ -7,8 +7,8 @@ const PROTOCOL = [
 
 const SOURCES = [
   { label: "HealthKit", detail: "HRV: 32ms | -38%", icon: Activity },
-  { label: "Screen Time", detail: "1h 20m after 1 AM", icon: Clock },
-  { label: "Plaid", detail: "$34.50 Late-Night Order", icon: Landmark },
+  { label: "Voice check-in", detail: "10s: the listing is still open", icon: Mic },
+  { label: "Evening mark", detail: "Yesterday: Shifted", icon: Check },
 ];
 
 function LockScreenWidget() {
@@ -49,7 +49,7 @@ export default function DailyFocusCard() {
           One card. One move. On your Lock Screen.
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          Destination plus overnight signals become one morning 1%—delivered as an iPhone widget, not another dashboard.
+          30-day destination target plus a 10-second voice check-in become one 15-word action card—not another dashboard.
         </p>
       </div>
 

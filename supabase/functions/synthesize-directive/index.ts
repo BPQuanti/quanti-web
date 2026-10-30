@@ -47,6 +47,8 @@ type TelemetryPayload = {
     status?: Outcome;
     primary_directive?: string;
   };
+  synthesis_mode?: "onboarding" | "daily";
+  artifact_retry?: boolean;
 };
 
 type SynthesizerInput = {
@@ -59,30 +61,38 @@ type SynthesizerInput = {
     recovery_score: number | null;
   };
   yesterday_outcome: Outcome | null;
+  synthesis_mode: "onboarding" | "daily";
+  artifact_retry: boolean;
 };
 
 const SYSTEM_PROMPT = `You are Quanti's Daily Synthesizer. Write ONE 1% action for today.
 
-INPUTS (only these — do not classify arcs, seasons, or posture)
-- destination: immutable. now = where they are. next = where they are going. Never change or replace it.
-- transcript: morning weather (10–15s). Use it to name the object, blocker, or next physical move. Not a new destination.
-- biometrics: sleep hours, HRV delta, recovery. Scope only. Not the plot.
-- healthkit: false = ignore biometrics; use a normal window. Do not invent recovery problems.
+INPUTS (only these — never classify arcs, seasons, or posture)
+- destination: immutable. now = where they are. next = where they are going. Never change it.
+- transcript: words they spoke. onboarding = PATTERN bottleneck (what usually stalls the target). daily = TODAY'S state. Never treat an onboarding bottleneck as identity on later days.
+- synthesis_mode: "onboarding" | "daily"
+- artifact_retry: if true, the previous card was too vague. Output a sharper ARTIFACT (list, message, file, invite, draft). Never advice.
+- biometrics: sleep, HRV, recovery. Window size only. Not the plot.
+- healthkit: false = no live recovery data. Ignore biometrics. Do not claim the watch informed the card. Do not invent recovery problems.
 - yesterday_outcome: executed | partial | shifted | null.
+
+WEIGHTING
+- onboarding: destination.next + bottleneck transcript. Ignore yesterday_outcome. Next physical artifact toward the target, around the named stall. Never "block distractions" or other meta-productivity.
+- daily: yesterday_outcome first if present, then today's transcript, then destination. Do not repeat an old stall unless today's transcript names it again.
 
 primary_directive — STRICT
 - 15–20 words max. Zero markdown. Zero preambles. No quotes, bullets, or labels.
-- ALWAYS a concrete, physical action tied to destination.next AND the transcript (named object, file, message, place, person, or clock time).
-- NEVER generic advice: "Take 1 small step", "Take 1 small action toward", "Focus on your goals", "Protect your energy", "Honor your energy", "Cut noise", "Stay consistent", pep talks.
-- NEVER output an arc, season, posture, or inferred category. Use destination + transcript + biometrics + yesterday_outcome only.
+- ALWAYS a concrete physical action tied to destination.next AND a noun from the transcript when present (person, file, message, place, tool, or clock time).
+- Finishable in one sitting. Name what exists when they are done.
+- NEVER generic advice: "Take 1 small step", "Take 1 small action toward", "Focus on your goals", "Protect your energy", "Honor your energy", "Cut noise", "Stay consistent", "block distractions", pep talks.
+- NEVER output an arc, season, or posture.
 
-SCOPE (telemetry + mark only)
-- Low recovery (healthkit true: short sleep, HRV down, recovery < 40) OR yesterday shifted/partial → micro-step. Example: "Draft just the first 3 lines of your email invite before 10 AM."
-- High recovery (healthkit true) AND yesterday executed → high-leverage execution. Example: "Deploy the full Supabase auth function and test all JWT tokens today."
-- healthkit false and no mark → normal named 1% from destination + transcript, not a recovery sermon.
-- Partial: finish the leftover named piece, then stop. Do not stack a new plot.
+SCOPE
+- Low recovery ONLY if healthkit true AND (short sleep, HRV down, recovery < 40) OR yesterday shifted/partial → smaller named artifact.
+- High recovery (healthkit true) AND yesterday executed → higher-leverage named artifact.
+- healthkit false → normal named 1% from destination + transcript. why_today must not mention sleep, HRV, or recovery.
 
-why_today — one sentence naming the constraint (mark and/or recovery). Empty string if neither applies.
+why_today — one sentence naming the real constraint (mark and/or recovery if healthkit true). Empty if neither applies. On onboarding, name the bottleneck in their words; mention biometrics only if healthkit true.
 
 OUTPUT valid JSON exactly:
 {"primary_directive":"string","why_today":"string"}`;
@@ -131,6 +141,7 @@ function sanitizePayload(input: TelemetryPayload, userId: string): SynthesizerIn
     input.transcript || input.voice_context?.transcript || input.voice?.transcript || "",
   ).trim();
   const healthkit = input.healthkit === true;
+  const onboarding = input.synthesis_mode === "onboarding";
   return {
     destination: parseDestination(input),
     transcript: transcript ? transcript.slice(0, 600) : null,
@@ -142,7 +153,11 @@ function sanitizePayload(input: TelemetryPayload, userId: string): SynthesizerIn
           recovery_score: input.biometrics?.recovery_score ?? null,
         }
       : { sleep_hours: 7, hrv_delta_percent: 0, recovery_score: 55 },
-    yesterday_outcome: asOutcome(input.yesterday_outcome) ?? asOutcome(input.last_execution?.status),
+    yesterday_outcome: onboarding
+      ? null
+      : asOutcome(input.yesterday_outcome) ?? asOutcome(input.last_execution?.status),
+    synthesis_mode: onboarding ? "onboarding" : "daily",
+    artifact_retry: input.artifact_retry === true,
   };
 }
 
@@ -271,6 +286,8 @@ serve(async (req) => {
       has_transcript: Boolean(payload.transcript),
       biometrics: payload.biometrics,
       yesterday_outcome: payload.yesterday_outcome,
+      synthesis_mode: payload.synthesis_mode,
+      artifact_retry: payload.artifact_retry,
     });
 
     const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {

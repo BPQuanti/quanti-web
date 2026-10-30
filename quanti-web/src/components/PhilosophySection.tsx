@@ -2,23 +2,23 @@ import { Hourglass, Mic, ScanEye, Timer } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "Desirable Friction",
-    body: "We intentionally gate inputs with micro-pauses so your actions are routed through deliberate choice rather than automated reflex loops.",
+    title: "30-day destination",
+    body: "You name a checkable 30-day destination target. That finish line is the plot. Sensors never replace it.",
     icon: Hourglass,
   },
   {
-    title: "Local Constraints",
-    body: "You cannot execute a 6-month strategy with a fatigued morning brain. We shrink macro goals down to a single execution rule for the next 24 hours.",
+    title: "One 15-word card",
+    body: "The morning output is a single 15-word action card—one physical move—then Quanti gets off the phone.",
     icon: Timer,
   },
   {
-    title: "Subjective Context",
-    body: "Sleep and HRV only size the window. A 15-second check names the object, person, or clock time in the way so the card is a physical move, not a pep talk.",
+    title: "10-second voice check-in",
+    body: "A 10-second voice check-in names the stall. Optional HealthKit sleep and HRV only size the window.",
     icon: Mic,
   },
   {
-    title: "The Mirror Effect",
-    body: "Data isn't the plot. The destination you named is. Recovery and last night’s mark only change how hard today’s 1% can go.",
+    title: "Evening outcome mark",
+    body: "Executed / Partial / Shifted writes tomorrow. Zero streaks. Zero-dashboard. Under 30 seconds of daily screen time.",
     icon: ScanEye,
   },
 ] as const;
@@ -39,11 +39,11 @@ export default function PhilosophySection() {
             id="philosophy-heading"
             className="mt-5 text-3xl font-semibold tracking-tight text-neutral-100 sm:text-4xl"
           >
-            Built for Agency, Not Attention.
+            Built for execution, not attention.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-400 sm:text-lg">
-            Modern software optimizes for continuous engagement and cognitive noise. Quanti is designed as a quiet,
-            privacy-first destination GPS—one 1% rule, then it gets out of the way.
+            Most software hoards your time with grids and charts. Quanti is a quiet execution compass: one 15-word
+            action card, then it gets out of the way.
           </p>
         </div>
 

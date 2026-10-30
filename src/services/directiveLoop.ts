@@ -37,13 +37,22 @@ export function whyFromPayload(payload: DailyTelemetryPayload): string {
 
 export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirective {
   const toward = towardLabel(payload);
-  const prior = payload.last_execution;
-  const low = energyIsLow(payload);
+  const prior = payload.synthesis_mode === 'onboarding' ? undefined : payload.last_execution;
+  const low = energyIsLow(payload) && payload.healthkit === true;
   const voice = payload.voice_context?.transcript?.trim() || payload.voice.transcript?.trim();
+  const retry = payload.artifact_retry === true;
 
-  let primary = `Take 1 small action toward ${toward} today.`;
-  let why = `Today’s 1% is toward ${toward}.`;
+  let primary = voice
+    ? `Write the next named artifact toward ${toward}, working around what you just named.`
+    : `Name and finish one visible artifact toward ${toward} today.`;
+  let why = voice
+    ? `Today’s 1% is toward ${toward}, around the stall you named.`
+    : `Today’s 1% is toward ${toward}.`;
   let blocks = [`One visible increment toward ${toward}.`];
+  if (retry) {
+    primary = `Produce one concrete artifact toward ${toward}: a list, draft, invite, or message.`;
+    why = `The last card was too vague. Today’s 1% has to leave an object behind.`;
+  }
 
   if (prior?.status === 'shifted') {
     primary = `Restart smaller toward ${toward}: one 20-minute step, then stop.`;
@@ -59,12 +68,14 @@ export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirecti
     blocks = [`One increment beyond yesterday, still toward ${toward}.`];
   }
 
-  if (low) {
+  if (low && !retry) {
     primary = `Do one 25-minute move toward ${toward}: the smallest visible step, then protect tonight.`;
     why = prior?.status
       ? `${why} Energy is bounded today, so the window is shorter.`
       : `Sleep or late-night load is high. The move still serves ${toward}, with a shorter window.`;
     blocks = [`25 minutes toward ${toward}, then a hard stop.`];
+  } else if (low && retry) {
+    why = `${why} Keep the window short.`;
   }
 
   if (voice) {

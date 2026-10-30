@@ -2,23 +2,23 @@ import { Compass, Mic, Shield } from "lucide-react";
 
 const ANCHORS = [
   {
-    title: "Name now and next",
-    kicker: "Destination",
-    body: "Identity is where you are and where you want to go. The morning check only fills the blank sensors cannot see.",
+    title: "Name a 30-day destination",
+    kicker: "Destination target",
+    body: "A checkable 30-day destination target is the plot. The 10-second voice check-in only fills the blank sensors cannot see.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-200",
   },
   {
     title: "Eliminate decision fatigue",
-    kicker: "One 1% rule",
-    body: "Cold dashboards leave you the analyst. Quanti writes one sized-for-today action toward the destination you named.",
+    kicker: "15-word action card",
+    body: "Trackers leave you the analyst. The execution compass hands you one 15-word physical action card, then gets out of the way.",
     icon: Compass,
     tone: "border-indigo-400/25 text-indigo-200",
   },
   {
-    title: "Pre-commitment & presence",
-    kicker: "Hold your ground",
-    body: "Tonight you tap Executed, Partial, or Shifted. That mark is how tomorrow adapts. No streaks. No guilt dashboard.",
+    title: "Mark the night, not a streak",
+    kicker: "Evening outcome mark",
+    body: "Executed / Partial / Shifted writes tomorrow. Zero streak guilt. Zero-dashboard. Under 30 seconds of daily screen time.",
     icon: Shield,
     tone: "border-emerald-400/25 text-emerald-200",
   },

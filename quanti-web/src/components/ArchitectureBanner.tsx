@@ -7,13 +7,13 @@ const PILLARS = [
     icon: Compass,
   },
   {
-    title: "Sleep, Screens, Calendar, Spend, Place, Voice",
-    body: "Meeting density and Home/Work/Gym context sit next to screen habits, spend, and 15-second voice checks—connected on your phone into one morning rule.",
+    title: "Voice + optional HealthKit",
+    body: "A 10-second voice check-in names the stall. Sleep and HRV only size the window. No calendar, bank, location, or Screen Time.",
     icon: Radio,
   },
   {
     title: "100% On-Device Sandbox",
-    body: "Zero external server logs of raw health or bank data. Processing stays in the iOS sandbox. Nothing sold. Nothing transmitted raw.",
+    body: "Zero external server logs of raw health data. Voice is transcribed at the edge and not retained. Nothing sold.",
     icon: Shield,
     accent: true,
   },

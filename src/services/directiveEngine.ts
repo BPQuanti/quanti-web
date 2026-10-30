@@ -22,6 +22,9 @@ function fallbackDirective(payload: DailyTelemetryPayload): DailyDirective {
 }
 
 async function withLastExecution(payload: DailyTelemetryPayload): Promise<DailyTelemetryPayload> {
+  if (payload.synthesis_mode === 'onboarding') {
+    return { ...payload, last_execution: undefined };
+  }
   if (payload.last_execution) {
     return payload;
   }

@@ -3,11 +3,11 @@
 import { useRef } from "react";
 
 const CAPABILITIES = [
-  { icon: "🎯", label: "Named target", detail: "A finish line someone else could check" },
+  { icon: "🎯", label: "30-day destination target", detail: "A finish line someone else could check" },
   { icon: "⌚", label: "Optional HealthKit", detail: "Sleep and HRV only size today’s push" },
-  { icon: "🎙️", label: "10–15s check", detail: "Name the file, person, place, or clock time in the way" },
-  { icon: "✓", label: "Executed / Partial / Shifted", detail: "Last night’s mark writes tomorrow’s 1%" },
-  { icon: "📝", label: "One card", detail: "A 15–20 word action, then stop" },
+  { icon: "🎙️", label: "10-second voice check-in", detail: "Name the file, person, place, or clock time in the way" },
+  { icon: "✓", label: "Evening outcome mark", detail: "Executed / Partial / Shifted writes tomorrow" },
+  { icon: "📝", label: "Single 15-word action card", detail: "One physical move, then off the phone" },
 ] as const;
 
 export default function SignalCarousel() {

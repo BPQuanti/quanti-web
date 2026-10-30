@@ -12,6 +12,7 @@ import PhilosophySection from "@/components/PhilosophySection";
 import Psychology from "@/components/Psychology";
 import Purpose from "@/components/Purpose";
 import SignalCarousel from "@/components/SignalCarousel";
+import WhyNoDashboards from "@/components/WhyNoDashboards";
 import WidgetPreview from "@/components/WidgetPreview";
 
 export default function Home() {
@@ -47,6 +48,7 @@ export default function Home() {
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
         <Purpose />
+        <WhyNoDashboards />
         <PhilosophySection />
         <EngineVisual />
         <WidgetPreview />

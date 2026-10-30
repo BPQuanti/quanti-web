@@ -10,11 +10,11 @@ export default function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-left sm:text-center">
         <h1 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-5xl sm:leading-[1.08] lg:text-[2.85rem] xl:text-[3.15rem]">
-          Finally, an app that actually gets you.
+          Your daily execution compass.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Name a concrete target. Each morning you get one 15–20 word action on that path. Optional sleep and HRV size
-          the push. A 15-second check fills the blank.
+          Name a 30-day destination target. A 10-second voice check-in plus optional HealthKit becomes one 15-word
+          action card. Zero-dashboard. Under 30 seconds of daily screen time.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Claim Early Access" />
@@ -30,7 +30,7 @@ export default function Hero() {
               one move.&rdquo;
             </p>
             <p className="mt-3 border-t border-white/5 pt-3 text-[11px] text-neutral-400">
-              Destination + optional HealthKit + 15s check
+              30-day destination + 10s voice + optional HealthKit
             </p>
           </article>
           <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">

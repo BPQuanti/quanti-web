@@ -16,9 +16,9 @@ export default function Purpose() {
           Your daily execution compass.
         </p>
         <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
-          You name a checkable finish line. Each morning you get one 15–20 word action on that path. Optional sleep and
-          HRV size the push. A 15-second check names what&apos;s in the way. Last night&apos;s mark writes tomorrow. No
-          dashboards, streaks, or guilt.
+          You name a 30-day destination target. Each morning a 10-second voice check-in plus optional HealthKit becomes
+          one 15-word action card. Evening outcome mark: Executed / Partial / Shifted. Zero-dashboard. Under 30 seconds
+          of daily screen time.
         </p>
       </article>
     </section>

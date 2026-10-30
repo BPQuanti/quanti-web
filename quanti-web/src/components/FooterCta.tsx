@@ -16,9 +16,9 @@ export default function FooterCta() {
           Built to stand in your corner.
         </h2>
         <p className="mx-auto mt-5 text-lg leading-relaxed text-slate-400">
-          Most tools judge you by dashboards. Quanti asks for a concrete target, then writes one 1% move for today.
-          Optional sleep and HRV size the window. A 15-second check fills the blank. Yesterday&apos;s mark writes
-          tomorrow. No streaks. No guilt.
+          Trackers make you the administrator. Quanti is an execution compass: a 30-day destination target, a 10-second
+          voice check-in, and one 15-word action card. Evening outcome mark writes tomorrow. Zero-dashboard. Under 30
+          seconds of daily screen time.
         </p>
 
         <div id="waitlist-footer" className="mx-auto mt-8 max-w-xl scroll-mt-24 text-left">

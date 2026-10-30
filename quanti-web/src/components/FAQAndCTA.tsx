@@ -1,7 +1,7 @@
 const QUESTIONS = [
   {
     q: "What is Quanti?",
-    a: "Your daily execution compass. You name a concrete target. Each morning you get one 15–20 word action on that path. Optional sleep and HRV size the push. A 10–15 second check names what’s in the way. Last night’s mark writes tomorrow.",
+    a: "Your daily execution compass. You name a 30-day destination target. A 10-second voice check-in plus optional HealthKit becomes one 15-word action card. Evening outcome mark: Executed / Partial / Shifted. Zero-dashboard. Under 30 seconds of daily screen time.",
   },
   {
     q: "How is voice processing secured?",
@@ -9,11 +9,11 @@ const QUESTIONS = [
   },
   {
     q: "Where does the daily directive come from?",
-    a: "Destination + transcript + optional HealthKit (sleep & HRV) + yesterday’s mark (Executed, Partial, or Shifted). The synthesizer does not use calendar, bank, location, or Screen Time.",
+    a: "30-day destination target + 10-second voice check-in + optional HealthKit (sleep & HRV) + evening outcome mark (Executed / Partial / Shifted). The synthesizer does not use calendar, bank, location, or Screen Time.",
   },
   {
     q: "Do I have to connect HealthKit?",
-    a: "No. HealthKit is optional. Without it, Quanti still writes a 1% from your destination and voice. Sleep and HRV only size how hard today can go—they never rewrite the target.",
+    a: "No. HealthKit is optional. Without it, Quanti still writes a 15-word action card from your destination and voice. Sleep and HRV only size how hard today can go—they never rewrite the target.",
   },
   {
     q: "What if I can't speak out loud every morning?",
@@ -21,7 +21,7 @@ const QUESTIONS = [
   },
   {
     q: "Does Quanti lock my apps or force my calendar?",
-    a: "No. There are no speed bumps, app locks, streaks, or dashboards. One card. Then it gets out of the way.",
+    a: "No. There are no app locks, streaks, habit grids, or analytics dashboards. One 15-word action card. Then it gets out of the way.",
   },
   {
     q: "When does TestFlight open?",

@@ -57,6 +57,10 @@ export type DailyTelemetryPayload = {
     status: 'executed' | 'partial' | 'shifted';
     primary_directive: string;
   };
+  /** Onboarding bottleneck vs daily state. Default daily. */
+  synthesis_mode?: 'onboarding' | 'daily';
+  /** User rejected the first card as too vague; demand a named artifact. */
+  artifact_retry?: boolean;
   is_mock: boolean;
   mock_profile: 'high_stress' | 'peak_recovery' | 'balanced' | null;
 };
@@ -97,4 +101,6 @@ export type TelemetrySources = {
   voiceTranscript?: string | null;
   voiceDurationSeconds?: number | null;
   userId?: string | null;
+  synthesis_mode?: 'onboarding' | 'daily';
+  artifact_retry?: boolean;
 };

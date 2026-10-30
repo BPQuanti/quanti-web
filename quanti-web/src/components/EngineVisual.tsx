@@ -18,9 +18,9 @@ const DESTINATIONS = [
 type DestinationId = (typeof DESTINATIONS)[number]["id"] | "custom";
 
 const PASSIVE = [
-  { icon: Compass, label: "Destination you named (the plot)" },
+  { icon: Compass, label: "30-day destination target (the plot)" },
   { icon: Activity, label: "Optional HealthKit: sleep & HRV size today’s window" },
-  { icon: Mic, label: "10–15s check: name what’s in the way" },
+  { icon: Mic, label: "10-second voice check-in: name what’s in the way" },
 ];
 
 export default function EngineVisual() {
@@ -39,27 +39,26 @@ export default function EngineVisual() {
       <div className="pointer-events-none absolute -right-10 top-8 h-64 w-64 rounded-full bg-violet-600/15 blur-3xl" />
       <div className="relative mx-auto max-w-5xl">
         <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">The 30-second daily loop</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Under 30 seconds a day</p>
           <h2 id="engine-visual-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-            Destination + voice + optional sleep = today&apos;s 1%.
+            Destination + 10-second voice + optional HealthKit = one card.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-            You name a finish line someone else could check. HealthKit is optional. The 15-second check names the object
-            in the way. Executed / Partial / Shifted writes tomorrow.
+            Name a 30-day destination target. The 10-second voice check-in names what&apos;s in the way. Evening outcome
+            mark: Executed / Partial / Shifted. Zero-dashboard.
           </p>
           <p className="mx-auto mt-4 max-w-2xl rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-3 text-sm leading-6 text-slate-300">
             <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-300">
               Skip check-in still works, but the card will be blunter.
             </span>
-            Launch is destination + voice. Connect Apple Health when you want sleep and HRV to size the push. No
-            calendar, bank, or Screen Time.
+            HealthKit is optional. Sleep and HRV only size the window. No calendar, bank, location, or Screen Time.
           </p>
         </div>
 
         <div className="mt-10 grid gap-3 lg:grid-cols-3">
           <article className="rounded-2xl border border-sky-400/25 bg-slate-950/80 p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Input A · What Quanti uses</p>
-            <h3 className="mt-2 text-lg font-semibold tracking-tight">The GPS stack</h3>
+            <h3 className="mt-2 text-lg font-semibold tracking-tight">The compass stack</h3>
             <ul className="mt-4 space-y-3">
               {PASSIVE.map((item) => {
                 const Icon = item.icon;
@@ -78,7 +77,7 @@ export default function EngineVisual() {
           <article className="rounded-2xl border border-rose-400/25 bg-slate-950/80 p-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-200">Input B · One blank</p>
             <h3 className="mt-2 text-lg font-semibold tracking-tight">
-              <span aria-hidden>🎙️</span> 15-Second Morning Check
+              <span aria-hidden>🎙️</span> 10-Second Voice Check-In
             </h3>
             <div className="mt-4 flex items-start gap-3">
               <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-rose-400/30 bg-rose-400/10 text-rose-200">
@@ -151,9 +150,9 @@ export default function EngineVisual() {
             <Sparkles className="h-4 w-4" strokeWidth={1.75} />
             Output · Daily directive
           </p>
-          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-50">A + B + C = one 1% rule</h3>
+          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-slate-50">A + B + C = one 15-word card</h3>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-emerald-50/90 sm:text-base">
-            One concrete 1% action for today, sized by last night, aimed at {selectedLabel}.
+            One physical action for today, sized by last night, aimed at {selectedLabel}.
           </p>
         </article>
       </div>

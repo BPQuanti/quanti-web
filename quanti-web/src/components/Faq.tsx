@@ -9,7 +9,7 @@ const QUESTIONS = [
   },
   {
     q: "Do I have to log habits or meals?",
-    a: "Zero manual tracking. Quanti correlates the telemetry you already generate and gives you one daily action. No journals, no checkboxes, no second job.",
+    a: "No. Quanti is an execution compass, not a tracker. A 10-second voice check-in and an evening outcome mark. Zero habit grids, streaks, or dashboards.",
   },
 ];
 
@@ -19,7 +19,7 @@ export default function Faq() {
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">FAQ</p>
         <h2 id="faq-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Privacy, TestFlight, and tracking.
+          Privacy, TestFlight, and the daily loop.
         </h2>
       </div>
       <div className="mx-auto max-w-3xl space-y-3">

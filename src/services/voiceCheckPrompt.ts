@@ -1,7 +1,10 @@
 import type { AgencyArc, DailyTelemetryPayload } from '../types/telemetry';
 
 export const MORNING_VOICE_PROMPT =
-  "Speak for 10-15 seconds: What's on your mind or in your way today?";
+  "Name what's in the way today — a person, artifact, slot in the day, or tool.";
+
+export const ONBOARDING_BOTTLENECK_PROMPT =
+  'Last time this stalled — name the thing. A person, a missing artifact, a slot in the day, or a tool.';
 
 export const VOICE_CHECK_SECONDS = 15;
 

@@ -267,6 +267,8 @@ export async function assembleAnonymizedPayload(
     voice_context: cleaned
       ? { transcript: cleaned, recorded_at: new Date().toISOString() }
       : undefined,
+    synthesis_mode: sources.synthesis_mode,
+    artifact_retry: sources.artifact_retry,
   };
 
   if (live) {

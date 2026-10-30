@@ -9,7 +9,6 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.quanti-app.quanti",
-      "buildNumber": "1",
       "usesAppleSignIn": true,
       "config": {
         "usesNonExemptEncryption": false
