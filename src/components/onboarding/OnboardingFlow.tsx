@@ -27,7 +27,7 @@ import FuturisticVoiceWave from '../../../components/app/FuturisticVoiceWave';
 import { colors, fonts, surfaces, typography } from '../../../constants/theme';
 import { requestHealthKitAuthorization } from '../../services/healthkit';
 import { markOnboardingComplete, setPendingOnboardingVoice } from '../../services/onboarding';
-import { DESTINATION_PLACEHOLDER, parseNorthStarFromSpeech, saveNorthStar, type NorthStar } from '../../services/northStar';
+import { activeTargetFromText, DESTINATION_PLACEHOLDER, saveNorthStar, type NorthStar } from '../../services/northStar';
 import { ONBOARDING_BOTTLENECK_PROMPT, VOICE_CHECK_SECONDS } from '../../services/voiceCheckPrompt';
 import { setAIConsent } from '../../services/privacyConsent';
 import { assembleAnonymizedPayload } from '../../services/telemetryPayload';
@@ -206,7 +206,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
           return;
         }
       }
-      const nextStar = parseNorthStarFromSpeech(typed);
+      const nextStar = activeTargetFromText(typed, star);
       if (!nextStar.next && !nextStar.now) {
         throw new Error('Name a concrete target so Quanti can point at it.');
       }
@@ -303,7 +303,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
                 <Text style={styles.kicker}>Calibration</Text>
                 <Text style={styles.headline}>Where are you going?</Text>
                 <Text style={styles.body}>
-                  Name a 30-day finish line someone else could check. Vague goals make vague cards.
+                  Name one Active Target someone else could check yes or no. No calendar deadline — just a finish line.
                 </Text>
                 <TextInput
                   value={destinationDraft}
@@ -329,7 +329,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
                   </Text>
                   <Text style={styles.exampleLine}>
                     <Text style={styles.exampleLabelStrong}>Strong: </Text>
-                    &quot;Run 5 miles this week&quot; / &quot;Launch iOS alpha to 10 testers&quot;
+                    &quot;Draft landing page copy&quot; / &quot;Ship TestFlight to 10 testers&quot;
                   </Text>
                 </View>
                 <Text style={styles.reassure}>You can change this later. Quanti only points at what you name.</Text>
@@ -425,7 +425,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
                   setError(destinationCheck.reason || 'Name a concrete target first.');
                   return;
                 }
-                saveNorthStar(parseNorthStarFromSpeech(destinationDraft.trim())).catch(() => {});
+                saveNorthStar(activeTargetFromText(destinationDraft.trim())).catch(() => {});
                 go(1);
               }}
               style={[styles.next, !canLeaveDestination && styles.nextDim]}

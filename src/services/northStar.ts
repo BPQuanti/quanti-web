@@ -8,7 +8,10 @@ export type NorthStar = {
   now: string;
   next: string;
   outcomes: string[];
+  setAt?: string;
 };
+
+export const TARGET_STALE_DAYS = 14;
 
 const listeners = new Set<() => void>();
 
@@ -23,7 +26,7 @@ function notify() {
   listeners.forEach((listener) => listener());
 }
 
-export const DESTINATION_PLACEHOLDER = 'e.g., Launch iOS alpha to 10 testers';
+export const DESTINATION_PLACEHOLDER = 'e.g., Ship TestFlight alpha to 10 testers';
 
 function clipStar(value: string, max = 280) {
   return value.replace(/\s+/g, ' ').trim().replace(/^[.,;:\s]+/, '').replace(/[.,;:]+$/, '').slice(0, max);
@@ -63,7 +66,35 @@ export function parseNorthStarFromSpeech(text: string): NorthStar {
     now: now.slice(0, 280) || 'here',
     next: next.slice(0, 280),
     outcomes: outcomes.length ? outcomes : next ? [next.slice(0, 120)] : [],
+    setAt: new Date().toISOString(),
   };
+}
+
+export function activeTargetFromText(text: string, previous?: NorthStar | null): NorthStar {
+  const next = clipStar(text);
+  const same = previous?.next?.trim().toLowerCase() === next.toLowerCase();
+  return {
+    now: same && previous?.now ? previous.now : 'here',
+    next,
+    outcomes: next ? [next.slice(0, 120)] : [],
+    setAt: same && previous?.setAt ? previous.setAt : new Date().toISOString(),
+  };
+}
+
+export function daysOnTarget(star: NorthStar | null): number | null {
+  if (!star?.setAt) {
+    return null;
+  }
+  const start = new Date(star.setAt).getTime();
+  if (!Number.isFinite(start)) {
+    return null;
+  }
+  return Math.max(0, Math.floor((Date.now() - start) / 86_400_000));
+}
+
+export function isTargetStale(star: NorthStar | null) {
+  const days = daysOnTarget(star);
+  return days != null && days >= TARGET_STALE_DAYS;
 }
 
 export function asNorthStar(value: unknown): NorthStar | null {
@@ -79,10 +110,12 @@ export function asNorthStar(value: unknown): NorthStar | null {
   const outcomes = Array.isArray(record.outcomes)
     ? record.outcomes.map(String).map((item) => item.trim()).filter(Boolean).slice(0, 2)
     : [];
+  const setAt = typeof record.setAt === 'string' && record.setAt.trim() ? record.setAt.trim() : undefined;
   return {
     now: now.slice(0, 280),
     next: (next || now).slice(0, 280),
     outcomes,
+    setAt,
   };
 }
 
@@ -124,7 +157,7 @@ export async function getNorthStar(): Promise<NorthStar | null> {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('north_star_now, north_star_next, north_star_outcomes')
+      .select('north_star_now, north_star_next, north_star_outcomes, north_star_set_at')
       .eq('id', userId)
       .maybeSingle();
     if (error || !data) {
@@ -134,11 +167,13 @@ export async function getNorthStar(): Promise<NorthStar | null> {
       north_star_now?: string | null;
       north_star_next?: string | null;
       north_star_outcomes?: unknown;
+      north_star_set_at?: string | null;
     };
     return asNorthStar({
       now: row.north_star_now,
       next: row.north_star_next,
       outcomes: row.north_star_outcomes,
+      setAt: row.north_star_set_at,
     });
   } catch {
     return null;
@@ -164,10 +199,20 @@ export async function saveNorthStar(star: NorthStar): Promise<void> {
       north_star_now: next.now || null,
       north_star_next: next.next || null,
       north_star_outcomes: next.outcomes,
+      north_star_set_at: next.setAt || null,
       updated_at: new Date().toISOString(),
     });
     if (error) {
       console.warn('[NorthStar] profile persist failed', error.message);
+      if (/north_star_set_at/i.test(error.message)) {
+        await supabase.from('profiles').upsert({
+          id: userId,
+          north_star_now: next.now || null,
+          north_star_next: next.next || null,
+          north_star_outcomes: next.outcomes,
+          updated_at: new Date().toISOString(),
+        });
+      }
     }
   }
   notify();
@@ -190,6 +235,7 @@ export async function clearNorthStar(): Promise<void> {
         north_star_now: null,
         north_star_next: null,
         north_star_outcomes: [],
+        north_star_set_at: null,
         updated_at: new Date().toISOString(),
       })
       .then(({ error }) => {

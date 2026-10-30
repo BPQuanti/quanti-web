@@ -5,7 +5,7 @@ import { colors, fonts, surfaces, typography } from '../../constants/theme';
 const CARDS = [
   {
     title: 'Destination you named',
-    body: 'Where you are and where you want to go is the plot. Quanti stores that on your account so today’s card is a 1% move on that vector—not a season, streak, or posture.',
+    body: 'The Active Target is the plot. Quanti stores that on your account so today’s card is a 1% move toward that object—not a season, streak, or posture.',
   },
   {
     title: 'HealthKit sizes the window',

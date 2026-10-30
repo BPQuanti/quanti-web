@@ -21,7 +21,7 @@ export default function FocusDemoSection() {
             Name where you are going. Watch the 1% daily rule move.
           </h2>
           <p className="mt-4 text-sm leading-7 text-slate-400 sm:text-base">
-            A 30-day destination target is the plot. Optional HealthKit sizes the window. A 10-second voice check-in
+            An Active Target is the plot. Optional HealthKit sizes the window. A 10-second voice check-in
             fills the one blank sensors cannot see.
           </p>
           <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Example destinations">

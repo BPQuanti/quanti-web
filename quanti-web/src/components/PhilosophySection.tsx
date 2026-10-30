@@ -2,8 +2,8 @@ import { Hourglass, Mic, ScanEye, Timer } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "30-day destination",
-    body: "You name a checkable 30-day destination target. That finish line is the plot. Sensors never replace it.",
+    title: "Active Target",
+    body: "You name one checkable Active Target. No calendar deadline. That object is the plot. Sensors never replace it.",
     icon: Hourglass,
   },
   {

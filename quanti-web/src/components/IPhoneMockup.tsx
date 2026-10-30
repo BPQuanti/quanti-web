@@ -52,7 +52,7 @@ export default function IPhoneMockup() {
               Year in Review: Golf
             </p>
             <p className="mt-0.5 text-left text-[10px] leading-4 text-[#A1A1AA]">
-              30-day destination · 10-second voice · optional HealthKit
+              Active Target · 10-second voice · optional HealthKit
             </p>
 
             <div className="mt-3 flex items-center gap-2.5 rounded-2xl border border-[#7C3AED] bg-zinc-900/90 px-3 py-2.5 shadow-[0_0_18px_rgba(124,58,237,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]">

@@ -42,7 +42,7 @@ export default function WidgetPreview() {
             Same destination. Different 1%. Because yesterday and last night changed.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-400">
-            The 30-day destination target stays the plot. Optional HealthKit sizes the window. A 10-second voice
+            The Active Target stays the plot. Optional HealthKit sizes the window. A 10-second voice
             check-in fills the blank. Evening outcome mark writes tomorrow.
           </p>
         </div>

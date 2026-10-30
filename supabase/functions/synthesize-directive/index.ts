@@ -49,6 +49,8 @@ type TelemetryPayload = {
   };
   synthesis_mode?: "onboarding" | "daily";
   artifact_retry?: boolean;
+  days_on_target?: number | null;
+  target_stale?: boolean;
 };
 
 type SynthesizerInput = {
@@ -63,22 +65,28 @@ type SynthesizerInput = {
   yesterday_outcome: Outcome | null;
   synthesis_mode: "onboarding" | "daily";
   artifact_retry: boolean;
+  days_on_target: number | null;
+  target_stale: boolean;
 };
 
 const SYSTEM_PROMPT = `You are Quanti's Daily Synthesizer. Write ONE 1% action for today.
 
 INPUTS (only these — never classify arcs, seasons, or posture)
-- destination: immutable. now = where they are. next = where they are going. Never change it.
-- transcript: words they spoke. onboarding = PATTERN bottleneck (what usually stalls the target). daily = TODAY'S state. Never treat an onboarding bottleneck as identity on later days.
+- destination.next = Active Target. Immutable. Never invent a deadline or a new target. Do not auto-swap it.
+- destination.now = optional context. Ignore if empty.
+- transcript: onboarding = PATTERN bottleneck. daily = TODAY'S state.
 - synthesis_mode: "onboarding" | "daily"
-- artifact_retry: if true, the previous card was too vague. Output a sharper ARTIFACT (list, message, file, invite, draft). Never advice.
-- biometrics: sleep, HRV, recovery. Window size only. Not the plot.
-- healthkit: false = no live recovery data. Ignore biometrics. Do not claim the watch informed the card. Do not invent recovery problems.
-- yesterday_outcome: executed | partial | shifted | null.
+- artifact_retry: previous card too vague. Sharper ARTIFACT only.
+- days_on_target: how long this Active Target has been set. Governor of SIZE only.
+- target_stale: true if the target has been open a long time without Achieved. Shrink. Never guilt. Never replace the target.
+- biometrics / healthkit: window size only. healthkit false = ignore biometrics.
+- yesterday_outcome: executed | partial | shifted | null. This is the DAILY card mark, not Achieved. Achieved closes the Active Target in the app, not here.
 
 WEIGHTING
-- onboarding: destination.next + bottleneck transcript. Ignore yesterday_outcome. Next physical artifact toward the target, around the named stall. Never "block distractions" or other meta-productivity.
-- daily: yesterday_outcome first if present, then today's transcript, then destination. Do not repeat an old stall unless today's transcript names it again.
+- onboarding: Active Target + bottleneck transcript. Ignore yesterday_outcome.
+- daily: yesterday_outcome first if present, then today's transcript, then Active Target.
+- days_on_target 0–3: smallest next artifact. 4–13: name what remains. 14+ or target_stale: embarrassingly small artifact that would make the target checkable today. Do not invent a new destination.
+- Never output "mark it achieved" unless the remaining object is literally today's sitting.
 
 primary_directive — STRICT
 - 15–20 words max. Zero markdown. Zero preambles. No quotes, bullets, or labels.
@@ -158,6 +166,10 @@ function sanitizePayload(input: TelemetryPayload, userId: string): SynthesizerIn
       : asOutcome(input.yesterday_outcome) ?? asOutcome(input.last_execution?.status),
     synthesis_mode: onboarding ? "onboarding" : "daily",
     artifact_retry: input.artifact_retry === true,
+    days_on_target: typeof input.days_on_target === "number" && Number.isFinite(input.days_on_target)
+      ? Math.max(0, Math.round(input.days_on_target))
+      : null,
+    target_stale: input.target_stale === true,
   };
 }
 
@@ -288,6 +300,8 @@ serve(async (req) => {
       yesterday_outcome: payload.yesterday_outcome,
       synthesis_mode: payload.synthesis_mode,
       artifact_retry: payload.artifact_retry,
+      days_on_target: payload.days_on_target,
+      target_stale: payload.target_stale,
     });
 
     const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {

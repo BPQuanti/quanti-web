@@ -49,7 +49,7 @@ export default function DailyFocusCard() {
           One card. One move. On your Lock Screen.
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-          30-day destination target plus a 10-second voice check-in become one 15-word action card—not another dashboard.
+          An Active Target plus a 10-second voice check-in become one 15-word action card—not another dashboard.
         </p>
       </div>
 

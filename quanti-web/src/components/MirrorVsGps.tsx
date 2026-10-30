@@ -24,7 +24,7 @@ const COMPASS = [
   },
   {
     title: "One 15-word action card",
-    description: "30-day destination target + voice + optional HealthKit, compressed into one move.",
+    description: "Active Target + voice + optional HealthKit, compressed into one move.",
   },
   {
     title: "Evening outcome mark",

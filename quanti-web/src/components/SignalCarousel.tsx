@@ -3,7 +3,7 @@
 import { useRef } from "react";
 
 const CAPABILITIES = [
-  { icon: "🎯", label: "30-day destination target", detail: "A finish line someone else could check" },
+  { icon: "🎯", label: "Active Target", detail: "One checkable object. No calendar deadline." },
   { icon: "⌚", label: "Optional HealthKit", detail: "Sleep and HRV only size today’s push" },
   { icon: "🎙️", label: "10-second voice check-in", detail: "Name the file, person, place, or clock time in the way" },
   { icon: "✓", label: "Evening outcome mark", detail: "Executed / Partial / Shifted writes tomorrow" },

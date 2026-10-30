@@ -2,7 +2,7 @@ import { fetchSleepAndHRV } from './healthkit';
 import { cacheAnonymizedPayload } from './privacyConsent';
 import { getSelectedArc } from './arcSettings';
 import { getPriorExecution } from './directiveHistory';
-import { getNorthStar, parseNorthStarFromSpeech } from './northStar';
+import { daysOnTarget, getNorthStar, isTargetStale, parseNorthStarFromSpeech } from './northStar';
 import { getMockTelemetrySources } from './telemetryMocks';
 import { getSelectedMockProfile, isUseRealHardwareEnabled } from './telemetrySettings';
 import type { DailyTelemetryPayload, TelemetrySources } from '../types/telemetry';
@@ -255,6 +255,8 @@ export async function assembleAnonymizedPayload(
     agency_arc: agencyArc ?? 'deep_work',
     infer_arc: false,
     north_star: storedStar ?? spokenStar ?? undefined,
+    days_on_target: daysOnTarget(storedStar ?? spokenStar ?? null),
+    target_stale: isTargetStale(storedStar ?? spokenStar ?? null),
     last_execution: prior?.status
       ? {
           date: prior.date,

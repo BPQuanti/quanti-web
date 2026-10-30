@@ -542,13 +542,13 @@ export default function TodayHub() {
         <View style={styles.scroll}>
           <View style={styles.sectionCard}>
             <Text style={styles.sectionKicker}>First-time setup</Text>
-            <Text style={styles.directiveText}>Tell Quanti where you are and where you want to go.</Text>
+            <Text style={styles.directiveText}>Tell Quanti the Active Target — one checkable object.</Text>
             <Text style={styles.cardSubtext}>
               New accounts start empty. Name your destination — nothing is copied from another user on this
               phone.
             </Text>
             <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.journalSubmit}>
-              <Text style={styles.journalSubmitText}>Set your destination</Text>
+              <Text style={styles.journalSubmitText}>Set your Active Target</Text>
             </Pressable>
           </View>
         </View>
@@ -631,8 +631,8 @@ export default function TodayHub() {
                 <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.arcShift}>
                   <Text style={styles.arcShiftText}>
                     {formatToward(northStar)
-                      ? `Building toward: ${formatToward(northStar)}`
-                      : 'Add where you want to go · rewrite anytime'}
+                      ? `Active Target: ${formatToward(northStar)}`
+                      : 'Set an Active Target · rewrite anytime'}
                   </Text>
                 </Pressable>
                 <Text style={styles.directiveText}>{headline}</Text>

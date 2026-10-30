@@ -2,9 +2,9 @@ import { Compass, Mic, Shield } from "lucide-react";
 
 const ANCHORS = [
   {
-    title: "Name a 30-day destination",
-    kicker: "Destination target",
-    body: "A checkable 30-day destination target is the plot. The 10-second voice check-in only fills the blank sensors cannot see.",
+    title: "Name an Active Target",
+    kicker: "Active Target",
+    body: "One checkable object is the plot. No 30-day box. The 10-second voice check-in only fills the blank sensors cannot see.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-200",
   },

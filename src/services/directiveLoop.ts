@@ -15,7 +15,7 @@ export function towardLabel(payload: DailyTelemetryPayload): string {
     return clip(next, 72);
   }
   const outcome = payload.north_star?.outcomes?.[0]?.trim();
-  return outcome ? clip(outcome, 72) : 'where you want to go';
+  return outcome ? clip(outcome, 72) : 'your Active Target';
 }
 
 export function energyIsLow(payload: DailyTelemetryPayload): boolean {
@@ -76,6 +76,12 @@ export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirecti
     blocks = [`25 minutes toward ${toward}, then a hard stop.`];
   } else if (low && retry) {
     why = `${why} Keep the window short.`;
+  }
+
+  if (payload.target_stale) {
+    primary = `Name the missing artifact that would make “${clip(toward, 40)}” checkable today, then finish only that.`;
+    why = `This Active Target has been open a long time. Shrink to one object. Do not invent a new destination.`;
+    blocks = [`One embarrassingly small artifact toward ${toward}.`];
   }
 
   if (voice) {

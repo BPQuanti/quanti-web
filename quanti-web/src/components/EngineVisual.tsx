@@ -18,7 +18,7 @@ const DESTINATIONS = [
 type DestinationId = (typeof DESTINATIONS)[number]["id"] | "custom";
 
 const PASSIVE = [
-  { icon: Compass, label: "30-day destination target (the plot)" },
+  { icon: Compass, label: "Active Target (the plot)" },
   { icon: Activity, label: "Optional HealthKit: sleep & HRV size today’s window" },
   { icon: Mic, label: "10-second voice check-in: name what’s in the way" },
 ];
@@ -44,7 +44,7 @@ export default function EngineVisual() {
             Destination + 10-second voice + optional HealthKit = one card.
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400 sm:text-base">
-            Name a 30-day destination target. The 10-second voice check-in names what&apos;s in the way. Evening outcome
+            Name an Active Target. The 10-second voice check-in names what&apos;s in the way. Evening outcome
             mark: Executed / Partial / Shifted. Zero-dashboard.
           </p>
           <p className="mx-auto mt-4 max-w-2xl rounded-2xl border border-indigo-400/20 bg-indigo-500/10 px-4 py-3 text-sm leading-6 text-slate-300">
@@ -130,7 +130,7 @@ export default function EngineVisual() {
                   setDestination("custom");
                 }}
                 onFocus={() => setDestination("custom")}
-                placeholder='Where you are → where you want to go (e.g. "at home → own place")'
+                placeholder='e.g. Ship TestFlight alpha to 10 testers'
                 className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
                 aria-label="Type where you are and where you want to go"
               />

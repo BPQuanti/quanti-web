@@ -16,7 +16,7 @@ export default function FooterCta() {
           Built to stand in your corner.
         </h2>
         <p className="mx-auto mt-5 text-lg leading-relaxed text-slate-400">
-          Trackers make you the administrator. Quanti is an execution compass: a 30-day destination target, a 10-second
+          Trackers make you the administrator. Quanti is an execution compass: an Active Target, a 10-second
           voice check-in, and one 15-word action card. Evening outcome mark writes tomorrow. Zero-dashboard. Under 30
           seconds of daily screen time.
         </p>

@@ -2,13 +2,17 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { colors, fonts, surfaces, typography } from '../../constants/theme';
 import { getCustomArcContext, setCustomArcContext, subscribeCustomArcContext } from '../../src/lib/arcs';
+import { assessDestination } from '../../src/services/destinationQuality';
 import {
+  activeTargetFromText,
   clearNorthStar,
+  daysOnTarget,
   DESTINATION_PLACEHOLDER,
   getNorthStar,
-  parseNorthStarFromSpeech,
+  isTargetStale,
   saveNorthStar,
   subscribeNorthStar,
+  TARGET_STALE_DAYS,
   type NorthStar,
 } from '../../src/services/northStar';
 import FuturisticVoiceWave from './FuturisticVoiceWave';
@@ -20,8 +24,8 @@ function formatElapsed(totalSeconds: number) {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
-function persistNarrative(next: NorthStar) {
-  setCustomArcContext(`${next.now} ${next.next}`.trim());
+function persistTarget(next: NorthStar) {
+  setCustomArcContext(next.next.trim());
   saveNorthStar(next).catch(() => {});
 }
 
@@ -32,6 +36,8 @@ export default function ArcsTab() {
   const [writeOpen, setWriteOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [saved, setSaved] = useState<NorthStar | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [staleDismissed, setStaleDismissed] = useState(false);
 
   useEffect(() => subscribeCustomArcContext(setContext), []);
   useEffect(() => {
@@ -64,38 +70,48 @@ export default function ArcsTab() {
     return () => clearInterval(tick);
   }, [isRecording]);
 
+  function trySave(raw: string) {
+    const check = assessDestination(raw);
+    if (!check.ok) {
+      setError(check.reason || 'Name one checkable Active Target.');
+      setWriteOpen(true);
+      return false;
+    }
+    const next = activeTargetFromText(raw, saved);
+    setSaved(next);
+    persistTarget(next);
+    setError(null);
+    setWriteOpen(false);
+    setIsRecording(false);
+    setElapsed(0);
+    setStaleDismissed(false);
+    return true;
+  }
+
   function toggleRecord() {
     if (isRecording) {
-      const narrative = parseNorthStarFromSpeech(draft.trim() || context);
-      setSaved(narrative);
-      persistNarrative(narrative);
-      setIsRecording(false);
-      setElapsed(0);
-      setWriteOpen(false);
+      trySave(draft.trim() || context);
       return;
     }
     setElapsed(0);
     setIsRecording(true);
+    setError(null);
   }
 
-  function submitWrite() {
-    const narrative = parseNorthStarFromSpeech(draft || context);
-    setSaved(narrative);
-    persistNarrative(narrative);
-    setWriteOpen(false);
-    setIsRecording(false);
-    setElapsed(0);
-  }
-
-  function resetNarrative() {
+  function markAchieved() {
     setSaved(null);
     setDraft('');
     setCustomArcContext('');
     clearNorthStar().catch(() => {});
-    setWriteOpen(false);
+    setWriteOpen(true);
     setIsRecording(false);
     setElapsed(0);
+    setError(null);
+    setStaleDismissed(false);
   }
+
+  const stale = isTargetStale(saved) && !staleDismissed;
+  const age = daysOnTarget(saved);
 
   return (
     <ObsidianScreen>
@@ -104,47 +120,69 @@ export default function ArcsTab() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageKicker}>Destination</Text>
-        <Text style={styles.pageTitle}>Where you are. Where you want to go.</Text>
+        <Text style={styles.pageKicker}>Active Target</Text>
+        <Text style={styles.pageTitle}>One checkable object. No calendar deadline.</Text>
 
         {saved ? (
           <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>Destination</Text>
+            <Text style={styles.seasonTag}>Active Target</Text>
             <View style={styles.summaryBox}>
-              <Text style={styles.micro}>Now</Text>
-              <Text style={styles.summaryBody}>{saved.now}</Text>
-              <Text style={[styles.micro, styles.microGap]}>Next</Text>
               <Text style={styles.summaryBody}>{saved.next}</Text>
-              {saved.outcomes.length ? (
-                <>
-                  <Text style={[styles.micro, styles.microGap]}>Today should serve</Text>
-                  {saved.outcomes.map((item) => (
-                    <Text key={item} style={styles.summaryBody}>
-                      {item}
-                    </Text>
-                  ))}
-                </>
+              {age != null ? (
+                <Text style={styles.alignSub}>
+                  {age === 0 ? 'Set today' : `${age} day${age === 1 ? '' : 's'} on this target`}
+                </Text>
               ) : null}
             </View>
-            <Pressable onPress={resetNarrative} style={styles.updateBtn}>
-              <Text style={styles.updateText}>Rewrite now / next</Text>
+            {stale ? (
+              <View style={styles.staleBox}>
+                <Text style={styles.alignPrompt}>
+                  This has been the Active Target for {TARGET_STALE_DAYS}+ days. Still this, or did the next object
+                  change?
+                </Text>
+                <View style={styles.row}>
+                  <Pressable onPress={() => setStaleDismissed(true)} style={styles.submit}>
+                    <Text style={styles.submitText}>Still this</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      setDraft(saved.next);
+                      setWriteOpen(true);
+                      setStaleDismissed(true);
+                    }}
+                    style={styles.ghost}
+                  >
+                    <Text style={styles.updateText}>Retarget</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+            <Pressable onPress={markAchieved} style={styles.achieveBtn}>
+              <Text style={styles.achieveText}>Achieved — set next Active Target</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                setDraft(saved.next);
+                setWriteOpen(true);
+              }}
+              style={styles.updateBtn}
+            >
+              <Text style={styles.updateText}>Rewrite</Text>
             </Pressable>
           </View>
         ) : (
           <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>Now / next</Text>
-            <Text style={styles.alignTitle}>Tell Quanti the destination</Text>
+            <Text style={styles.seasonTag}>Next object</Text>
+            <Text style={styles.alignTitle}>Set your Active Target</Text>
             <Text style={styles.alignPrompt}>
-              Name a finish line someone else could check. Daily cards are 1% moves toward that target.
+              One finish line someone else could check yes or no. When it is done, mark Achieved and name the next one.
             </Text>
-            <Text style={styles.alignSub}>
-              {DESTINATION_PLACEHOLDER}
-            </Text>
+            <Text style={styles.alignSub}>{DESTINATION_PLACEHOLDER}</Text>
 
             <Pressable
               onPress={toggleRecord}
               accessibilityRole="button"
-              accessibilityLabel={isRecording ? 'Tap to finish now and next' : 'Tap wave for 10 to 15 second voice check'}
+              accessibilityLabel={isRecording ? 'Tap to finish Active Target' : 'Tap wave to speak the Active Target'}
               style={({ pressed }) => [
                 styles.waveHit,
                 isRecording && styles.waveHitActive,
@@ -154,30 +192,40 @@ export default function ArcsTab() {
               <FuturisticVoiceWave isRecording={isRecording} gradientId="arcWaveGradient" />
             </Pressable>
             <Text style={styles.timer}>
-              {isRecording
-                ? `${formatElapsed(elapsed)} / 0:15`
-                : 'Speak for 10–15 seconds'}
+              {isRecording ? `${formatElapsed(elapsed)} / 0:15` : 'Speak for 10–15 seconds'}
             </Text>
+          </View>
+        )}
 
-            <Pressable onPress={() => setWriteOpen((open) => !open)} style={styles.writeToggle}>
-              <Text style={styles.writeToggleText}>Or write it instead</Text>
-            </Pressable>
-            {writeOpen ? (
-              <View style={styles.writeBox}>
+        {(writeOpen || !saved) && (
+          <View style={styles.writeBox}>
+            {!saved ? (
+              <Pressable onPress={() => setWriteOpen((open) => !open)} style={styles.writeToggle}>
+                <Text style={styles.writeToggleText}>Or write it instead</Text>
+              </Pressable>
+            ) : null}
+            {(writeOpen || (saved && writeOpen)) && (
+              <View>
                 <TextInput
                   value={draft}
-                  onChangeText={setDraft}
+                  onChangeText={(value) => {
+                    setDraft(value);
+                    if (error) {
+                      setError(null);
+                    }
+                  }}
                   placeholder={DESTINATION_PLACEHOLDER}
                   placeholderTextColor="#737373"
                   multiline
                   textAlignVertical="top"
                   style={styles.input}
                 />
-                <Pressable onPress={submitWrite} style={styles.submit}>
-                  <Text style={styles.submitText}>Save destination</Text>
+                {error ? <Text style={styles.error}>{error}</Text> : null}
+                <Pressable onPress={() => trySave(draft)} style={styles.submit}>
+                  <Text style={styles.submitText}>Save Active Target</Text>
                 </Pressable>
               </View>
-            ) : null}
+            )}
           </View>
         )}
       </ScrollView>
@@ -187,38 +235,8 @@ export default function ArcsTab() {
 
 const styles = StyleSheet.create({
   scroll: { paddingBottom: 32, paddingHorizontal: 20, paddingTop: 16 },
-  kicker: typography.kicker,
-  title: { ...typography.heading, marginTop: 8 },
-  subtitle: { ...typography.body, marginBottom: 20, marginTop: 8 },
   pageKicker: typography.kicker,
   pageTitle: { ...typography.heading, fontSize: 24, marginBottom: 18, marginTop: 8 },
-  examplesKicker: { ...typography.kicker, marginBottom: 6, marginTop: 22 },
-  examplesHint: { color: colors.muted, fontFamily: fonts.regular, fontSize: 13, lineHeight: 20, marginBottom: 14 },
-  card: {
-    ...surfaces.glass,
-    marginBottom: 12,
-    padding: 16,
-  },
-  cardOn: {
-    backgroundColor: '#1F180C',
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-  },
-  cardPressed: {
-    borderColor: colors.borderHover,
-  },
-  cardTitle: { color: colors.heading, fontFamily: fonts.semibold, fontSize: 16, letterSpacing: -0.3 },
-  cardTarget: {
-    color: colors.amber,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    lineHeight: 18,
-    marginTop: 8,
-  },
-  cardBody: { color: colors.muted, fontFamily: fonts.regular, fontSize: 14, lineHeight: 22, marginTop: 8 },
   alignCard: {
     ...surfaces.glass,
     marginBottom: 16,
@@ -229,10 +247,6 @@ const styles = StyleSheet.create({
     color: colors.amber,
     marginBottom: 8,
   },
-  micro: {
-    ...typography.badgeText,
-  },
-  microGap: { marginTop: 14 },
   alignTitle: {
     color: colors.heading,
     fontFamily: fonts.semibold,
@@ -284,7 +298,7 @@ const styles = StyleSheet.create({
   },
   writeToggle: {
     alignSelf: 'center',
-    marginTop: 14,
+    marginTop: 4,
     paddingVertical: 6,
   },
   writeToggleText: {
@@ -292,7 +306,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     fontSize: 13,
   },
-  writeBox: { marginTop: 10, width: '100%' },
+  writeBox: { marginTop: 4, width: '100%' },
   input: {
     backgroundColor: 'rgba(23, 23, 23, 0.6)',
     borderColor: colors.border,
@@ -311,21 +325,19 @@ const styles = StyleSheet.create({
     borderColor: colors.indigoBorder,
     borderRadius: 999,
     borderWidth: 1,
+    flex: 1,
     marginTop: 12,
     paddingVertical: 12,
   },
   submitText: { color: colors.heading, fontFamily: fonts.semibold, fontSize: 14 },
-  savedBadge: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    backgroundColor: colors.amberBg,
-    borderColor: colors.amberBorder,
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  ghost: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    marginTop: 12,
+    paddingVertical: 12,
   },
-  savedBadgeText: { ...typography.badgeText, color: colors.amber },
+  row: { flexDirection: 'row', gap: 10 },
   summaryBox: {
     backgroundColor: 'rgba(23, 23, 23, 0.6)',
     borderColor: colors.border,
@@ -337,11 +349,26 @@ const styles = StyleSheet.create({
   summaryBody: {
     color: colors.heading,
     fontFamily: fonts.regular,
-    fontSize: 14,
-    lineHeight: 22,
-    marginTop: 6,
+    fontSize: 16,
+    lineHeight: 24,
   },
-  updateBtn: { alignSelf: 'flex-start', marginTop: 14, paddingVertical: 4 },
+  updateBtn: { alignSelf: 'flex-start', marginTop: 10, paddingVertical: 4 },
   updateText: { color: colors.muted, fontFamily: fonts.medium, fontSize: 13 },
-  sandboxHint: { ...typography.badgeText, marginTop: 16 },
+  achieveBtn: {
+    alignItems: 'center',
+    backgroundColor: colors.emeraldBg,
+    borderColor: colors.emeraldBorder,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginTop: 16,
+    paddingVertical: 12,
+  },
+  achieveText: { color: colors.emerald, fontFamily: fonts.semibold, fontSize: 14 },
+  staleBox: { marginTop: 8 },
+  error: {
+    color: colors.amber,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    marginTop: 8,
+  },
 });

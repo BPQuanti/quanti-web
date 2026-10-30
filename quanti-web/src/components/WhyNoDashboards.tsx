@@ -22,7 +22,7 @@ const QUANTI = [
   },
   {
     title: "Compresses Decisions",
-    body: "Combines your 30-day destination target, a 10-second morning voice check-in, and HealthKit biometrics to hand you one 15-word physical action card.",
+    body: "Combines your Active Target, a 10-second morning voice check-in, and HealthKit biometrics to hand you one 15-word physical action card.",
   },
   {
     title: "Adapts Without Judgment",

@@ -42,6 +42,7 @@ export type DailyTelemetryPayload = {
     now: string;
     next: string;
     outcomes: string[];
+    setAt?: string;
   };
   biometrics: BiometricSummary;
   healthkit?: boolean;
@@ -57,6 +58,8 @@ export type DailyTelemetryPayload = {
     status: 'executed' | 'partial' | 'shifted';
     primary_directive: string;
   };
+  days_on_target?: number | null;
+  target_stale?: boolean;
   /** Onboarding bottleneck vs daily state. Default daily. */
   synthesis_mode?: 'onboarding' | 'daily';
   /** User rejected the first card as too vague; demand a named artifact. */

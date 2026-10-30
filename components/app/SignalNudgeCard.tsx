@@ -71,7 +71,7 @@ export default function SignalNudgeCard({ northStar, healthOn, micOn, onOpenArcs
         <Text style={styles.link}>Connect in Privacy</Text>
       </Pressable>
       <Pressable onPress={onOpenArcs}>
-        <Text style={styles.fluid}>Destination can be rewritten anytime.</Text>
+        <Text style={styles.fluid}>Active Target can be rewritten anytime.</Text>
       </Pressable>
     </View>
   );

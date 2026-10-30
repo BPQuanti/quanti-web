@@ -13,7 +13,7 @@ export default function Hero() {
           Your daily execution compass.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-400 sm:text-lg">
-          Name a 30-day destination target. A 10-second voice check-in plus optional HealthKit becomes one 15-word
+          Name an Active Target. A 10-second voice check-in plus optional HealthKit becomes one 15-word
           action card. Zero-dashboard. Under 30 seconds of daily screen time.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
@@ -30,7 +30,7 @@ export default function Hero() {
               one move.&rdquo;
             </p>
             <p className="mt-3 border-t border-white/5 pt-3 text-[11px] text-neutral-400">
-              30-day destination + 10s voice + optional HealthKit
+              Active Target + 10s voice + optional HealthKit
             </p>
           </article>
           <p className="mt-3 text-center text-sm font-semibold leading-6 text-emerald-100">
