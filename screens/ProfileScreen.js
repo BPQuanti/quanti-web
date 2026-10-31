@@ -17,6 +17,7 @@ import { IS_APP_REVIEW_DEMO } from '../lib/config/demoMode';
 import DeleteAccountModal from '../src/features/settings/DeleteAccountModal';
 import PaywallFooter from '../src/features/subscription/PaywallFooter';
 import PaywallModal from '../src/components/subscription/PaywallModal';
+import LegalSafetyDrawer from '../src/components/LegalSafetyDrawer';
 import ProfileView from '../src/components/profile/ProfileView';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
@@ -56,6 +57,7 @@ export default function ProfileScreen() {
   const { signOut, user, session } = useAuth();
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [legalOpen, setLegalOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [tier, setTier] = useState('pro');
   const [paywallOpen, setPaywallOpen] = useState(false);
@@ -216,6 +218,16 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
+              <TouchableOpacity
+                style={styles.legalBtn}
+                onPress={() => {
+                  setSettingsOpen(false);
+                  setLegalOpen(true);
+                }}
+              >
+                <Text style={styles.legalBtnText}>Legal & Safety Disclaimer</Text>
+              </TouchableOpacity>
+
               <View style={styles.card}>
                 <Text style={styles.cardLabel}>Subscription tier</Text>
                 <TouchableOpacity
@@ -284,6 +296,7 @@ export default function ProfileScreen() {
           </Pressable>
         </Pressable>
       </Modal>
+      <LegalSafetyDrawer visible={legalOpen} onClose={() => setLegalOpen(false)} />
       <DeleteAccountModal
         visible={deleteOpen}
         accessToken={session?.access_token}
@@ -475,6 +488,17 @@ const styles = StyleSheet.create({
   tierRowActive: { borderColor: colors.accent, backgroundColor: colors.borderGlow },
   tierName: { color: WHITE, fontFamily: fonts.semibold, fontWeight: '600' },
   tierPrice: { color: colors.accentSoft, fontFamily: fonts.mono, fontWeight: '500' },
+  legalBtn: {
+    marginTop: 4,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.card,
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  legalBtnText: { color: colors.heading, fontFamily: fonts.semibold, fontWeight: '600' },
   resetBtn: {
     marginTop: 4,
     marginBottom: 12,

@@ -623,7 +623,9 @@ export default function TodayHub() {
             ) : (
               <View style={styles.sectionCard}>
                 <View style={styles.widgetHead}>
-                  <Text style={styles.sectionKicker}>Today’s directive</Text>
+                  <Text style={styles.sectionKicker}>
+                    {directive.aborted || directive.crisis_intercept ? 'Get help' : 'Today’s directive'}
+                  </Text>
                   {voiceBoosted ? (
                     <Text style={styles.statusBadgeTextRefined}>✨ Refined with Voice Context</Text>
                   ) : null}
@@ -642,6 +644,7 @@ export default function TodayHub() {
                     {line}
                   </Text>
                 ))}
+                {directive.aborted || directive.crisis_intercept ? null : (
                 <View style={[styles.outcomeCard, !todayLog?.status && styles.outcomeCardUrgent]}>
                   <Text style={styles.outcomeTitle}>
                     {todayLog?.status ? 'Today’s mark' : 'Mark today’s 1%'}
@@ -686,6 +689,7 @@ export default function TodayHub() {
                     })}
                   </View>
                 </View>
+                )}
               </View>
             )}
 

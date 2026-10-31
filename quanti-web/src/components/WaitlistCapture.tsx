@@ -4,20 +4,16 @@ import { FormEvent, Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import WaitlistErrorBoundary from "@/components/WaitlistErrorBoundary";
-import WaitlistShareActions from "@/components/WaitlistShareActions";
 import {
   REF_STORAGE_KEY,
   SIGNUP_EVENT,
   SIGNUP_STORAGE_KEY,
   clearStorage,
-  copyText,
   friendlyWaitlistError,
   parseJsonResponse,
   readStorage,
   writeStorage,
 } from "@/lib/waitlist/clientStorage";
-import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
-import { waitlistViralRuleCopy } from "@/lib/waitlist/rank";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -91,7 +87,7 @@ function signupFromPayload(payload: WaitlistApiResponse, fallbackEmail: string):
 
 function WaitlistCaptureForm({
   emailFieldId,
-  submitLabel = "Request Early Access",
+  submitLabel = "Request TestFlight Access",
   refreshOnMount = true,
 }: WaitlistCaptureProps) {
   const searchParams = useSearchParams();
@@ -99,7 +95,7 @@ function WaitlistCaptureForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [referredBy, setReferredBy] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [touched, setTouched] = useState(false);
   const [signup, setSignup] = useState<SignupState | null>(null);
 
   useEffect(() => {
@@ -188,47 +184,38 @@ function WaitlistCaptureForm({
     }
   }
 
-  async function copyLink() {
-    if (!signup?.referralToken) {
-      return;
-    }
-    const ok = await copyText(waitlistShareUrl(signup.referralToken));
-    if (!ok) {
-      setError("Could not copy the link. Long-press it to copy.");
-      return;
-    }
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  }
-
   function startOver() {
     clearStorage(SIGNUP_STORAGE_KEY);
     setSignup(null);
     setEmail("");
     setError("");
-    setCopied(false);
   }
 
+  const emailValid = EMAIL_PATTERN.test(
+    email
+      .normalize("NFKC")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim()
+      .toLowerCase(),
+  );
+  const showEmailError = Boolean(error) || (touched && email.length > 0 && !emailValid);
+
   if (signup) {
-    const shareUrl = waitlistShareUrl(signup.referralToken);
     return (
-      <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-4 text-left shadow-[0_0_28px_rgba(16,185,129,0.12)]">
-        <p className="flex items-center gap-2 text-sm font-semibold text-emerald-200">
-          <CheckCircle2 className="h-4 w-4" />
-          You are #{signup.currentRank} on the waitlist.
+      <div className="min-h-[168px] rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-left">
+        <p className="flex items-center gap-2 text-sm font-semibold text-white">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />
+          You&apos;re on the list for TestFlight access.
         </p>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{waitlistViralRuleCopy()}</p>
-        <div className="mt-4">
-          <WaitlistShareActions shareUrl={shareUrl} copied={copied} onCopy={copyLink} />
-        </div>
+        <p className="mt-2 text-sm leading-6 text-white/60">
+          We&apos;re sending invites in batches to keep cohort feedback high-signal. Watch your inbox for a direct
+          invitation link from Apple TestFlight as spots open up.
+        </p>
         {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
-        <p className="mt-3 text-xs leading-5 text-slate-500">
-          We sent a confirmation to your inbox. If you don&apos;t see it, check Promotions or Spam.
-        </p>
         <button
           type="button"
           onClick={startOver}
-          className="mt-3 text-xs text-slate-500 underline-offset-2 transition hover:text-slate-300 hover:underline"
+          className="mt-3 text-xs text-white/40 underline-offset-2 transition hover:text-white/70 hover:underline"
         >
           Use a different email
         </button>
@@ -237,7 +224,7 @@ function WaitlistCaptureForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full">
+    <form onSubmit={handleSubmit} className="min-h-[168px] w-full">
       <div className="flex w-full flex-col gap-3 sm:flex-row">
         <label className="sr-only" htmlFor={emailFieldId}>
           Email Address
@@ -248,21 +235,40 @@ function WaitlistCaptureForm({
           name="email"
           autoComplete="email"
           required
+          inputMode="email"
+          spellCheck={false}
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Email address"
-          className="h-12 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-950 outline-none transition placeholder:text-slate-500 focus:border-indigo-500 focus:shadow-[0_0_0_4px_rgba(99,102,241,0.28)]"
+          onBlur={() => setTouched(true)}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            if (error) {
+              setError("");
+            }
+          }}
+          placeholder="Enter your email for TestFlight invite..."
+          className="h-12 flex-1 rounded-xl border border-white/15 bg-[#0A0A0C] px-4 text-sm text-white outline-none transition placeholder:text-white/35 focus:border-white/40 focus:shadow-[0_0_0_4px_rgba(255,255,255,0.08)]"
         />
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-indigo-500 px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.4)] transition hover:bg-indigo-400 active:scale-95 disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#0A0A0C] transition hover:bg-white/90 active:scale-95 disabled:cursor-wait disabled:opacity-70"
         >
           {loading ? "Requesting…" : submitLabel}
           {!loading ? <ArrowRight className="h-4 w-4" /> : null}
         </button>
       </div>
-      {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
+      <p className="mt-3 text-xs leading-5 text-white/45">
+        We are enrolling beta testers in small cohorts. Zero spam—just your direct TestFlight invitation link.
+      </p>
+      {showEmailError ? (
+        <p className="mt-2 text-sm text-rose-300" role="alert">
+          {error || "Enter a valid email address."}
+        </p>
+      ) : (
+        <p className="mt-2 h-5 text-sm" aria-hidden>
+          {" "}
+        </p>
+      )}
     </form>
   );
 }
@@ -270,7 +276,7 @@ function WaitlistCaptureForm({
 export default function WaitlistCapture(props: WaitlistCaptureProps) {
   return (
     <WaitlistErrorBoundary>
-      <Suspense fallback={<div className="h-12 rounded-xl border border-slate-800 bg-slate-900/80" />}>
+      <Suspense fallback={<div className="min-h-[168px] rounded-xl border border-white/10 bg-[#0A0A0C]" />}>
         <WaitlistCaptureForm {...props} />
       </Suspense>
     </WaitlistErrorBoundary>

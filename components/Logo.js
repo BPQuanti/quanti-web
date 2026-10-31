@@ -1,10 +1,10 @@
 import { View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { logoFullXml, logoMarkXml } from './logoXml';
+import QuantiLogo from '../src/components/QuantiLogo';
+import { logoFullXml } from './logoXml';
 import { colors, glow } from '../constants/theme';
 
 const FULL_RATIO = 265 / 780;
-const MARK_RATIO = 320 / 350;
 
 export function LogoFull({ width = 168 }) {
   const height = Math.round(width * FULL_RATIO);
@@ -19,10 +19,7 @@ export function LogoFull({ width = 168 }) {
 }
 
 export function LogoMark({ width = 88, glowing = false }) {
-  const height = Math.round(width * MARK_RATIO);
-  const mark = (
-    <SvgXml xml={logoMarkXml} width={width} height={height} accessibilityLabel="Quanti" />
-  );
+  const mark = <QuantiLogo size={width} color="#FFFFFF" />;
   if (!glowing) {
     return mark;
   }

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import OGFoundingBadge from "@/components/OGFoundingBadge";
 import WaitlistShareActions from "@/components/WaitlistShareActions";
-import { JUMP_PER_REFERRAL, rankWaitlistPosition, waitlistViralRuleCopy } from "@/lib/waitlist/rank";
+import { JUMP_PER_REFERRAL, rankWaitlistPosition } from "@/lib/waitlist/rank";
 import { waitlistShareUrl } from "@/lib/waitlist/publicUrl";
 import { REF_STORAGE_KEY, SIGNUP_EVENT, SIGNUP_STORAGE_KEY, copyText, readStorage, writeStorage } from "@/lib/waitlist/clientStorage";
 
@@ -188,10 +188,11 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 </span>
               </div>
               <h3 className="mt-3 text-xl font-semibold tracking-tight text-[#FAFAFA]">
-                You are #{currentRank} on the waitlist.
+                You&apos;re on the list for TestFlight access.
               </h3>
-              <p className="mt-2 rounded-xl border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-sm leading-6 text-violet-200">
-                {waitlistViralRuleCopy()}
+              <p className="mt-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-sm leading-6 text-white/70">
+                We&apos;re sending invites in batches to keep cohort feedback high-signal. Watch your inbox for a direct
+                invitation link from Apple TestFlight as spots open up.
               </p>
               <p className="mt-3 text-sm leading-6 text-[#A1A1AA]">
                 OG Founder Tier locks $49/yr forever before public launch at $99/yr.
@@ -251,7 +252,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 value={email}
                 onBlur={() => setTouched(true)}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="Email Address"
+                placeholder="Enter your email for TestFlight invite..."
                 className="h-12 flex-1 rounded-xl border border-zinc-800 bg-zinc-950/70 px-4 text-sm text-[#FAFAFA] outline-none transition placeholder:text-[#A1A1AA] focus:border-violet-500/60 focus:shadow-[0_0_0_4px_rgba(124,58,237,0.18)]"
               />
               <button
@@ -259,11 +260,11 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 disabled={submitting}
                 className="h-12 shrink-0 rounded-xl bg-gradient-to-r from-[#7C3AED] to-violet-500 px-5 text-sm font-semibold text-white shadow-[0_0_24px_rgba(124,58,237,0.45)] transition hover:from-violet-500 hover:to-[#7C3AED] disabled:cursor-wait disabled:opacity-70"
               >
-                {submitting ? "Joining…" : "Join the Waitlist"}
+                {submitting ? "Requesting…" : "Request TestFlight Access"}
               </button>
             </div>
             <p className="mt-3 text-xs leading-5 text-[#A1A1AA]">
-              Get early access to Quanti TestFlight &amp; claim your 2026 status badge.
+              We are enrolling beta testers in small cohorts. Zero spam—just your direct TestFlight invitation link.
             </p>
             {(touched && !emailValid) || error ? (
               <p className="mt-2 text-sm text-rose-300">{error || "Enter a valid email address."}</p>

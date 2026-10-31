@@ -33,6 +33,7 @@ import { setAIConsent } from '../../services/privacyConsent';
 import { assembleAnonymizedPayload } from '../../services/telemetryPayload';
 import { generateDailyDirective } from '../../services/directiveEngine';
 import { transcribeVoiceRecording } from '../../services/transcribeVoice';
+import LegalSafetyDrawer from '../LegalSafetyDrawer';
 import { assessBottleneck, assessDestination, heardEcho } from '../../services/destinationQuality';
 import type { DailyDirective, DailyTelemetryPayload } from '../../types/telemetry';
 
@@ -69,6 +70,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
   const [echo, setEcho] = useState('');
   const [healthShaped, setHealthShaped] = useState(false);
   const [usedRetry, setUsedRetry] = useState(false);
+  const [legalOpen, setLegalOpen] = useState(false);
   const lastPayloadRef = useRef<DailyTelemetryPayload | null>(null);
   const finishVoiceRef = useRef<(opts?: { skipVoice?: boolean }) => Promise<void>>(async () => {});
 
@@ -455,8 +457,18 @@ export default function OnboardingFlow({ onComplete }: Props) {
               </Pressable>
             </View>
           ) : null}
+
+          <Pressable
+            onPress={() => setLegalOpen(true)}
+            style={styles.legalFoot}
+            accessibilityRole="link"
+            accessibilityLabel="Open Legal and Safety terms"
+          >
+            <Text style={styles.legalFootText}>Execution tool only — see Legal & Safety terms.</Text>
+          </Pressable>
         </Pressable>
       </KeyboardAvoidingView>
+      <LegalSafetyDrawer visible={legalOpen} onClose={() => setLegalOpen(false)} />
     </SafeAreaView>
   );
 }
@@ -637,6 +649,19 @@ const styles = StyleSheet.create({
     color: colors.muted,
     fontFamily: fonts.medium,
     fontSize: 14,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  legalFoot: {
+    marginBottom: 4,
+    marginHorizontal: 28,
+    paddingVertical: 6,
+  },
+  legalFootText: {
+    color: colors.inactive,
+    fontFamily: fonts.regular,
+    fontSize: 12,
+    lineHeight: 16,
     textAlign: 'center',
     textDecorationLine: 'underline',
   },

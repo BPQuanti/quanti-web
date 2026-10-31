@@ -102,8 +102,25 @@ SCOPE
 
 why_today — one sentence naming the real constraint (mark and/or recovery if healthkit true). Empty if neither applies. On onboarding, name the bottleneck in their words; mention biometrics only if healthkit true.
 
+BOUNDARY & GUARDRAIL PROTOCOL:
+1. CLINICAL & MEDICAL SAFETY:
+   - NEVER prescribe therapeutic, medical, or mental health protocols (e.g., CBT, exposure hierarchies, medication advice, diagnostic evaluations, diet plans).
+   - Treat user-reported anxiety, depression, agoraphobia, or physical fatigue purely as a CAPACITY GOVERNOR to scale down card size (micro-artifacts), never as a clinical diagnosis.
+   - If an Active Target involves health, therapy, or well-being, restrict the output strictly to administrative or logistical artifacts (e.g., "Draft a 2-sentence email to schedule a consult with a local clinic", "Write down 1 symptom bullet in a draft note").
+2. FINANCIAL & LEGAL BOUNDARIES:
+   - NEVER output financial investment strategies or legal counsel.
+   - Convert financial or legal targets into logistics micro-artifacts (e.g., "Draft 3 bullet points for a budget review", "Schedule a 15-minute call with an accountant").
+3. SAFETY & CRISIS INTERCEPT:
+   - If voice context indicates self-harm, severe crisis, or immediate danger, bypass standard directive generation.
+   - Set crisis_intercept to true. Do not write an execution card, pep talk, or coping protocol.
+   - primary_directive must only redirect to human help (US: call or text 988; if in immediate danger, local emergency services). No methods. No analysis of the crisis.
+4. NO DELEGATION OF HARD AGENCY:
+   - Never direct the user to "Ask AI", "Research productivity tips", or "Reflect deeply".
+   - Directives must always demand a physical, human-executed artifact.
+
 OUTPUT valid JSON exactly:
-{"primary_directive":"string","why_today":"string"}`;
+{"primary_directive":"string","why_today":"string","crisis_intercept":false}
+When crisis_intercept is true, primary_directive may exceed 15–20 words. Otherwise 15–20 words max still applies.`;
 
 const MAX_DIRECTIVE_WORDS = 20;
 
@@ -112,6 +129,38 @@ function jsonResponse(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+const CRISIS_CARD =
+  "If you are in immediate danger, contact local emergency services. In the US, call or text 988.";
+
+function looksLikeCrisis(text: string | null) {
+  if (!text) {
+    return false;
+  }
+  return /\b(kill myself|killing myself|suicide|suicidal|end my life|want to die|self[- ]harm|hurt myself|cut myself|don'?t want to (?:be alive|live))\b/i.test(
+    text,
+  );
+}
+
+function crisisDirective(input: SynthesizerInput) {
+  return {
+    primary_directive: CRISIS_CARD,
+    recovery_actions: [] as string[],
+    focus_block: "",
+    focus_blocks: [] as string[],
+    voice_prompt: "",
+    north_star: input.destination.now || input.destination.next
+      ? {
+          now: input.destination.now,
+          next: input.destination.next || input.destination.now,
+          outcomes: [] as string[],
+        }
+      : undefined,
+    why_today: "Crisis intercept. Quanti will not generate an execution card from this check-in.",
+    crisis_intercept: true,
+    aborted: true,
+  };
 }
 
 function clipWords(text: string, max = MAX_DIRECTIVE_WORDS) {
@@ -225,7 +274,11 @@ function parseDirective(content: unknown, input: SynthesizerInput) {
   const record = parsed as {
     primary_directive?: unknown;
     why_today?: unknown;
+    crisis_intercept?: unknown;
   };
+  if (record.crisis_intercept === true || looksLikeCrisis(input.transcript)) {
+    return crisisDirective(input);
+  }
   if (typeof record.primary_directive !== "string" || !record.primary_directive.trim()) {
     throw new Error("Model omitted primary_directive");
   }
@@ -247,6 +300,8 @@ function parseDirective(content: unknown, input: SynthesizerInput) {
         }
       : undefined,
     why_today: why || undefined,
+    crisis_intercept: false,
+    aborted: false,
   };
 }
 
@@ -303,6 +358,14 @@ serve(async (req) => {
       days_on_target: payload.days_on_target,
       target_stale: payload.target_stale,
     });
+
+    if (looksLikeCrisis(payload.transcript)) {
+      console.log("[synthesize-directive] crisis intercept", { user_id: user.id });
+      return jsonResponse({
+        ...crisisDirective(payload),
+        source: "edge",
+      });
+    }
 
     const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",

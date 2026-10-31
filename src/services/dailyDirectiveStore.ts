@@ -36,7 +36,8 @@ function asStored(value: unknown): StoredDailyDirective | null {
     voice_prompt: typeof record.voice_prompt === 'string' ? record.voice_prompt : '',
     source: isSource(record.source) ? record.source : 'edge',
     why_today: typeof record.why_today === 'string' ? record.why_today.trim() : undefined,
-    aborted: record.aborted === true,
+    aborted: record.aborted === true || record.crisis_intercept === true,
+    crisis_intercept: record.crisis_intercept === true,
     voice_transcript: typeof record.voice_transcript === 'string' ? record.voice_transcript : undefined,
   };
 }

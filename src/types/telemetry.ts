@@ -82,6 +82,7 @@ export type DailyDirective = {
   };
   why_today?: string;
   aborted?: boolean;
+  crisis_intercept?: boolean;
 };
 
 export type TelemetrySources = {

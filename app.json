@@ -7,7 +7,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true,
+      "icon": "./assets/icon.png",
+      "supportsTablet": false,
       "bundleIdentifier": "com.quanti-app.quanti",
       "usesAppleSignIn": true,
       "config": {

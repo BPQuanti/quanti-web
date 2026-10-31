@@ -101,6 +101,8 @@ async function postDirective(payload: DailyTelemetryPayload, accessToken: string
         typeof (data as { why_today?: unknown }).why_today === 'string'
           ? String((data as { why_today: string }).why_today).trim().slice(0, 220)
           : undefined,
+      aborted: data.aborted === true || (data as { crisis_intercept?: unknown }).crisis_intercept === true,
+      crisis_intercept: (data as { crisis_intercept?: unknown }).crisis_intercept === true,
     };
   } finally {
     clearTimeout(timer);
@@ -153,7 +155,9 @@ function withDestination(payload: DailyTelemetryPayload, directive: DailyDirecti
   return {
     ...directive,
     north_star: northStar ?? undefined,
-    why_today: directive.why_today?.trim() || whyFromPayload(payload),
+    why_today: directive.crisis_intercept
+      ? directive.why_today?.trim()
+      : directive.why_today?.trim() || whyFromPayload(payload),
   };
 }
 
@@ -163,7 +167,9 @@ async function persistDirective(payload: DailyTelemetryPayload, directive: Daily
       ...directive,
       date: payload.local_date || localDateStamp(),
       agency_arc: payload.agency_arc,
-      voice_transcript: payload.voice_context?.transcript || payload.voice?.transcript || undefined,
+      voice_transcript: directive.crisis_intercept
+        ? undefined
+        : payload.voice_context?.transcript || payload.voice?.transcript || undefined,
     });
   } catch (caught) {
     console.warn('[Directive] persist failed', caught);

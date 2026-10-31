@@ -17,7 +17,7 @@ import WidgetPreview from "@/components/WidgetPreview";
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden bg-slate-950 text-slate-50">
+    <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden bg-[#0A0A0C] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.2),_transparent_55%)]" />
 
       <motion.header
@@ -39,9 +39,9 @@ export default function Home() {
         </Link>
         <a
           href="#waitlist"
-          className="rounded-full border border-indigo-400/40 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-50 transition hover:border-indigo-300 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] active:scale-95 sm:px-4 sm:text-sm"
+          className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white transition hover:border-white/30 hover:bg-white/[0.08] active:scale-95 sm:px-4 sm:text-sm"
         >
-          Claim Early Access
+          Request TestFlight Access
         </a>
       </motion.header>
 
@@ -62,9 +62,9 @@ export default function Home() {
 
       <a
         href="#waitlist"
-        className="fixed inset-x-4 bottom-4 z-30 inline-flex h-12 items-center justify-center rounded-xl bg-indigo-500 text-sm font-semibold text-white shadow-[0_8px_32px_rgba(99,102,241,0.45)] lg:hidden"
+        className="fixed inset-x-4 bottom-4 z-30 inline-flex h-12 items-center justify-center rounded-xl bg-white text-sm font-semibold text-[#0A0A0C] lg:hidden"
       >
-        Claim Early Access
+        Request TestFlight Access
       </a>
     </div>
   );

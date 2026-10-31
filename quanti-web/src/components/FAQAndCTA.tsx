@@ -25,7 +25,7 @@ const QUESTIONS = [
   },
   {
     q: "When does TestFlight open?",
-    a: "Closed TestFlight rolls out from this waitlist. Spot order is signup plus referrals.",
+    a: "This is a private iOS TestFlight, capped at 100 testers. We enroll in small cohorts from this form and send a direct Apple TestFlight link as spots open. Not a newsletter.",
   },
 ];
 

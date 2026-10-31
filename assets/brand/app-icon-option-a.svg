@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#09090B"/>
+  <defs>
+    <mask id="qHole">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <circle cx="500" cy="448" r="178" fill="#000"/>
+    </mask>
+  </defs>
+  <g mask="url(#qHole)">
+    <circle cx="500" cy="448" r="220" fill="none" stroke="#F5F5F5" stroke-width="84"/>
+    <path fill="#F5F5F5" d="M560 555 L676 518 L696 575 L620 908 L552 640 Z"/>
+  </g>
+</svg>

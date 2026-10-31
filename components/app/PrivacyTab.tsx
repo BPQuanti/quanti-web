@@ -10,6 +10,7 @@ import DeveloperTelemetryControls from '../../src/components/DeveloperTelemetryC
 import PermissionsGate from '../../src/components/PermissionsGate';
 import EditProfileModal from '../EditProfileModal';
 import FeedbackModal from '../../src/components/FeedbackModal';
+import LegalSafetyDrawer from '../../src/components/LegalSafetyDrawer';
 import PrivacyWhyModal from '../../src/components/PrivacyWhyModal';
 import { isInternalToolsAccount } from '../../src/lib/config/reviewMode';
 import { resetOnboardingProgress } from '../../src/services/onboarding';
@@ -71,6 +72,7 @@ export default function PrivacyTab() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [whyOpen, setWhyOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [legalOpen, setLegalOpen] = useState(false);
   const [aiConsent, setAiConsent] = useState(true);
   const version = Constants.expoConfig?.version ?? '1.0.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
@@ -235,6 +237,13 @@ export default function PrivacyTab() {
           </Pressable>
           <Pressable
             style={({ pressed }) => [styles.accountRow, styles.rowDivider, pressed && styles.rowPressed]}
+            onPress={() => setLegalOpen(true)}
+          >
+            <Text style={styles.rowTitle}>Legal & Safety Disclaimer</Text>
+            <Text style={styles.accountMeta}>In-app</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [styles.accountRow, styles.rowDivider, pressed && styles.rowPressed]}
             onPress={() => openLegal(PRIVACY_URL)}
           >
             <Text style={styles.rowTitle}>Privacy Policy</Text>
@@ -301,6 +310,7 @@ export default function PrivacyTab() {
         </Text>
       </ScrollView>
       <PrivacyWhyModal visible={whyOpen} onClose={() => setWhyOpen(false)} />
+      <LegalSafetyDrawer visible={legalOpen} onClose={() => setLegalOpen(false)} />
       <FeedbackModal
         visible={feedbackOpen}
         userId={session?.user?.id}
