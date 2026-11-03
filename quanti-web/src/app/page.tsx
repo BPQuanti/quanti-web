@@ -30,12 +30,22 @@ export default function Home() {
             className="h-8 w-auto max-w-[148px] object-contain object-left sm:h-10 sm:max-w-[220px]"
           />
         </Link>
-        <a
-          href="#waitlist"
-          className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white transition hover:border-white/30 hover:bg-white/[0.08] active:scale-95 sm:px-4 sm:text-sm"
-        >
-          Request TestFlight Access
-        </a>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <a
+            href="https://www.linkedin.com/in/brian-parr-1143b11b9/"
+            className="text-xs font-medium text-white/70 transition hover:text-white sm:text-sm"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            LinkedIn
+          </a>
+          <a
+            href="#waitlist"
+            className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-2 text-xs font-medium text-white transition hover:border-white/30 hover:bg-white/[0.08] active:scale-95 sm:px-4 sm:text-sm"
+          >
+            Request TestFlight Access
+          </a>
+        </div>
       </header>
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
