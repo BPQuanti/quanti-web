@@ -14,6 +14,20 @@ type Destination = {
   next: string;
 };
 
+type PhysicsMemory = {
+  last_stall_reason?: string;
+  last_artifact_noun?: string;
+  last_entity_moved?: string;
+  last_failed_scope?: string;
+};
+
+type DirectiveStruct = {
+  lens: "blocker" | "artifact" | "entity_movement";
+  physical_action_verb: string;
+  concrete_target_noun: string;
+  physical_scope_scale: "full" | "scaled_down_50_percent";
+};
+
 type TelemetryPayload = {
   schema_version?: number;
   session_id?: string;
@@ -51,6 +65,10 @@ type TelemetryPayload = {
   artifact_retry?: boolean;
   days_on_target?: number | null;
   target_stale?: boolean;
+  stall_pattern?: string | null;
+  guided_question?: string | null;
+  queued_destinations?: string[];
+  physics_memory?: PhysicsMemory;
 };
 
 type SynthesizerInput = {
@@ -63,66 +81,66 @@ type SynthesizerInput = {
     recovery_score: number | null;
   };
   yesterday_outcome: Outcome | null;
+  last_directive: string | null;
   synthesis_mode: "onboarding" | "daily";
   artifact_retry: boolean;
   days_on_target: number | null;
   target_stale: boolean;
+  stall_pattern: string | null;
+  guided_question: string | null;
+  queued_destinations: string[];
+  physics_memory: PhysicsMemory;
 };
 
-const SYSTEM_PROMPT = `You are Quanti's Daily Synthesizer. Write ONE 1% action for today.
+const EXTRACT_PROMPT = `You extract ONE physical 1% move for Quanti as JSON only.
 
-INPUTS (only these — never classify arcs, seasons, or posture)
-- destination.next = Active Target. Immutable. Never invent a deadline or a new target. Do not auto-swap it.
-- destination.now = optional context. Ignore if empty.
-- transcript: onboarding = PATTERN bottleneck. daily = TODAY'S state.
-- synthesis_mode: "onboarding" | "daily"
-- artifact_retry: previous card too vague. Sharper ARTIFACT only.
-- days_on_target: how long this Active Target has been set. Governor of SIZE only.
-- target_stale: true if the target has been open a long time without Achieved. Shrink. Never guilt. Never replace the target.
-- biometrics / healthkit: window size only. healthkit false = ignore biometrics.
-- yesterday_outcome: executed | partial | shifted | null. This is the DAILY card mark, not Achieved. Achieved closes the Active Target in the app, not here.
+Return ONLY:
+{
+  "lens": "blocker" | "artifact" | "entity_movement",
+  "physical_action_verb": string,
+  "concrete_target_noun": string,
+  "physical_scope_scale": "full" | "scaled_down_50_percent"
+}
 
-WEIGHTING
-- onboarding: Active Target + bottleneck transcript. Ignore yesterday_outcome.
-- daily: yesterday_outcome first if present, then today's transcript, then Active Target.
-- days_on_target 0–3: smallest next artifact. 4–13: name what remains. 14+ or target_stale: embarrassingly small artifact that would make the target checkable today. Do not invent a new destination.
-- Never output "mark it achieved" unless the remaining object is literally today's sitting.
+RULES
+- destination.next is the only plot. destination.now is a negative filter, never a second goal.
+- queued_destinations are inert. Never pick a noun that would advance one of them.
+- concrete_target_noun must be a physical/checkable object (file, message, person, list, invite), not a mood.
+- physical_action_verb: Build, Draft, Deploy, Ship, Write, Fix, Send, Call, Schedule, Open, Record, Cut, Print, File, Review, Name.
+- If yesterday_outcome is partial: physical_scope_scale MUST be scaled_down_50_percent. Reuse physics_memory.last_artifact_noun or last_failed_scope. Shrink quantity/size. No new plot. No pep.
+- If yesterday_outcome is shifted: scaled_down_50_percent on the same destination.
+- If executed: full, one increment past yesterday still toward destination.next.
+- guided_question lens mapping: in the way -> blocker; physical artifact -> artifact; who/what must move -> entity_movement.
+- Ignore journal, vibes, secondary goals, errands.
+- crisis_intercept is not your job unless the transcript is crisis; then still return JSON with verb Name and noun "trusted professional".`;
 
-primary_directive — STRICT
-- 15–20 words max. Zero markdown. Zero preambles. No quotes, bullets, or labels.
-- ALWAYS a concrete physical action tied to destination.next AND a noun from the transcript when present (person, file, message, place, tool, or clock time).
-- Finishable in one sitting. Name what exists when they are done.
-- NEVER generic advice: "Take 1 small step", "Take 1 small action toward", "Focus on your goals", "Protect your energy", "Honor your energy", "Cut noise", "Stay consistent", "block distractions", pep talks.
-- NEVER output an arc, season, or posture.
+const RENDER_PROMPT = `Write ONE daily directive sentence from the given DirectiveStruct. Output the sentence only.
 
-SCOPE
-- Low recovery ONLY if healthkit true AND (short sleep, HRV down, recovery < 40) OR yesterday shifted/partial → smaller named artifact.
-- High recovery (healthkit true) AND yesterday executed → higher-leverage named artifact.
-- healthkit false → normal named 1% from destination + transcript. why_today must not mention sleep, HRV, or recovery.
-
-why_today — one sentence naming the real constraint (mark and/or recovery if healthkit true). Empty if neither applies. On onboarding, name the bottleneck in their words; mention biometrics only if healthkit true.
-
-BOUNDARY & GUARDRAIL PROTOCOL:
-1. CLINICAL & MEDICAL SAFETY:
-   - NEVER prescribe therapeutic, medical, or mental health protocols (e.g., CBT, exposure hierarchies, medication advice, diagnostic evaluations, diet plans).
-   - Treat user-reported anxiety, depression, agoraphobia, or physical fatigue purely as a CAPACITY GOVERNOR to scale down card size (micro-artifacts), never as a clinical diagnosis.
-   - If an Active Target involves health, therapy, or well-being, restrict the output strictly to administrative or logistical artifacts (e.g., "Draft a 2-sentence email to schedule a consult with a local clinic", "Write down 1 symptom bullet in a draft note").
-2. FINANCIAL & LEGAL BOUNDARIES:
-   - NEVER output financial investment strategies or legal counsel.
-   - Convert financial or legal targets into logistics micro-artifacts (e.g., "Draft 3 bullet points for a budget review", "Schedule a 15-minute call with an accountant").
-3. SAFETY & CRISIS INTERCEPT:
-   - If voice context indicates self-harm, severe crisis, or immediate danger, bypass standard directive generation.
-   - Set crisis_intercept to true. Do not write an execution card, pep talk, or coping protocol.
-   - primary_directive must only redirect to human help (US: call or text 988; if in immediate danger, local emergency services). No methods. No analysis of the crisis.
-4. NO DELEGATION OF HARD AGENCY:
-   - Never direct the user to "Ask AI", "Research productivity tips", or "Reflect deeply".
-   - Directives must always demand a physical, human-executed artifact.
-
-OUTPUT valid JSON exactly:
-{"primary_directive":"string","why_today":"string","crisis_intercept":false}
-When crisis_intercept is true, primary_directive may exceed 15–20 words. Otherwise 15–20 words max still applies.`;
+- 15–20 words. Verb-first. First word = physical_action_verb.
+- Include concrete_target_noun. Serve destination.next only.
+- If physical_scope_scale is scaled_down_50_percent, cut quantity/size (e.g. 2 items, one slice). Same destination.
+- Zero commentary, pep, quotes, markdown, labels.`;
 
 const MAX_DIRECTIVE_WORDS = 20;
+const MIN_DIRECTIVE_WORDS = 15;
+const ALLOWED_VERBS = [
+  "Build",
+  "Draft",
+  "Deploy",
+  "Ship",
+  "Write",
+  "Fix",
+  "Send",
+  "Call",
+  "Schedule",
+  "Open",
+  "Record",
+  "Cut",
+  "Print",
+  "File",
+  "Review",
+  "Name",
+];
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -132,6 +150,8 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 const CRISIS_CARD =
+  "Take a step back today. Reach out to a trusted professional or support line.";
+const CRISIS_WHY =
   "If you are in immediate danger, contact local emergency services. In the US, call or text 988.";
 
 function looksLikeCrisis(text: string | null) {
@@ -157,22 +177,54 @@ function crisisDirective(input: SynthesizerInput) {
           outcomes: [] as string[],
         }
       : undefined,
-    why_today: "Crisis intercept. Quanti will not generate an execution card from this check-in.",
+    why_today: CRISIS_WHY,
     crisis_intercept: true,
     aborted: true,
   };
 }
 
+function stripDirectiveText(text: string) {
+  let next = text.replace(/\s+/g, " ").trim();
+  next = next.replace(/^```(?:json|text)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  next = next.replace(/^["'`]+|["'`]+$/g, "").trim();
+  next = next.replace(
+    /^(you should|you need to|today'?s (?:goal|task|1%|directive) is|here is your task|here'?s your (?:task|directive)|please|try to)\s*[:\-]*\s*/i,
+    "",
+  );
+  return next;
+}
+
 function clipWords(text: string, max = MAX_DIRECTIVE_WORDS) {
-  const words = text.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  const words = stripDirectiveText(text).split(" ").filter(Boolean);
   if (words.length <= max) {
     return words.join(" ");
   }
   return words.slice(0, max).join(" ");
 }
 
+function wordCount(text: string) {
+  return text.split(" ").filter(Boolean).length;
+}
+
 function asOutcome(value: unknown): Outcome | null {
+  if (value === "missed") {
+    return "shifted";
+  }
   return value === "executed" || value === "partial" || value === "shifted" ? value : null;
+}
+
+function asPhysics(value: unknown): PhysicsMemory {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  const record = value as Record<string, unknown>;
+  const next: PhysicsMemory = {};
+  for (const key of ["last_stall_reason", "last_artifact_noun", "last_entity_moved", "last_failed_scope"] as const) {
+    if (typeof record[key] === "string" && record[key].trim()) {
+      next[key] = record[key].replace(/\s+/g, " ").trim().slice(0, key === "last_failed_scope" ? 220 : 120);
+    }
+  }
+  return next;
 }
 
 function parseDestination(input: TelemetryPayload): Destination {
@@ -193,7 +245,7 @@ function parseDestination(input: TelemetryPayload): Destination {
   return { now, next: next || now };
 }
 
-function sanitizePayload(input: TelemetryPayload, userId: string): SynthesizerInput {
+function sanitizePayload(input: TelemetryPayload): SynthesizerInput {
   const transcript = String(
     input.transcript || input.voice_context?.transcript || input.voice?.transcript || "",
   ).trim();
@@ -213,12 +265,24 @@ function sanitizePayload(input: TelemetryPayload, userId: string): SynthesizerIn
     yesterday_outcome: onboarding
       ? null
       : asOutcome(input.yesterday_outcome) ?? asOutcome(input.last_execution?.status),
+    last_directive: onboarding
+      ? null
+      : String(input.last_execution?.primary_directive || "").trim().slice(0, 280) || null,
     synthesis_mode: onboarding ? "onboarding" : "daily",
     artifact_retry: input.artifact_retry === true,
     days_on_target: typeof input.days_on_target === "number" && Number.isFinite(input.days_on_target)
       ? Math.max(0, Math.round(input.days_on_target))
       : null,
     target_stale: input.target_stale === true,
+    stall_pattern: String(input.stall_pattern || "").trim().slice(0, 280) || null,
+    guided_question: String(input.guided_question || "").trim().slice(0, 220) || null,
+    queued_destinations: Array.isArray(input.queued_destinations)
+      ? input.queued_destinations
+          .map((item) => String(item || "").trim())
+          .filter(Boolean)
+          .slice(0, 12)
+      : [],
+    physics_memory: asPhysics(input.physics_memory),
   };
 }
 
@@ -231,63 +295,343 @@ function clip(text: string, max = 40) {
 }
 
 function voiceCheckPrompt(input: SynthesizerInput): string {
+  if (input.guided_question) {
+    return input.guided_question;
+  }
   const next = clip(input.destination.next || "where you want to go");
-  const sleep = input.biometrics.sleep_hours;
-  const hrv = input.biometrics.hrv_delta_percent;
-  const recovery = input.biometrics.recovery_score;
-  const low =
-    input.healthkit &&
-    ((sleep != null && sleep < 6) || (hrv != null && hrv <= -12) || (recovery != null && recovery < 40));
-  const high =
-    input.healthkit &&
-    ((sleep != null && sleep >= 7.5) || (hrv != null && hrv >= 8) || (recovery != null && recovery >= 70));
+  const stall = clip(input.stall_pattern || input.physics_memory.last_stall_reason || "", 36);
 
   if (input.yesterday_outcome === "shifted") {
-    return "What actually blocked yesterday’s 1% — people, energy, or a missing object?";
+    return stall
+      ? `What is in the way of ${next} the same way as ${stall}?`
+      : `What is in the way of ${next} today — a person, artifact, or tool?`;
   }
   if (input.yesterday_outcome === "partial") {
-    return "What leftover piece is still unfinished? Name the object.";
+    return `What is the next physical artifact toward ${next}? Name one smaller object.`;
   }
   if (input.yesterday_outcome === "executed") {
-    return `What is the next named increment toward ${next}?`;
+    return `What named artifact is the next increment toward ${next}?`;
   }
-  if (!input.destination.next || input.destination.next.length < 8) {
-    return "Name one object that would count as progress toward where you want to go.";
+  if (stall) {
+    return `What is in the way of ${next} the same way as ${stall}?`;
   }
-  if (low) {
-    return "Does your body match last night’s recovery, or is the number wrong?";
-  }
-  if (high) {
-    return `Where will the day steal the one window toward ${next}?`;
-  }
-  if (!input.transcript) {
-    return `Name the object toward ${next}: listing, email, file, or ask.`;
-  }
-  return `What will try to steal today’s 1% toward ${next}?`;
+  return `What is in the way of ${next} today — a person, artifact, or tool?`;
 }
 
-function parseDirective(content: unknown, input: SynthesizerInput) {
-  const parsed = typeof content === "string" ? JSON.parse(content) : content;
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error("Model returned invalid JSON");
+function whyForOutcome(input: SynthesizerInput) {
+  if (input.yesterday_outcome === "shifted") {
+    return "Yesterday shifted. Same destination. Smaller physical scope.";
   }
-  const record = parsed as {
-    primary_directive?: unknown;
-    why_today?: unknown;
-    crisis_intercept?: unknown;
-  };
-  if (record.crisis_intercept === true || looksLikeCrisis(input.transcript)) {
-    return crisisDirective(input);
+  if (input.yesterday_outcome === "partial") {
+    return "Yesterday was partial. Same destination. Smaller physical scope.";
   }
-  if (typeof record.primary_directive !== "string" || !record.primary_directive.trim()) {
-    throw new Error("Model omitted primary_directive");
+  return undefined;
+}
+
+function significantTokens(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length >= 4);
+}
+
+function mentionsQueued(text: string, queued: string[]) {
+  const hay = text.toLowerCase();
+  return queued.some((name) => {
+    const clipped = name.replace(/\s+/g, " ").trim().toLowerCase();
+    if (clipped.length >= 8 && hay.includes(clipped)) {
+      return true;
+    }
+    const tokens = significantTokens(clipped).filter((token) => token.length >= 5);
+    return tokens.length > 0 && tokens.every((token) => hay.includes(token));
+  });
+}
+
+function normalizeVerb(value: string) {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  const first = cleaned.split(" ")[0] || "Draft";
+  const titled = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+  return ALLOWED_VERBS.includes(titled) ? titled : "Draft";
+}
+
+function nounFromMove(text: string) {
+  const words = text.replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+  return words.slice(1, 7).join(" ") || text.replace(/\s+/g, " ").trim();
+}
+
+function scaleNoun(noun: string) {
+  const trimmed = nounFromMove(noun.replace(/\s+/g, " ").trim());
+  const numbered = trimmed.match(/^(\d+)\s+(.*)$/);
+  if (numbered) {
+    const half = Math.max(1, Math.floor(Number(numbered[1]) / 2));
+    return `${half} ${numbered[2]}`.trim();
   }
-  const why =
-    typeof record.why_today === "string" && record.why_today.trim()
-      ? record.why_today.trim().slice(0, 220)
-      : "";
+  if (/^smaller |^2 |slice|piece/i.test(trimmed)) {
+    return trimmed.slice(0, 80);
+  }
+  return `2 smaller pieces of ${trimmed}`.slice(0, 80);
+}
+
+function lensFromQuestion(question: string | null, outcome: Outcome | null): DirectiveStruct["lens"] {
+  const text = (question || "").toLowerCase();
+  if (outcome === "partial" || text.includes("artifact")) {
+    return "artifact";
+  }
+  if (text.includes("who or what") || text.includes("person")) {
+    return "entity_movement";
+  }
+  return "blocker";
+}
+
+function fallbackStruct(input: SynthesizerInput): DirectiveStruct {
+  const physics = input.physics_memory;
+  const scaled = input.yesterday_outcome === "partial" || input.yesterday_outcome === "shifted";
+  const noun = scaled
+    ? scaleNoun(
+        physics.last_artifact_noun ||
+          physics.last_failed_scope ||
+          input.last_directive ||
+          input.destination.next ||
+          "the next artifact",
+      )
+    : physics.last_artifact_noun ||
+      input.transcript ||
+      input.destination.next ||
+      "the next artifact";
   return {
-    primary_directive: clipWords(record.primary_directive.trim()),
+    lens: lensFromQuestion(input.guided_question, input.yesterday_outcome),
+    physical_action_verb: "Draft",
+    concrete_target_noun: String(noun).replace(/\s+/g, " ").trim().slice(0, 80),
+    physical_scope_scale: scaled ? "scaled_down_50_percent" : "full",
+  };
+}
+
+function parseStruct(raw: unknown): DirectiveStruct | null {
+  let record: Record<string, unknown> | null = null;
+  if (typeof raw === "string") {
+    const trimmed = stripDirectiveText(raw);
+    const start = trimmed.indexOf("{");
+    const end = trimmed.lastIndexOf("}");
+    if (start < 0 || end <= start) {
+      return null;
+    }
+    try {
+      record = JSON.parse(trimmed.slice(start, end + 1)) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  } else if (raw && typeof raw === "object") {
+    record = raw as Record<string, unknown>;
+  }
+  if (!record) {
+    return null;
+  }
+  const lens =
+    record.lens === "artifact" || record.lens === "entity_movement" || record.lens === "blocker"
+      ? record.lens
+      : null;
+  const verb = typeof record.physical_action_verb === "string" ? record.physical_action_verb : "";
+  const noun = typeof record.concrete_target_noun === "string" ? record.concrete_target_noun : "";
+  const scale =
+    record.physical_scope_scale === "scaled_down_50_percent" || record.physical_scope_scale === "full"
+      ? record.physical_scope_scale
+      : null;
+  if (!lens || !verb.trim() || !noun.trim() || !scale) {
+    return null;
+  }
+  return {
+    lens,
+    physical_action_verb: normalizeVerb(verb),
+    concrete_target_noun: noun.replace(/\s+/g, " ").trim().slice(0, 80),
+    physical_scope_scale: scale,
+  };
+}
+
+function enforcePartial(input: SynthesizerInput, struct: DirectiveStruct): DirectiveStruct {
+  const next = { ...struct, physical_action_verb: normalizeVerb(struct.physical_action_verb) };
+  if (input.yesterday_outcome === "partial" || input.yesterday_outcome === "shifted") {
+    next.physical_scope_scale = "scaled_down_50_percent";
+    if (input.yesterday_outcome === "partial") {
+      next.lens = "artifact";
+      const seed =
+        input.physics_memory.last_artifact_noun ||
+        input.physics_memory.last_failed_scope ||
+        input.last_directive ||
+        next.concrete_target_noun;
+      next.concrete_target_noun = scaleNoun(seed);
+    }
+  }
+  return next;
+}
+
+function validateStruct(input: SynthesizerInput, struct: DirectiveStruct): string[] {
+  const errors: string[] = [];
+  const blob = `${struct.physical_action_verb} ${struct.concrete_target_noun}`;
+  if (!struct.concrete_target_noun.trim()) {
+    errors.push("missing noun");
+  }
+  if (mentionsQueued(blob, input.queued_destinations)) {
+    errors.push("noun advances a queued destination");
+  }
+  const dest = input.destination.next.toLowerCase();
+  const vision = input.destination.now.toLowerCase();
+  const noun = struct.concrete_target_noun.toLowerCase();
+  if (vision && vision.length >= 8 && noun.includes(vision) && dest && !noun.includes(dest.slice(0, 12))) {
+    errors.push("noun serves North Star instead of Active Destination");
+  }
+  if (input.yesterday_outcome === "partial" && struct.physical_scope_scale !== "scaled_down_50_percent") {
+    errors.push("partial must scale down");
+  }
+  return errors;
+}
+
+function padDirective(sentence: string, input: SynthesizerInput, struct: DirectiveStruct): string {
+  let next = clipWords(sentence);
+  const dest = clip(input.destination.next || "the Active Destination", 28);
+  while (wordCount(next) < MIN_DIRECTIVE_WORDS) {
+    next = `${next} toward ${dest} in one sitting`.replace(/\s+/g, " ").trim();
+    next = clipWords(next);
+    if (wordCount(next) < MIN_DIRECTIVE_WORDS) {
+      next = clipWords(`${next} then stop`);
+    }
+    if (struct.physical_scope_scale === "scaled_down_50_percent" && wordCount(next) < MIN_DIRECTIVE_WORDS) {
+      next = clipWords(`${next} keep scope small`);
+    }
+    break;
+  }
+  if (wordCount(next) < MIN_DIRECTIVE_WORDS) {
+    next = clipWords(
+      `${struct.physical_action_verb} ${struct.concrete_target_noun} toward ${dest} in one sitting then stop`,
+    );
+  }
+  return next;
+}
+
+function renderTemplate(input: SynthesizerInput, struct: DirectiveStruct): string {
+  const dest = clip(input.destination.next || "the Active Destination", 28);
+  const core =
+    struct.physical_scope_scale === "scaled_down_50_percent"
+      ? `${struct.physical_action_verb} ${struct.concrete_target_noun} toward ${dest} in one sitting then stop`
+      : `${struct.physical_action_verb} ${struct.concrete_target_noun} toward ${dest} in one sitting today`;
+  return padDirective(core, input, struct);
+}
+
+async function chatJson(apiKey: string, system: string, user: string, maxTokens: number) {
+  const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: Deno.env.get("LLM_MODEL") || "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: maxTokens,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+  if (!openAiResponse.ok) {
+    const errorBody = await openAiResponse.text();
+    throw new Error(`OpenAI API error (${openAiResponse.status}): ${errorBody.slice(0, 400)}`);
+  }
+  const aiData = await openAiResponse.json();
+  return String(aiData.choices?.[0]?.message?.content || "");
+}
+
+async function chatText(apiKey: string, system: string, user: string, maxTokens: number) {
+  const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: Deno.env.get("LLM_MODEL") || "gpt-4o-mini",
+      temperature: 0.2,
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+    }),
+  });
+  if (!openAiResponse.ok) {
+    const errorBody = await openAiResponse.text();
+    throw new Error(`OpenAI API error (${openAiResponse.status}): ${errorBody.slice(0, 400)}`);
+  }
+  const aiData = await openAiResponse.json();
+  return String(aiData.choices?.[0]?.message?.content || "");
+}
+
+function extractUserPayload(input: SynthesizerInput) {
+  return {
+    destination: input.destination,
+    transcript: input.transcript,
+    guided_question: input.guided_question,
+    stall_pattern: input.stall_pattern,
+    queued_destinations: input.queued_destinations,
+    physics_memory: input.physics_memory,
+    yesterday_outcome: input.yesterday_outcome,
+    last_directive: input.last_directive,
+    synthesis_mode: input.synthesis_mode,
+    artifact_retry: input.artifact_retry,
+  };
+}
+
+async function extractStruct(apiKey: string, input: SynthesizerInput): Promise<DirectiveStruct> {
+  const user = JSON.stringify(extractUserPayload(input));
+  try {
+    const first = parseStruct(await chatJson(apiKey, EXTRACT_PROMPT, user, 180));
+    const candidate = first ? enforcePartial(input, first) : null;
+    const firstErrors = candidate ? validateStruct(input, candidate) : ["invalid struct"];
+    if (candidate && firstErrors.length === 0) {
+      return candidate;
+    }
+    const retryUser = JSON.stringify({
+      ...extractUserPayload(input),
+      validation_errors: firstErrors,
+      instruction: "Fix the struct. Keep destination.next. Shrink the same leftover noun. Do not use queued names.",
+    });
+    const second = parseStruct(await chatJson(apiKey, EXTRACT_PROMPT, retryUser, 180));
+    const retried = second ? enforcePartial(input, second) : null;
+    if (retried && validateStruct(input, retried).length === 0) {
+      return retried;
+    }
+  } catch (caught) {
+    console.warn("[synthesize-directive] extract failed", caught);
+  }
+  return enforcePartial(input, fallbackStruct(input));
+}
+
+async function renderSentence(apiKey: string, input: SynthesizerInput, struct: DirectiveStruct): Promise<string> {
+  try {
+    const raw = await chatText(
+      apiKey,
+      RENDER_PROMPT,
+      JSON.stringify({
+        struct,
+        destination: input.destination,
+      }),
+      60,
+    );
+    const sentence = padDirective(raw, input, struct);
+    if (wordCount(sentence) >= 8 && !mentionsQueued(sentence, input.queued_destinations)) {
+      return sentence;
+    }
+  } catch (caught) {
+    console.warn("[synthesize-directive] render failed", caught);
+  }
+  return renderTemplate(input, struct);
+}
+
+function packDirective(input: SynthesizerInput, sentence: string, struct: DirectiveStruct) {
+  return {
+    primary_directive: sentence,
     recovery_actions: [] as string[],
     focus_block: "",
     focus_blocks: [] as string[],
@@ -299,9 +643,10 @@ function parseDirective(content: unknown, input: SynthesizerInput) {
           outcomes: [] as string[],
         }
       : undefined,
-    why_today: why || undefined,
+    why_today: whyForOutcome(input),
     crisis_intercept: false,
     aborted: false,
+    directive_struct: struct,
   };
 }
 
@@ -344,19 +689,18 @@ serve(async (req) => {
       return jsonResponse({ error: "Server misconfiguration: API key missing" }, 500);
     }
 
-    const body = await req.json();
-    const rawPayload = (body?.payload ?? body) as TelemetryPayload;
-    const payload = sanitizePayload(rawPayload, user.id);
-    console.log("[synthesize-directive] daily synthesizer", {
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return jsonResponse({ error: "Invalid JSON body" }, 400);
+    }
+    const rawPayload = ((body as { payload?: TelemetryPayload }).payload ?? body) as TelemetryPayload;
+    const payload = sanitizePayload(rawPayload);
+    console.log("[synthesize-directive] extract-then-write", {
       user_id: user.id,
       destination: payload.destination,
       has_transcript: Boolean(payload.transcript),
-      biometrics: payload.biometrics,
       yesterday_outcome: payload.yesterday_outcome,
-      synthesis_mode: payload.synthesis_mode,
-      artifact_retry: payload.artifact_retry,
-      days_on_target: payload.days_on_target,
-      target_stale: payload.target_stale,
+      physics_memory: payload.physics_memory,
     });
 
     if (looksLikeCrisis(payload.transcript)) {
@@ -367,32 +711,16 @@ serve(async (req) => {
       });
     }
 
-    const openAiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: Deno.env.get("LLM_MODEL") || "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        temperature: 0.4,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: JSON.stringify(payload) },
-        ],
-      }),
+    const struct = await extractStruct(apiKey, payload);
+    const errors = validateStruct(payload, struct);
+    const safeStruct = errors.length ? enforcePartial(payload, fallbackStruct(payload)) : struct;
+    const sentence = await renderSentence(apiKey, payload, safeStruct);
+    const directiveContent = packDirective(payload, sentence, safeStruct);
+    console.log("[synthesize-directive] structured directive", {
+      struct: safeStruct,
+      validation_errors: errors,
+      primary_directive: directiveContent.primary_directive,
     });
-
-    if (!openAiResponse.ok) {
-      const errorBody = await openAiResponse.text();
-      console.error("[synthesize-directive] OpenAI error", openAiResponse.status, errorBody);
-      throw new Error(`OpenAI API error (${openAiResponse.status}): ${errorBody.slice(0, 400)}`);
-    }
-
-    const aiData = await openAiResponse.json();
-    const directiveContent = parseDirective(aiData.choices?.[0]?.message?.content, payload);
-    console.log("[synthesize-directive] gpt-4o-mini directive", directiveContent);
 
     return jsonResponse({
       ...directiveContent,

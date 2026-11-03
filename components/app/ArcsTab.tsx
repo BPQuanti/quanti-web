@@ -1,16 +1,39 @@
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  Vibration,
+  View,
+} from 'react-native';
 import { colors, fonts, surfaces, typography } from '../../constants/theme';
 import { getCustomArcContext, setCustomArcContext, subscribeCustomArcContext } from '../../src/lib/arcs';
 import { assessDestination } from '../../src/services/destinationQuality';
 import {
+  archiveDestination,
+  enqueueDestination,
+  getDestinationBoard,
+  queuedDestinations,
+  setDestinationStall,
+  subscribeDestinationBoard,
+  swapToDestination,
+  type Destination,
+  type DestinationBoard,
+} from '../../src/services/destinationBoard';
+import { setStallPattern } from '../../src/services/guidedQuestion';
+import {
   activeTargetFromText,
-  clearNorthStar,
   daysOnTarget,
   DESTINATION_PLACEHOLDER,
   getNorthStar,
+  getVision,
   isTargetStale,
   saveNorthStar,
+  saveVision,
   subscribeNorthStar,
   TARGET_STALE_DAYS,
   type NorthStar,
@@ -36,8 +59,15 @@ export default function ArcsTab() {
   const [writeOpen, setWriteOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [saved, setSaved] = useState<NorthStar | null>(null);
+  const [board, setBoard] = useState<DestinationBoard | null>(null);
+  const [queueDraft, setQueueDraft] = useState('');
+  const [stallDraft, setStallDraft] = useState('');
+  const [visionDraft, setVisionDraft] = useState('');
+  const [visionSaved, setVisionSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [staleDismissed, setStaleDismissed] = useState(false);
+  const scrollRef = useRef<{ scrollToEnd: (options?: { animated?: boolean }) => void } | null>(null);
+  const visionSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => subscribeCustomArcContext(setContext), []);
   useEffect(() => {
@@ -47,6 +77,16 @@ export default function ArcsTab() {
         setSaved(star);
       }
     });
+    getVision().then((vision) => {
+      if (mounted && vision) {
+        setVisionDraft(vision);
+      }
+    });
+    getDestinationBoard().then((next) => {
+      if (mounted) {
+        setBoard(next);
+      }
+    });
     const unsubStar = subscribeNorthStar(() => {
       getNorthStar().then((star) => {
         if (mounted) {
@@ -54,11 +94,47 @@ export default function ArcsTab() {
         }
       });
     });
+    const unsubBoard = subscribeDestinationBoard(() => {
+      getDestinationBoard().then((next) => {
+        if (mounted) {
+          setBoard(next);
+        }
+      });
+    });
     return () => {
       mounted = false;
       unsubStar();
+      unsubBoard();
+      if (visionSavedTimer.current) {
+        clearTimeout(visionSavedTimer.current);
+      }
     };
   }, []);
+
+  async function persistNorthStar() {
+    Vibration.vibrate(12);
+    setVisionSaved(true);
+    try {
+      await saveVision(visionDraft);
+    } catch {
+      setVisionSaved(false);
+      setError('Could not save North Star.');
+      return;
+    }
+    if (visionSavedTimer.current) {
+      clearTimeout(visionSavedTimer.current);
+    }
+    visionSavedTimer.current = setTimeout(() => setVisionSaved(false), 1600);
+  }
+
+  function focusQueueInput() {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    });
+    setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }, 320);
+  }
 
   useEffect(() => {
     if (!isRecording) {
@@ -73,7 +149,7 @@ export default function ArcsTab() {
   function trySave(raw: string) {
     const check = assessDestination(raw);
     if (!check.ok) {
-      setError(check.reason || 'Name one checkable Active Target.');
+      setError(check.reason || 'Name one checkable object — the priority you choose.');
       setWriteOpen(true);
       return false;
     }
@@ -98,16 +174,75 @@ export default function ArcsTab() {
     setError(null);
   }
 
-  function markAchieved() {
-    setSaved(null);
-    setDraft('');
-    setCustomArcContext('');
-    clearNorthStar().catch(() => {});
-    setWriteOpen(true);
-    setIsRecording(false);
-    setElapsed(0);
+  const activeId = board?.activeId ?? null;
+  const queue = board ? queuedDestinations(board) : [];
+
+  async function markAchieved() {
+    if (!activeId) {
+      return;
+    }
     setError(null);
-    setStaleDismissed(false);
+    try {
+      const next = await archiveDestination(activeId, 'achieved');
+      setBoard(next);
+      const stillActive = next.items.find((item) => item.id === next.activeId && item.status === 'active');
+      if (!stillActive) {
+        setSaved(null);
+        setDraft('');
+        setCustomArcContext('');
+        setWriteOpen(true);
+      }
+      setIsRecording(false);
+      setElapsed(0);
+      setStaleDismissed(false);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not archive that destination.');
+    }
+  }
+
+  async function addToQueue() {
+    const check = assessDestination(queueDraft);
+    if (!check.ok) {
+      setError(check.reason || 'Park one checkable name you’re not doing.');
+      return;
+    }
+    try {
+      await enqueueDestination(queueDraft);
+      setQueueDraft('');
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not park that name.');
+    }
+  }
+
+  async function swapIn(item: Destination) {
+    setError(null);
+    try {
+      const result = await swapToDestination(item.id);
+      setCustomArcContext(item.name);
+      setStaleDismissed(false);
+      setWriteOpen(false);
+      if (result.needsStall) {
+        setStallDraft('');
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not make that first.');
+    }
+  }
+
+  async function saveStall() {
+    if (!activeId) {
+      return;
+    }
+    const text = stallDraft.trim();
+    if (text.split(/\s+/).length < 4) {
+      setError('Name what usually kills this destination — a person, artifact, slot, or tool.');
+      return;
+    }
+    await setDestinationStall(activeId, text);
+    await setStallPattern(text);
+    setStallDraft('');
+    setError(null);
   }
 
   const stale = isTargetStale(saved) && !staleDismissed;
@@ -115,34 +250,46 @@ export default function ArcsTab() {
 
   return (
     <ObsidianScreen>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+      >
       <ScrollView
+        ref={(node) => {
+          const scroller = node as { scrollToEnd?: (options?: { animated?: boolean }) => void } | null;
+          scrollRef.current = scroller?.scrollToEnd
+            ? { scrollToEnd: (options) => scroller.scrollToEnd?.(options) }
+            : null;
+        }}
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageKicker}>Active Target</Text>
-        <Text style={styles.pageTitle}>One checkable object. No calendar deadline.</Text>
+        <Text style={styles.pageKicker}>Choose</Text>
+        <Text style={styles.pageTitle}>What is first. Cut the rest.</Text>
 
         {saved ? (
           <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>Active Target</Text>
+            <Text style={styles.seasonTag}>This is first</Text>
+            <Text style={styles.alignSub}>The priority you chose. Today executes this — nothing else.</Text>
             <View style={styles.summaryBox}>
               <Text style={styles.summaryBody}>{saved.next}</Text>
               {age != null ? (
                 <Text style={styles.alignSub}>
-                  {age === 0 ? 'Set today' : `${age} day${age === 1 ? '' : 's'} on this target`}
+                  {age === 0 ? 'Chosen today' : `${age} day${age === 1 ? '' : 's'} on this`}
                 </Text>
               ) : null}
             </View>
             {stale ? (
               <View style={styles.staleBox}>
                 <Text style={styles.alignPrompt}>
-                  This has been the Active Target for {TARGET_STALE_DAYS}+ days. Still this, or did the next object
-                  change?
+                  This has been first for {TARGET_STALE_DAYS}+ days. Keep it, shrink the sentence, or cut it.
                 </Text>
                 <View style={styles.row}>
                   <Pressable onPress={() => setStaleDismissed(true)} style={styles.submit}>
-                    <Text style={styles.submitText}>Still this</Text>
+                    <Text style={styles.submitText}>Still first</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -152,13 +299,28 @@ export default function ArcsTab() {
                     }}
                     style={styles.ghost}
                   >
-                    <Text style={styles.updateText}>Retarget</Text>
+                    <Text style={styles.updateText}>Rewrite</Text>
                   </Pressable>
                 </View>
               </View>
             ) : null}
-            <Pressable onPress={markAchieved} style={styles.achieveBtn}>
-              <Text style={styles.achieveText}>Achieved — set next Active Target</Text>
+            {board?.items.find((item) => item.id === activeId && !item.stallPattern?.trim()) ? (
+              <View style={styles.staleBox}>
+                <Text style={styles.alignSub}>What usually kills this? Person, artifact, or tool.</Text>
+                <TextInput
+                  value={stallDraft}
+                  onChangeText={setStallDraft}
+                  placeholder="Last time this stalled — name the thing."
+                  placeholderTextColor="#737373"
+                  style={styles.queueInput}
+                />
+                <Pressable onPress={() => saveStall().catch(() => {})} style={styles.submit}>
+                  <Text style={styles.submitText}>Save stall</Text>
+                </Pressable>
+              </View>
+            ) : null}
+            <Pressable onPress={() => markAchieved().catch(() => {})} style={styles.achieveBtn}>
+              <Text style={styles.achieveText}>Done — this is true. Cut it.</Text>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -167,22 +329,22 @@ export default function ArcsTab() {
               }}
               style={styles.updateBtn}
             >
-              <Text style={styles.updateText}>Rewrite</Text>
+              <Text style={styles.updateText}>Rewrite the sentence</Text>
             </Pressable>
           </View>
         ) : (
           <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>Next object</Text>
-            <Text style={styles.alignTitle}>Set your Active Target</Text>
+            <Text style={styles.seasonTag}>This is first</Text>
+            <Text style={styles.alignTitle}>Name one thing you want true</Text>
             <Text style={styles.alignPrompt}>
-              One finish line someone else could check yes or no. When it is done, mark Achieved and name the next one.
+              One checkable object. Someone else could mark yes or no. Quanti will not pick this for you.
             </Text>
             <Text style={styles.alignSub}>{DESTINATION_PLACEHOLDER}</Text>
 
             <Pressable
               onPress={toggleRecord}
               accessibilityRole="button"
-              accessibilityLabel={isRecording ? 'Tap to finish Active Target' : 'Tap wave to speak the Active Target'}
+              accessibilityLabel={isRecording ? 'Tap to finish what is first' : 'Tap wave to name what is first'}
               style={({ pressed }) => [
                 styles.waveHit,
                 isRecording && styles.waveHitActive,
@@ -192,16 +354,79 @@ export default function ArcsTab() {
               <FuturisticVoiceWave isRecording={isRecording} gradientId="arcWaveGradient" />
             </Pressable>
             <Text style={styles.timer}>
-              {isRecording ? `${formatElapsed(elapsed)} / 0:15` : 'Speak for 10–15 seconds'}
+              {isRecording ? `${formatElapsed(elapsed)} · tap to finish` : 'Speak about 10–15 seconds'}
             </Text>
           </View>
         )}
+
+        {saved ? (
+          <View style={styles.alignCard}>
+            <Text style={styles.seasonTag}>Not first</Text>
+            <Text style={styles.alignSub}>
+              Parked names. Not a plan. Make first only if you are cutting the current one. Cut = you are not doing this.
+            </Text>
+            {queue.map((item) => (
+              <View key={item.id} style={styles.queueRow}>
+                <Text style={styles.queueName}>{item.name}</Text>
+                <Pressable onPress={() => swapIn(item).catch(() => {})} hitSlop={8}>
+                  <Text style={styles.queueAction}>Make first</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => archiveDestination(item.id, 'abandoned').catch(() => {})}
+                  hitSlop={8}
+                >
+                  <Text style={styles.queueMute}>Cut</Text>
+                </Pressable>
+              </View>
+            ))}
+            <TextInput
+              value={queueDraft}
+              onChangeText={(value) => {
+                setQueueDraft(value);
+                if (error) {
+                  setError(null);
+                }
+              }}
+              onFocus={focusQueueInput}
+              placeholder="Park a name you’re not doing"
+              placeholderTextColor="#737373"
+              style={styles.queueInput}
+            />
+            <Pressable onPress={() => addToQueue().catch(() => {})} style={styles.ghost}>
+              <Text style={styles.updateText}>Park it</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        <View style={styles.alignCard}>
+          <Text style={styles.seasonTag}>Still true later</Text>
+          <Text style={styles.alignSub}>
+            Vision only. Not a second first. The 1% never computes from this.
+          </Text>
+          <TextInput
+            value={visionDraft}
+            onChangeText={setVisionDraft}
+            placeholder="e.g., Become the default execution OS for founders"
+            placeholderTextColor="#737373"
+            style={styles.queueInput}
+          />
+          <Pressable
+            onPress={() => persistNorthStar().catch(() => {})}
+            style={[styles.ghost, visionSaved && styles.ghostSaved]}
+            accessibilityRole="button"
+            accessibilityLabel={visionSaved ? 'Saved' : 'Save vision'}
+          >
+            <Text style={[styles.updateText, visionSaved && styles.savedText]}>
+              {visionSaved ? 'Saved ✓' : 'Save vision'}
+            </Text>
+          </Pressable>
+        </View>
 
         {(writeOpen || !saved) && (
           <View style={styles.writeBox}>
             {!saved ? (
               <Pressable onPress={() => setWriteOpen((open) => !open)} style={styles.writeToggle}>
-                <Text style={styles.writeToggleText}>Or write it instead</Text>
+                <Text style={styles.writeToggleText}>Or write what is first</Text>
               </Pressable>
             ) : null}
             {(writeOpen || (saved && writeOpen)) && (
@@ -222,19 +447,21 @@ export default function ArcsTab() {
                 />
                 {error ? <Text style={styles.error}>{error}</Text> : null}
                 <Pressable onPress={() => trySave(draft)} style={styles.submit}>
-                  <Text style={styles.submitText}>Save Active Target</Text>
+                  <Text style={styles.submitText}>Make this first</Text>
                 </Pressable>
               </View>
             )}
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </ObsidianScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 32, paddingHorizontal: 20, paddingTop: 16 },
+  flex: { flex: 1 },
+  scroll: { paddingBottom: 140, paddingHorizontal: 20, paddingTop: 16 },
   pageKicker: typography.kicker,
   pageTitle: { ...typography.heading, fontSize: 24, marginBottom: 18, marginTop: 8 },
   alignCard: {
@@ -337,6 +564,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingVertical: 12,
   },
+  ghostSaved: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    borderColor: colors.emeraldBorder,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  savedText: { color: colors.emerald, fontFamily: fonts.semibold },
   row: { flexDirection: 'row', gap: 10 },
   summaryBox: {
     backgroundColor: 'rgba(23, 23, 23, 0.6)',
@@ -365,6 +599,36 @@ const styles = StyleSheet.create({
   },
   achieveText: { color: colors.emerald, fontFamily: fonts.semibold, fontSize: 14 },
   staleBox: { marginTop: 8 },
+  queueRow: {
+    alignItems: 'center',
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+    flexDirection: 'row',
+    gap: 12,
+    paddingVertical: 12,
+  },
+  queueName: {
+    color: colors.heading,
+    flex: 1,
+    fontFamily: fonts.medium,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  queueAction: { color: colors.amber, fontFamily: fonts.semibold, fontSize: 13 },
+  queueMute: { color: colors.muted, fontFamily: fonts.medium, fontSize: 13 },
+  queueInput: {
+    backgroundColor: 'rgba(23, 23, 23, 0.6)',
+    borderColor: colors.border,
+    borderRadius: 12,
+    borderWidth: 1,
+    color: colors.heading,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    marginTop: 12,
+    minHeight: 48,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
   error: {
     color: colors.amber,
     fontFamily: fonts.regular,

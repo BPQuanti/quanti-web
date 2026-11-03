@@ -1,30 +1,30 @@
 const SCENARIOS = [
   {
-    badge: "At home → own place",
+    badge: "Ship TestFlight to 10 testers",
     badgeTone: "border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
-    time: "7:15 AM",
-    telemetry: ["Destination: own place", " Watch: Low HRV", "Yesterday: shifted"],
-    voice: "The listing is still open. I froze.",
-    directive: "Send one listing follow-up in 20 minutes, then stop. Smaller because yesterday slipped.",
-    alignment: "Destination is the plot. Recovery only sized the window.",
+    time: "8:00 PM mark",
+    telemetry: ["Active Destination: TestFlight", " Watch: Low HRV", "Yesterday: shifted"],
+    voice: "The invite list is still open. I froze.",
+    directive: "Send one tester invite before noon, then stop. Smaller because yesterday slipped.",
+    alignment: "Active Destination is the plot. Recovery only sized the window.",
   },
   {
-    badge: "Building → first revenue",
+    badge: "Close the enterprise pilot",
     badgeTone: "border-blue-500/20 bg-blue-500/10 text-blue-400",
-    time: "8:00 AM",
-    telemetry: ["Destination: first revenue", "Sleep: 7.6h", "Yesterday: executed"],
-    voice: "I keep polishing instead of charging.",
-    directive: "Ship one paid-path screen before noon. That is the next 1% past yesterday’s win.",
-    alignment: "Voice named the object. Telemetry said the window could hold it.",
+    time: "8:00 AM optional",
+    telemetry: ["Active Destination: enterprise pilot", "Sleep: 7.6h", "Yesterday: executed"],
+    voice: "I keep polishing instead of sending security answers.",
+    directive: "Draft two custom security answers before noon. That is the next 1% past yesterday’s win.",
+    alignment: "Voice named the artifact. HealthKit said the window could hold it.",
   },
   {
-    badge: "Stretched → present evenings",
+    badge: "Partial → smaller scope",
     badgeTone: "border-purple-500/20 bg-purple-500/10 text-purple-400",
-    time: "8:30 AM",
-    telemetry: ["Destination: present evenings", "HealthKit: optional off", "Yesterday: partial"],
-    voice: "Pickup chaos ate the evening.",
-    directive: "Hard stop at 6:30. One protected hour at home—today’s 1% toward present evenings.",
-    alignment: "The check filled why yesterday shifted. The rule is a clock, not a pep talk.",
+    time: "Same destination",
+    telemetry: ["Active Destination: enterprise pilot", "HealthKit: optional off", "Yesterday: partial"],
+    voice: "The full proposal was too big.",
+    directive: "Draft two custom security answers. Same destination. Smaller physical scope.",
+    alignment: "Partial does not write pep. It scales the leftover down.",
   },
 ] as const;
 
@@ -42,8 +42,8 @@ export default function WidgetPreview() {
             Same destination. Different 1%. Because yesterday and last night changed.
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-400">
-            The Active Target stays the plot. Optional HealthKit sizes the window. A 10-second voice
-            check-in fills the blank. Evening outcome mark writes tomorrow.
+            The Active Destination stays the plot. Optional HealthKit sizes the window. A skippable 10–15s
+            voice check fills the blank. Evening outcome mark writes tomorrow.
           </p>
         </div>
 

@@ -195,7 +195,7 @@ export default function WaitlistForm({ id }: { id?: string }) {
                 invitation link from Apple TestFlight as spots open up.
               </p>
               <p className="mt-3 text-sm leading-6 text-[#A1A1AA]">
-                OG Founder Tier locks $49/yr forever before public launch at $99/yr.
+                Watch your inbox for a direct Apple TestFlight link as the next cohort opens.
               </p>
             </div>
 

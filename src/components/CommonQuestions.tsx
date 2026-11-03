@@ -7,15 +7,15 @@ import { easeLayout } from '../lib/motion';
 const QUESTIONS = [
   {
     q: 'What is Quanti?',
-    a: 'Quanti is a private destination GPS. You name where you are and where you want to go. Overnight signals size the window. A short voice check fills one blank. The card is today’s 1% move. Nobody else sees it.',
+    a: 'Quanti is an execution compass. You choose one first — a checkable object. Today is one physical 1%. Tonight you mark whether you did it. Nobody else sees it.',
   },
   {
     q: 'What do I do today?',
-    a: 'Open Today, read the one 1% move, and live it. If the morning has more weather, speak for ten to fifteen seconds and the card can refine. At the end of the day, mark Executed, Partial, or Shifted — that mark changes tomorrow’s card.',
+    a: 'Open Today. Do the 1%. If the move is obvious, skip the question. Tonight mark Executed, Partial, or Shifted — that writes tomorrow.',
   },
   {
-    q: 'Where does the directive come from?',
-    a: 'You say where you are and where you want to go. Overnight telemetry bounds what is realistic. A short voice check is today’s weather. Yesterday’s mark (executed, partial, or shifted) changes the size of today’s 1%. The card is that move—not a season badge.',
+    q: 'Where does the 1% come from?',
+    a: 'The destination you chose, last night’s mark, and an optional 10–15s answer. HealthKit may shrink the window. It never picks what is first.',
   },
   {
     q: 'Who can see my data?',

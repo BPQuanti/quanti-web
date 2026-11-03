@@ -24,6 +24,7 @@ import SignalVaultScreen from './screens/SignalVaultScreen';
 import PermissionsGate from './src/components/PermissionsGate';
 import OnboardingGate from './src/components/onboarding/OnboardingGate';
 import { checkAllPermissions } from './src/services/permissions';
+import RootErrorBoundary from './components/RootErrorBoundary';
 import { colors, fonts } from './screens/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -70,8 +71,8 @@ function MainTabs() {
           name="Arcs"
           component={ArcsScreen}
           options={{
-            title: 'Destination',
-            tabBarAccessibilityLabel: 'Destination',
+            title: 'Compass',
+            tabBarAccessibilityLabel: 'Compass',
             tabBarIcon: ({ color, size }) => <Ionicons name="layers" color={color} size={size} />,
           }}
         />
@@ -177,14 +178,16 @@ function Root() {
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <AppProvider>
-          <StatusBar style="light" />
-          <Root />
-        </AppProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <RootErrorBoundary>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <AppProvider>
+            <StatusBar style="light" />
+            <Root />
+          </AppProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </RootErrorBoundary>
   );
 }
 

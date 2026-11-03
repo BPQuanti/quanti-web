@@ -29,16 +29,16 @@ function isSingular(text: string) {
 export function assessDestination(raw: string): { ok: boolean; reason?: string } {
   const text = raw.replace(/\s+/g, ' ').trim();
   if (text.length < 12 || text.split(' ').filter(Boolean).length < 4) {
-    return { ok: false, reason: 'Name one finish line someone else could check yes or no.' };
+    return { ok: false, reason: 'Name one checkable object — a finish line someone else could mark yes or no.' };
   }
   if (VAGUE_DESTINATION.some((pattern) => pattern.test(text))) {
     return { ok: false, reason: 'Too mushy. Try “Ship TestFlight to 5 people,” not “Be productive.”' };
   }
   if (TOO_BIG.some((pattern) => pattern.test(text))) {
-    return { ok: false, reason: 'That’s a project. Name the next chapter — one object, not the whole company.' };
+    return { ok: false, reason: 'That’s a whole life. Name one object that would make this true, not the company.' };
   }
   if (!isSingular(text)) {
-    return { ok: false, reason: 'One object. Split the rest into the next Active Target when this one is Achieved.' };
+    return { ok: false, reason: 'One first. Park the rest as not first — only one destination is active.' };
   }
   if (!/\d/.test(text) && !CONCRETE_VERB.test(text)) {
     return { ok: false, reason: 'Make it checkable: a named artifact, or a number someone could count.' };

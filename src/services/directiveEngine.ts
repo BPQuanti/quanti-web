@@ -1,14 +1,15 @@
 import { supabase } from '../lib/supabase';
 import { voicePromptForPayload } from './arcVoicePrompts';
 import { saveStoredDirective } from './dailyDirectiveStore';
-import { getPriorExecution, localDateStamp } from './directiveHistory';
+import { getGuidedQuestion, writeTomorrowQuestion } from './guidedQuestion';
+import { addCalendarDays, getPriorExecution, localDateStamp } from './directiveHistory';
 import { closedLoopFallback, whyFromPayload } from './directiveLoop';
 import { hasGivenAIConsent } from './privacyConsent';
 import { edgeFunctionUrl } from './supabaseFunctions';
 import { asNorthStar, parseNorthStarFromSpeech } from './northStar';
 import type { DailyDirective, DailyTelemetryPayload } from '../types/telemetry';
 
-const TIMEOUT_MS = 30_000;
+const TIMEOUT_MS = 45_000;
 
 export class ConsentRequiredError extends Error {
   constructor() {
@@ -28,7 +29,7 @@ async function withLastExecution(payload: DailyTelemetryPayload): Promise<DailyT
   if (payload.last_execution) {
     return payload;
   }
-  const prior = await getPriorExecution(payload.local_date || localDateStamp());
+  const prior = await getPriorExecution(payload.local_date || localDateStamp(), payload.destination_id);
   if (!prior?.status) {
     return payload;
   }
@@ -155,6 +156,7 @@ function withDestination(payload: DailyTelemetryPayload, directive: DailyDirecti
   return {
     ...directive,
     north_star: northStar ?? undefined,
+    destination_id: payload.destination_id || directive.destination_id,
     why_today: directive.crisis_intercept
       ? directive.why_today?.trim()
       : directive.why_today?.trim() || whyFromPayload(payload),
@@ -167,10 +169,26 @@ async function persistDirective(payload: DailyTelemetryPayload, directive: Daily
       ...directive,
       date: payload.local_date || localDateStamp(),
       agency_arc: payload.agency_arc,
+      destination_id: payload.destination_id || directive.destination_id,
       voice_transcript: directive.crisis_intercept
         ? undefined
         : payload.voice_context?.transcript || payload.voice?.transcript || undefined,
     });
+    if (payload.synthesis_mode !== 'onboarding' && !directive.crisis_intercept && directive.voice_prompt?.trim()) {
+      const tomorrow = addCalendarDays(payload.local_date || localDateStamp(), 1);
+      const existing = await getGuidedQuestion(tomorrow);
+      if (existing?.source !== 'mark') {
+        await writeTomorrowQuestion({
+          fromDate: payload.local_date,
+          destinationNext: payload.north_star?.next || payload.north_star?.now,
+          stallPattern: payload.stall_pattern,
+          yesterdayStatus: payload.last_execution?.status ?? null,
+          source: 'synth',
+          question: directive.voice_prompt,
+          destinationId: payload.destination_id,
+        });
+      }
+    }
   } catch (caught) {
     console.warn('[Directive] persist failed', caught);
   }

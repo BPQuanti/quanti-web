@@ -1,8 +1,6 @@
-"use client";
-
-import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import CurrentStatus from "@/components/CurrentStatus";
 import EngineVisual from "@/components/EngineVisual";
 import FAQAndCTA from "@/components/FAQAndCTA";
 import Footer from "@/components/Footer";
@@ -20,12 +18,7 @@ export default function Home() {
     <div className="relative flex min-h-full flex-1 flex-col overflow-x-hidden bg-[#0A0A0C] text-white">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.2),_transparent_55%)]" />
 
-      <motion.header
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6"
-      >
+      <header className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/logo-full.svg"
@@ -43,10 +36,11 @@ export default function Home() {
         >
           Request TestFlight Access
         </a>
-      </motion.header>
+      </header>
 
       <main className="relative z-10 mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 pb-24 lg:pb-8">
         <Hero />
+        <CurrentStatus />
         <Purpose />
         <WhyNoDashboards />
         <PhilosophySection />

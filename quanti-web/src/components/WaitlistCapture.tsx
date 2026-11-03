@@ -97,6 +97,11 @@ function WaitlistCaptureForm({
   const [referredBy, setReferredBy] = useState("");
   const [touched, setTouched] = useState(false);
   const [signup, setSignup] = useState<SignupState | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     try {
@@ -200,6 +205,10 @@ function WaitlistCaptureForm({
   );
   const showEmailError = Boolean(error) || (touched && email.length > 0 && !emailValid);
 
+  if (!mounted) {
+    return <div className="min-h-[168px] rounded-xl border border-white/10 bg-[#0A0A0C]" aria-hidden />;
+  }
+
   if (signup) {
     return (
       <div className="min-h-[168px] rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-4 text-left">
@@ -208,8 +217,8 @@ function WaitlistCaptureForm({
           You&apos;re on the list for TestFlight access.
         </p>
         <p className="mt-2 text-sm leading-6 text-white/60">
-          We&apos;re sending invites in batches to keep cohort feedback high-signal. Watch your inbox for a direct
-          invitation link from Apple TestFlight as spots open up.
+          Private TestFlight is live. We send Apple invites in small cohorts. Watch your inbox for a direct TestFlight
+          link as spots open.
         </p>
         {error ? <p className="mt-2 text-sm text-rose-300">{error}</p> : null}
         <button
@@ -258,7 +267,7 @@ function WaitlistCaptureForm({
         </button>
       </div>
       <p className="mt-3 text-xs leading-5 text-white/45">
-        We are enrolling beta testers in small cohorts. Zero spam—just your direct TestFlight invitation link.
+        Private TestFlight is live and invite-only. Zero spam—just your Apple invitation as the next cohort opens.
       </p>
       {showEmailError ? (
         <p className="mt-2 text-sm text-rose-300" role="alert">

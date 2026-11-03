@@ -27,8 +27,18 @@ import {
 } from 'expo-audio';
 import { useAppContext } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLocalCalendarDate } from '../../src/hooks/useLocalCalendarDate';
 import { useTelemetryPayload } from '../../src/hooks/useTelemetryPayload';
-import { MORNING_VOICE_PROMPT, VOICE_CHECK_SECONDS } from '../../src/services/arcVoicePrompts';
+import { MORNING_VOICE_PROMPT } from '../../src/services/arcVoicePrompts';
+import {
+  ensureGuidedQuestion,
+  getGuidedQuestion,
+  markGuidedQuestionAnswered,
+  subscribeGuidedQuestions,
+  writeTomorrowQuestion,
+} from '../../src/services/guidedQuestion';
+import { syncDailyReminders } from '../../src/services/dailyReminders';
+import { rememberDestinationMark } from '../../src/services/destinationBoard';
 import { formatToward, getNorthStar, subscribeNorthStar, type NorthStar } from '../../src/services/northStar';
 import { isInternalToolsAccount } from '../../src/lib/config/reviewMode';
 import { displayNameFromAuthUser, firstNameFromDisplay } from '../../src/services/displayName';
@@ -37,6 +47,7 @@ import { generateDailyDirective } from '../../src/services/directiveEngine';
 import { transcribeVoiceRecording } from '../../src/services/transcribeVoice';
 import {
   getTodayLog,
+  localDateStamp,
   setTodayExecution,
   subscribeDirectiveHistory,
   type DirectiveLog,
@@ -187,17 +198,21 @@ export default function TodayHub() {
   const [reflectionOpen, setReflectionOpen] = useState(false);
   const [reflection, setReflection] = useState<'yes' | 'adjust' | null>(null);
   const [todayLog, setTodayLog] = useState<DirectiveLog | null>(null);
+  const [questionSkipped, setQuestionSkipped] = useState(false);
   const [northStar, setNorthStar] = useState<NorthStar | null>(null);
   const [starResolved, setStarResolved] = useState(false);
   const [mockSignals, setMockSignals] = useState(true);
   const [permissions, setPermissions] = useState<PermissionStates>(DEFAULT_PERMS);
+  const calendarDate = useLocalCalendarDate();
   const { payload, loading, error, refreshTelemetry } = useTelemetryPayload();
   const [directive, setDirective] = useState<DailyDirective | null>(null);
+  const [spokenPrompt, setSpokenPrompt] = useState(MORNING_VOICE_PROMPT);
   const [refreshing, setRefreshing] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const recordFade = useRef(new Animated.Value(1)).current;
   const synthPulse = useRef(new Animated.Value(0.55)).current;
   const forceRegenerate = useRef(false);
+  const prevCalendarDate = useRef(calendarDate);
 
   useEffect(() => {
     let mounted = true;
@@ -227,9 +242,55 @@ export default function TodayHub() {
   }, []);
 
   useEffect(() => {
+    if (prevCalendarDate.current === calendarDate) {
+      return;
+    }
+    prevCalendarDate.current = calendarDate;
+    setDirective(null);
+    setTodayLog(null);
+    setQuestionSkipped(false);
+    setPhase('baseline');
+    setCheckInQuote('');
+  }, [calendarDate]);
+
+  useEffect(() => {
+    let mounted = true;
+    function applyQuestion(question?: string) {
+      if (mounted && question?.trim()) {
+        setSpokenPrompt(question.trim());
+      }
+    }
+    ensureGuidedQuestion({
+      date: calendarDate,
+      destinationNext: northStar?.next || northStar?.now,
+    })
+      .then((record) => {
+        applyQuestion(record.question);
+        if (record.answered) {
+          setQuestionSkipped(true);
+        }
+      })
+      .catch(() => {});
+    const unsub = subscribeGuidedQuestions(() => {
+      getGuidedQuestion(calendarDate)
+        .then((record) => applyQuestion(record?.question))
+        .catch(() => {});
+    });
+    return () => {
+      mounted = false;
+      unsub();
+    };
+  }, [calendarDate, northStar?.next, northStar?.now]);
+
+  useEffect(() => {
     let cancelled = false;
     (async () => {
-      const stored = await loadStoredDirective(payload?.local_date);
+      const today = calendarDate || localDateStamp();
+      if (payload && payload.local_date !== today) {
+        return;
+      }
+      const stored = await loadStoredDirective(today);
+      const log = await getTodayLog(today);
       if (cancelled) {
         return;
       }
@@ -240,11 +301,16 @@ export default function TodayHub() {
       if (regenerate) {
         forceRegenerate.current = false;
       }
+      const destMismatch = Boolean(
+        stored?.destination_id && payload?.destination_id && stored.destination_id !== payload.destination_id,
+      );
+      const lockOldCard = destMismatch && Boolean(stored);
 
-      if (stored && !regenerate && !newVoice) {
+      if (stored && !regenerate && !newVoice && (!destMismatch || lockOldCard)) {
         console.log('[TodayHub] restored saved directive', {
           date: stored.date,
           source: stored.source,
+          lockOldCard,
         });
         setDirective(stored);
         if (storedVoice) {
@@ -295,7 +361,7 @@ export default function TodayHub() {
     return () => {
       cancelled = true;
     };
-  }, [payload]);
+  }, [payload, calendarDate]);
 
   useEffect(() => {
     let mounted = true;
@@ -376,12 +442,6 @@ export default function TodayHub() {
     return () => clearInterval(tick);
   }, [isRecording]);
 
-  useEffect(() => {
-    if (isRecording && elapsed >= VOICE_CHECK_SECONDS) {
-      startOrStopRecording().catch(() => {});
-    }
-  }, [elapsed, isRecording]);
-
   async function applyVoiceContext(quote: string, durationSeconds?: number) {
     const transcript = quote.trim();
     if (!transcript) {
@@ -394,6 +454,7 @@ export default function TodayHub() {
     setNoteOpen(false);
     setCheckInQuote(transcript);
     setPhase('refining');
+    markGuidedQuestionAnswered(calendarDate || localDateStamp()).catch(() => {});
     const nextPayload = await refreshTelemetry(transcript, durationSeconds);
     if (!nextPayload) {
       setVoiceError('Telemetry could not be assembled with your voice context.');
@@ -492,7 +553,7 @@ export default function TodayHub() {
   useEffect(() => {
     let mounted = true;
     function load() {
-      getTodayLog()
+      getTodayLog(calendarDate)
         .then((log) => {
           if (mounted) {
             setTodayLog(log);
@@ -506,7 +567,7 @@ export default function TodayHub() {
       mounted = false;
       unsubscribe();
     };
-  }, []);
+  }, [calendarDate]);
 
   function toggleDelivery(id: DeliveryId) {
     setDelivery((current) =>
@@ -541,14 +602,13 @@ export default function TodayHub() {
         </View>
         <View style={styles.scroll}>
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionKicker}>First-time setup</Text>
-            <Text style={styles.directiveText}>Tell Quanti the Active Target — one checkable object.</Text>
+            <Text style={styles.sectionKicker}>Name what is first</Text>
+            <Text style={styles.directiveText}>One checkable object — one thing you want true.</Text>
             <Text style={styles.cardSubtext}>
-              New accounts start empty. Name your destination — nothing is copied from another user on this
-              phone.
+              Quanti will not pick this for you. Name a finish line someone else could mark yes or no.
             </Text>
             <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.journalSubmit}>
-              <Text style={styles.journalSubmitText}>Set your Active Target</Text>
+              <Text style={styles.journalSubmitText}>Choose what is first</Text>
             </Pressable>
           </View>
         </View>
@@ -569,8 +629,6 @@ export default function TodayHub() {
     .map((line) => line.replace(/\s+/g, ' ').trim())
     .filter(Boolean)
     .slice(0, 2);
-  const spokenPrompt = MORNING_VOICE_PROMPT;
-
   return (
     <ObsidianScreen>
       <View style={styles.header}>
@@ -624,21 +682,22 @@ export default function TodayHub() {
               <View style={styles.sectionCard}>
                 <View style={styles.widgetHead}>
                   <Text style={styles.sectionKicker}>
-                    {directive.aborted || directive.crisis_intercept ? 'Get help' : 'Today’s directive'}
+                    {directive.aborted || directive.crisis_intercept ? 'Get help' : 'Do this 1%'}
                   </Text>
                   {voiceBoosted ? (
-                    <Text style={styles.statusBadgeTextRefined}>✨ Refined with Voice Context</Text>
+                    <Text style={styles.statusBadgeTextRefined}>Sized with your answer</Text>
                   ) : null}
                 </View>
+                <Text style={styles.directiveText}>{headline}</Text>
                 <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.arcShift}>
                   <Text style={styles.arcShiftText}>
-                    {formatToward(northStar)
-                      ? `Active Target: ${formatToward(northStar)}`
-                      : 'Set an Active Target · rewrite anytime'}
+                    {formatToward(directive?.north_star ?? northStar)
+                      ? `This is first — the priority you chose: ${formatToward(directive?.north_star ?? northStar)}`
+                      : 'Choose what is first on Compass'}
                   </Text>
                 </Pressable>
-                <Text style={styles.directiveText}>{headline}</Text>
                 {directive.why_today ? <Text style={styles.whyToday}>{directive.why_today}</Text> : null}
+                {todayLog?.swap_audit ? <Text style={styles.whyToday}>{todayLog.swap_audit}</Text> : null}
                 {focusLines.map((line, index) => (
                   <Text key={`${index}-${line.slice(0, 24)}`} style={styles.focusLine}>
                     {line}
@@ -647,12 +706,12 @@ export default function TodayHub() {
                 {directive.aborted || directive.crisis_intercept ? null : (
                 <View style={[styles.outcomeCard, !todayLog?.status && styles.outcomeCardUrgent]}>
                   <Text style={styles.outcomeTitle}>
-                    {todayLog?.status ? 'Today’s mark' : 'Mark today’s 1%'}
+                    {todayLog?.status ? 'You marked it' : 'Did you do it?'}
                   </Text>
                   <Text style={styles.outcomeSub}>
                     {todayLog?.status
-                      ? 'This writes tomorrow’s card.'
-                      : 'Executed, partial, or shifted — required so tomorrow can adapt.'}
+                      ? 'Tonight’s mark writes tomorrow’s 1%.'
+                      : 'Executed, partial, or shifted. That is the whole ritual.'}
                   </Text>
                   <View style={styles.checkInRow}>
                     {(
@@ -662,24 +721,55 @@ export default function TodayHub() {
                         { id: 'shifted', label: 'Shifted' },
                       ] as const
                     ).map((option) => {
-                      const on = todayLog?.status === option.id;
+                      const on = todayLog?.date === calendarDate && todayLog?.status === option.id;
                       return (
                         <Pressable
                           key={option.id}
                           onPress={() => {
+                            const date = calendarDate || localDateStamp();
+                            const destId = directive?.destination_id || todayLog?.destination_id || payload?.destination_id || undefined;
                             setTodayLog({
-                              date: payload?.local_date ?? '',
+                              date,
                               primary_directive: headline,
                               agency_arc: payload?.agency_arc ?? '',
                               status: option.id,
-                              feedback_note: todayLog?.feedback_note,
+                              feedback_note: todayLog?.date === date ? todayLog?.feedback_note : undefined,
+                              destination_id: destId,
+                              swap_audit: todayLog?.date === date ? todayLog?.swap_audit : undefined,
                             });
+                            setQuestionSkipped(true);
                             setTodayExecution({
-                              date: payload?.local_date,
+                              date,
                               primary_directive: headline,
                               agency_arc: payload?.agency_arc ?? '',
                               status: option.id,
-                            }).catch(() => {});
+                              destination_id: destId,
+                            })
+                              .then(() => {
+                                if (destId) {
+                                  return rememberDestinationMark(
+                                    destId,
+                                    {
+                                      date,
+                                      status: option.id,
+                                      primary_directive: headline,
+                                    },
+                                    checkInQuote || note || payload?.voice_context?.transcript,
+                                  );
+                                }
+                                return undefined;
+                              })
+                              .then(() =>
+                                writeTomorrowQuestion({
+                                  fromDate: date,
+                                  destinationNext: directive?.north_star?.next || northStar?.next || northStar?.now,
+                                  yesterdayStatus: option.id,
+                                  source: 'mark',
+                                  destinationId: destId,
+                                }),
+                              )
+                              .then(() => syncDailyReminders({ markedToday: true }))
+                              .catch(() => {});
                           }}
                           style={[styles.checkInChip, on && styles.checkInChipOn, !todayLog?.status && styles.checkInChipIdle]}
                         >
@@ -700,15 +790,16 @@ export default function TodayHub() {
                 <Text style={styles.undoText}>↩ Return to baseline</Text>
               </Pressable>
             ) : null}
+            {questionSkipped || todayLog?.status ? null : (
               <View style={[styles.refineCallout, isRecording && styles.refineCalloutLive, phase === 'refining' && styles.refineCalloutBusy]}>
-                <Text style={styles.refineHeader}>Today’s weather · 10–15 seconds</Text>
+                <Text style={styles.refineHeader}>Optional · about 10–15 seconds</Text>
                 <Text style={styles.voicePrompt}>{spokenPrompt}</Text>
                 <Text style={styles.refineStatus}>
                   {phase === 'refining'
-                    ? 'Transcribing and synthesizing your directive…'
+                    ? 'Sizing today’s 1%…'
                     : isRecording
-                      ? `Listening ${formatElapsed(elapsed)} / 0:15`
-                      : MORNING_VOICE_PROMPT}
+                      ? `Listening ${formatElapsed(elapsed)} · tap to finish`
+                      : 'Skip if the move is already obvious.'}
                 </Text>
                 {voiceError ? <Text style={styles.voiceError}>{voiceError}</Text> : null}
                 <Animated.View style={{ opacity: recordFade }} pointerEvents={journalMode ? 'none' : 'auto'}>
@@ -716,7 +807,7 @@ export default function TodayHub() {
                     onPress={startOrStopRecording}
                     accessibilityRole="button"
                     accessibilityLabel={
-                      isRecording ? 'Tap to finish voice check-in' : 'Tap wave for 10 to 15 second voice check'
+                      isRecording ? 'Tap to finish' : 'Tap to speak. About 10–15 seconds is enough.'
                     }
                     accessibilityState={{ disabled: journalMode }}
                     style={({ pressed }) => [
@@ -749,8 +840,8 @@ export default function TodayHub() {
                   <>
                     <Text style={styles.recordHint}>
                       {isRecording
-                        ? `Listening ${formatElapsed(elapsed)} / 0:15`
-                        : '〰️ Tap wave for 15s voice check'}
+                        ? `Listening ${formatElapsed(elapsed)} · tap to finish`
+                        : '〰️ Tap wave · about 10–15 seconds'}
                     </Text>
                     <Pressable
                       onPress={() => setNoteOpen(true)}
@@ -764,7 +855,17 @@ export default function TodayHub() {
                     </Pressable>
                   </>
                 )}
+                <Pressable
+                  onPress={() => {
+                    setQuestionSkipped(true);
+                    markGuidedQuestionAnswered(calendarDate).catch(() => {});
+                  }}
+                  style={styles.undo}
+                >
+                  <Text style={styles.undoText}>Skip</Text>
+                </Pressable>
               </View>
+            )}
           </View>
 
         <WellnessDisclaimer />

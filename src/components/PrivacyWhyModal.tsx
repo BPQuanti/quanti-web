@@ -4,8 +4,8 @@ import { colors, fonts, surfaces, typography } from '../../constants/theme';
 
 const CARDS = [
   {
-    title: 'Destination you named',
-    body: 'The Active Target is the plot. Quanti stores that on your account so today’s card is a 1% move toward that object—not a season, streak, or posture.',
+    title: 'What is first',
+    body: 'The destination you chose is the only plot. Today’s 1% makes that object more true. Not a season, streak, or posture.',
   },
   {
     title: 'HealthKit sizes the window',
@@ -45,7 +45,7 @@ export default function PrivacyWhyModal({ visible, onClose }: Props) {
           </View>
           <Text style={styles.title}>How data is used</Text>
           <Text style={styles.lede}>
-            You name now and next. Signals only size today’s 1%. Nothing here becomes a feed, a graph, or an audience.
+            You choose what is first. Optional HealthKit and a short answer only size today’s 1%. Nothing here becomes a feed.
           </Text>
           <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>
             {CARDS.map((card) => (

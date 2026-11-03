@@ -2,18 +2,18 @@ import { Hourglass, Mic, ScanEye, Timer } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "Active Target",
-    body: "You name one checkable Active Target. No calendar deadline. That object is the plot. Sensors never replace it.",
+    title: "One Active Destination",
+    body: "You name one checkable object. No 30-day box. The queue stays inert until you Swap. Achieved archives it.",
     icon: Hourglass,
   },
   {
-    title: "One 15-word card",
-    body: "The morning output is a single 15-word action card—one physical move—then Quanti gets off the phone.",
+    title: "One 15–20 word 1%",
+    body: "A single verb-first physical action card. Then Quanti gets off the phone. Under 30 seconds of daily screen time.",
     icon: Timer,
   },
   {
-    title: "10-second voice check-in",
-    body: "A 10-second voice check-in names the stall. Optional HealthKit sleep and HRV only size the window.",
+    title: "Skippable 10–15s voice",
+    body: "Voice fills one blank sensors cannot see. Skip it if last night’s mark already sized today. Optional HealthKit only sizes the window.",
     icon: Mic,
   },
   {
@@ -42,7 +42,7 @@ export default function PhilosophySection() {
             Built for execution, not attention.
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-relaxed text-neutral-400 sm:text-lg">
-            Most software hoards your time with grids and charts. Quanti is a quiet execution compass: one 15-word
+            Most software hoards your time with grids and charts. Quanti is a quiet execution compass: one 15–20 word
             action card, then it gets out of the way.
           </p>
         </div>

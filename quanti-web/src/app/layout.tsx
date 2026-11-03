@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Quanti | Your daily execution compass.",
   description:
-    "An Active Target, a 10-second voice check-in, and one 15-word action card. Zero-dashboard. Under 30 seconds of daily screen time.",
+    "Private iOS TestFlight is live. One Active Destination. One 15–20 word physical 1%. Optional HealthKit. Skippable voice. Last night’s mark writes tomorrow.",
   metadataBase: new URL("https://quanti-app.com"),
   icons: {
     icon: "/logo-mark.svg",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Quanti | Your daily execution compass.",
     description:
-      "An Active Target, a 10-second voice check-in, and one 15-word action card. Zero-dashboard. Under 30 seconds of daily screen time.",
+      "Private iOS TestFlight is live. One Active Destination. One 15–20 word physical 1%. Optional HealthKit. Skippable voice. Last night’s mark writes tomorrow.",
     url: "https://quanti-app.com",
     siteName: "Quanti",
     images: [
@@ -43,11 +43,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Quanti | Your daily execution compass.",
     description:
-      "An Active Target, a 10-second voice check-in, and one 15-word action card. Zero-dashboard. Under 30 seconds of daily screen time.",
+      "Private iOS TestFlight is live. One Active Destination. One 15–20 word physical 1%. Optional HealthKit. Skippable voice. Last night’s mark writes tomorrow.",
     images: ["https://quanti-app.com/og-image.png"],
-  },
-  other: {
-    "apple-itunes-app": "app-id=YOUR_APP_ID",
   },
 };
 

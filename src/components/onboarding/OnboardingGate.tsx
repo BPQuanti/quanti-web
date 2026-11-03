@@ -1,8 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useAuth } from '../../../context/AuthContext';
 import BootScreen from '../../../components/BootScreen';
 import { resolveOnboardingComplete, subscribeOnboardingGate } from '../../services/onboarding';
-import OnboardingFlow from './OnboardingFlow';
+
+const OnboardingFlow = lazy(() => import('./OnboardingFlow'));
 
 type Props = {
   children: ReactNode;
@@ -27,10 +28,18 @@ export default function OnboardingGate({ children }: Props) {
         return;
       }
       setReady(false);
-      const complete = await resolveOnboardingComplete(user.id);
-      if (live) {
-        setNeedsOnboarding(!complete);
-        setReady(true);
+      try {
+        const complete = await resolveOnboardingComplete(user.id);
+        if (live) {
+          setNeedsOnboarding(!complete);
+          setReady(true);
+        }
+      } catch (caught) {
+        console.warn('[Onboarding] gate failed', caught);
+        if (live) {
+          setNeedsOnboarding(false);
+          setReady(true);
+        }
       }
     })();
     return () => {
@@ -43,7 +52,11 @@ export default function OnboardingGate({ children }: Props) {
   }
 
   if (needsOnboarding) {
-    return <OnboardingFlow onComplete={() => setNeedsOnboarding(false)} />;
+    return (
+      <Suspense fallback={<BootScreen />}>
+        <OnboardingFlow onComplete={() => setNeedsOnboarding(false)} />
+      </Suspense>
+    );
   }
 
   return children;

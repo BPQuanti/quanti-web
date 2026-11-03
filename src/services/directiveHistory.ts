@@ -9,6 +9,8 @@ export interface DirectiveLog {
   agency_arc: string;
   status?: ExecutionStatus;
   feedback_note?: string;
+  destination_id?: string;
+  swap_audit?: string;
 }
 
 const STORAGE_KEY = '@quanti_directive_history';
@@ -30,6 +32,13 @@ export function localDateStamp(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+export function addCalendarDays(stamp: string, days: number) {
+  const [year, month, day] = stamp.slice(0, 10).split('-').map(Number);
+  const next = new Date(year, (month || 1) - 1, day || 1);
+  next.setDate(next.getDate() + days);
+  return localDateStamp(next);
+}
+
 function isStatus(value: unknown): value is ExecutionStatus {
   return value === 'executed' || value === 'partial' || value === 'shifted';
 }
@@ -48,6 +57,8 @@ function asLog(value: unknown): DirectiveLog | null {
     agency_arc: typeof record.agency_arc === 'string' ? record.agency_arc : '',
     status: isStatus(record.status) ? record.status : undefined,
     feedback_note: typeof record.feedback_note === 'string' ? record.feedback_note : undefined,
+    destination_id: typeof record.destination_id === 'string' ? record.destination_id : undefined,
+    swap_audit: typeof record.swap_audit === 'string' ? record.swap_audit : undefined,
   };
 }
 
@@ -82,9 +93,22 @@ export async function getTodayLog(date = localDateStamp()): Promise<DirectiveLog
   return logs.find((log) => log.date === date) ?? null;
 }
 
-export async function getPriorExecution(today = localDateStamp()): Promise<DirectiveLog | null> {
+export async function getPriorExecution(
+  today = localDateStamp(),
+  destinationId?: string | null,
+): Promise<DirectiveLog | null> {
   const logs = await listDirectiveLogs();
-  return logs.find((log) => log.date < today && Boolean(log.status)) ?? null;
+  return (
+    logs.find((log) => {
+      if (log.date >= today || !log.status) {
+        return false;
+      }
+      if (!destinationId) {
+        return true;
+      }
+      return !log.destination_id || log.destination_id === destinationId;
+    }) ?? null
+  );
 }
 
 export async function upsertDirectiveLog(entry: DirectiveLog): Promise<DirectiveLog> {
@@ -109,8 +133,9 @@ export async function setTodayExecution(input: {
   agency_arc: string;
   status: ExecutionStatus;
   feedback_note?: string;
+  destination_id?: string;
 }): Promise<DirectiveLog> {
-  const date = input.date ?? localDateStamp();
+  const date = input.date?.slice(0, 10) || localDateStamp();
   const current = await getTodayLog(date);
   return upsertDirectiveLog({
     date,
@@ -118,5 +143,7 @@ export async function setTodayExecution(input: {
     agency_arc: input.agency_arc,
     status: input.status,
     feedback_note: input.feedback_note ?? current?.feedback_note,
+    destination_id: input.destination_id ?? current?.destination_id,
+    swap_audit: current?.swap_audit,
   });
 }

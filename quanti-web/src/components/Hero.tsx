@@ -4,19 +4,19 @@ import WaitlistCapture from "@/components/WaitlistCapture";
 
 const LOOP = [
   {
-    glyph: "🎙️",
-    title: "10-Second Voice Log",
-    body: "Speak overnight biometrics and daily focus.",
-  },
-  {
     glyph: "🎯",
-    title: "15-Word Active Target",
-    body: "Receive 1 concrete physical move every 24 hours.",
+    title: "One Active Destination",
+    body: "One checkable object. The queue stays inert until you Swap. Achieved archives it.",
   },
   {
-    glyph: "⚡",
-    title: "24-Hour Outcome Mark",
-    body: "Tap Executed, Partial, or Shifted to adapt tomorrow's directive.",
+    glyph: "🎙️",
+    title: "Optional voice + HealthKit",
+    body: "A skippable 10–15s check fills one blank. Sleep and HRV only size the window.",
+  },
+  {
+    glyph: "✓",
+    title: "Evening mark writes tomorrow",
+    body: "Executed, Partial, or Shifted. No streaks. No dashboards.",
   },
 ] as const;
 
@@ -28,13 +28,14 @@ export default function Hero() {
 
       <div className="relative mx-auto max-w-3xl text-left sm:text-center">
         <p className="inline-flex rounded-full border border-white/15 bg-white/[0.04] px-3 py-1 text-[11px] font-medium tracking-wide text-white/70">
-          iOS Private TestFlight • Capped at 100 Testers
+          Private iOS TestFlight is live • Invite-only • Capped cohort
         </p>
         <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white sm:text-5xl sm:leading-[1.08] lg:text-[2.85rem] xl:text-[3.15rem]">
-          The Voice-First Execution Compass
+          Your daily execution compass.
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/60 sm:text-lg">
-          Replace vague habit streak guilt with a single 15-word physical action card every 24 hours.
+          One Active Destination. One 15–20 word physical 1%. Optional HealthKit. Skippable voice. Last
+          night&apos;s mark writes tomorrow.
         </p>
         <div id="waitlist" className="mx-auto mt-8 w-full max-w-xl scroll-mt-24 text-left">
           <WaitlistCapture emailFieldId="hero-waitlist-email" submitLabel="Request TestFlight Access" />
@@ -46,11 +47,11 @@ export default function Hero() {
               <span className="text-[11px] text-white/40">7:30 AM</span>
             </div>
             <p className="text-sm font-medium leading-relaxed text-white">
-              &ldquo;Toward first revenue: send one paid-path email before noon. Sleep was short, so stop after that
-              one move.&rdquo;
+              &ldquo;Draft two custom security answers for the enterprise pilot. Sleep was short, so stop after that
+              one artifact.&rdquo;
             </p>
             <p className="mt-3 border-t border-white/10 pt-3 text-[11px] text-white/45">
-              Active Target + 10s voice + optional HealthKit
+              Active Destination + skippable voice + optional HealthKit
             </p>
           </article>
         </div>

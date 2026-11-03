@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
+import { useLocalCalendarDate } from './useLocalCalendarDate';
 import { subscribeArcSettings } from '../services/arcSettings';
+import { subscribeNorthStar } from '../services/northStar';
 import { consumePendingOnboardingVoice } from '../services/onboarding';
 import { assembleAnonymizedPayload } from '../services/telemetryPayload';
 import { subscribeTelemetrySettings } from '../services/telemetrySettings';
@@ -9,6 +11,7 @@ import type { DailyTelemetryPayload } from '../types/telemetry';
 
 export function useTelemetryPayload() {
   const { user } = useAuth();
+  const calendarDate = useLocalCalendarDate();
   const [payload, setPayload] = useState<DailyTelemetryPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,15 +78,23 @@ export function useTelemetryPayload() {
   );
 
   useEffect(() => {
+    refreshTelemetry().catch(() => {});
+  }, [calendarDate, refreshTelemetry]);
+
+  useEffect(() => {
     const unsubSettings = subscribeTelemetrySettings(() => {
       refreshTelemetry().catch(() => {});
     });
     const unsubArc = subscribeArcSettings(() => {
       refreshTelemetry().catch(() => {});
     });
+    const unsubStar = subscribeNorthStar(() => {
+      refreshTelemetry().catch(() => {});
+    });
     return () => {
       unsubSettings();
       unsubArc();
+      unsubStar();
     };
   }, [refreshTelemetry]);
 

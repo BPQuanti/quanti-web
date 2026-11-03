@@ -2,13 +2,13 @@ import { Compass, Radio, Shield } from "lucide-react";
 
 const PILLARS = [
   {
-    title: "You name now and next",
-    body: "Where you are, where you want to go. The morning 1% is a move on that vector—not a season badge.",
+    title: "You name one Active Destination",
+    body: "One checkable object is the plot. The queue stays inert until you Swap. Achieved archives it.",
     icon: Compass,
   },
   {
-    title: "Voice + optional HealthKit",
-    body: "A 10-second voice check-in names the stall. Sleep and HRV only size the window. No calendar, bank, location, or Screen Time.",
+    title: "Skippable voice + optional HealthKit",
+    body: "A 10–15s voice check-in names the stall. Sleep and HRV only size the window.",
     icon: Radio,
   },
   {
@@ -25,7 +25,7 @@ export default function ArchitectureBanner() {
       <div className="mb-8 text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300">Value Pillars</p>
         <h2 id="architecture-heading" className="mt-3 text-3xl font-semibold tracking-tight">
-          Stay in control. Signals stay on your phone.
+          Stay in control. Private TestFlight is live.
         </h2>
       </div>
 

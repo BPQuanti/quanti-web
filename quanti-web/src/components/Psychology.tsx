@@ -2,16 +2,16 @@ import { Compass, Mic, Shield } from "lucide-react";
 
 const ANCHORS = [
   {
-    title: "Name an Active Target",
-    kicker: "Active Target",
-    body: "One checkable object is the plot. No 30-day box. The 10-second voice check-in only fills the blank sensors cannot see.",
+    title: "Name one Active Destination",
+    kicker: "One first",
+    body: "One checkable object is the plot. No 30-day box. The skippable 10–15s voice check only fills the blank sensors cannot see.",
     icon: Mic,
     tone: "border-rose-400/25 text-rose-200",
   },
   {
     title: "Eliminate decision fatigue",
-    kicker: "15-word action card",
-    body: "Trackers leave you the analyst. The execution compass hands you one 15-word physical action card, then gets out of the way.",
+    kicker: "15–20 word 1%",
+    body: "Trackers leave you the analyst. The execution compass hands you one 15–20 word physical action card, then gets out of the way.",
     icon: Compass,
     tone: "border-indigo-400/25 text-indigo-200",
   },

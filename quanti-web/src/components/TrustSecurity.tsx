@@ -11,12 +11,12 @@ const fadeUp = {
 const pillars = [
   {
     title: "On-Device Tokenization",
-    body: "Optional HealthKit summaries stay on-device first. Quanti works from recovery size and a 10-second voice check-in—not a surveillance feed.",
+    body: "Optional HealthKit summaries stay on-device first. Quanti works from recovery size and a skippable voice check—not a surveillance feed.",
     icon: Lock,
   },
   {
     title: "Edge voice, zero retention",
-    body: "The 10-second voice check-in is transcribed in-memory at the encrypted edge. Audio is not kept and is not used to train models.",
+    body: "The skippable 10–15s voice check is transcribed in-memory at the encrypted edge. Audio is not kept and is not used to train models.",
     icon: Mic,
   },
   {

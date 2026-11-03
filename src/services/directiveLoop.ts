@@ -59,9 +59,9 @@ export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirecti
     why = `Yesterday you shifted “${clip(prior.primary_directive)}”. Today’s 1% is smaller so you can complete it.`;
     blocks = [`20 minutes on the smallest next step toward ${toward}.`];
   } else if (prior?.status === 'partial') {
-    primary = `Finish yesterday’s unfinished 1% toward ${toward}, then stop.`;
-    why = `Yesterday was partial on “${clip(prior.primary_directive)}”. Today closes that loop instead of stacking a new one.`;
-    blocks = [`Complete the leftover piece, then one small increment toward ${toward}.`];
+    primary = `Cut yesterday’s leftover toward ${toward} to one smaller physical artifact, then stop.`;
+    why = `Yesterday was partial. Same destination. Smaller physical scope.`;
+    blocks = [`One smaller artifact toward ${toward} — not the whole leftover.`];
   } else if (prior?.status === 'executed') {
     primary = `Take the next 1% toward ${toward}: one concrete increment past yesterday’s win.`;
     why = `Yesterday you executed. Today goes one step further toward ${toward}.`;
@@ -85,7 +85,7 @@ export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirecti
   }
 
   if (voice) {
-    blocks = [`Spoken weather heard. Keep the action concrete toward ${toward}.`, ...blocks].slice(0, 2);
+    blocks = [`Spoken answer heard. Keep the action concrete toward ${toward}.`, ...blocks].slice(0, 2);
   }
 
   return {

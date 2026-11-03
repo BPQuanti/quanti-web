@@ -1,7 +1,9 @@
 import { fetchSleepAndHRV } from './healthkit';
 import { cacheAnonymizedPayload } from './privacyConsent';
 import { getSelectedArc } from './arcSettings';
+import { getDestinationBoard, queuedDestinations } from './destinationBoard';
 import { getPriorExecution } from './directiveHistory';
+import { ensureGuidedQuestion, getStallPattern } from './guidedQuestion';
 import { daysOnTarget, getNorthStar, isTargetStale, parseNorthStarFromSpeech } from './northStar';
 import { getMockTelemetrySources } from './telemetryMocks';
 import { getSelectedMockProfile, isUseRealHardwareEnabled } from './telemetrySettings';
@@ -247,9 +249,31 @@ export async function assembleAnonymizedPayload(
 
   const live = sourceLabel === 'LIVE_DEVICE_SENSORS';
   const cleaned = sanitizeTranscript(voiceTranscript);
+  const board = await getDestinationBoard();
+  const activeDest = board.items.find((item) => item.id === board.activeId && item.status === 'active') ?? null;
   const storedStar = await getNorthStar();
   const spokenStar = cleaned ? parseNorthStarFromSpeech(cleaned) : null;
-  const prior = await getPriorExecution();
+  const todayStamp = localDateStamp();
+  const prior = await getPriorExecution(todayStamp, activeDest?.id);
+  const lastMark =
+    activeDest?.lastMark && activeDest.lastMark.date < todayStamp ? activeDest.lastMark : null;
+  const yesterday = lastMark ?? (prior?.status
+    ? {
+        date: prior.date,
+        status: prior.status,
+        primary_directive: prior.primary_directive.slice(0, 280),
+      }
+    : null);
+  const stallPattern = activeDest?.stallPattern?.trim() || (await getStallPattern());
+  const guided =
+    sources.synthesis_mode === 'onboarding'
+      ? null
+      : await ensureGuidedQuestion({
+          destinationNext: storedStar?.next || storedStar?.now,
+          stallPattern,
+          yesterdayStatus: yesterday?.status ?? null,
+          destinationId: activeDest?.id,
+        });
   const payload: DailyTelemetryPayload = {
     ...payloadFromSources({ ...resolved, voiceTranscript: cleaned }),
     agency_arc: agencyArc ?? 'deep_work',
@@ -257,13 +281,12 @@ export async function assembleAnonymizedPayload(
     north_star: storedStar ?? spokenStar ?? undefined,
     days_on_target: daysOnTarget(storedStar ?? spokenStar ?? null),
     target_stale: isTargetStale(storedStar ?? spokenStar ?? null),
-    last_execution: prior?.status
-      ? {
-          date: prior.date,
-          status: prior.status,
-          primary_directive: prior.primary_directive.slice(0, 280),
-        }
-      : undefined,
+    last_execution: yesterday ?? undefined,
+    stall_pattern: stallPattern,
+    guided_question: guided?.question ?? activeDest?.nextQuestion ?? null,
+    destination_id: activeDest?.id ?? null,
+    queued_destinations: queuedDestinations(board).map((item) => item.name).filter(Boolean).slice(0, 12),
+    physics_memory: activeDest?.physicsMemory,
     is_mock: !live,
     mock_profile: live ? null : profile,
     voice_context: cleaned

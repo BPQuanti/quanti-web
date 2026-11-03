@@ -25,7 +25,6 @@ export default function QuantiLogo({
       height={dim}
       viewBox="0 0 48 48"
       fill="none"
-      accessibilityRole="image"
       accessibilityLabel={accessibilityLabel}
       {...svgProps}
     >

@@ -16,9 +16,9 @@ export default function FooterCta() {
           Built to stand in your corner.
         </h2>
         <p className="mx-auto mt-5 text-lg leading-relaxed text-slate-400">
-          Trackers make you the administrator. Quanti is an execution compass: an Active Target, a 10-second
-          voice check-in, and one 15-word action card. Evening outcome mark writes tomorrow. Zero-dashboard. Under 30
-          seconds of daily screen time.
+          Trackers make you the administrator. Quanti is an execution compass: one Active Destination, a skippable
+          10–15s voice check, and one 15–20 word action card. Evening outcome mark writes tomorrow. Achieved archives
+          it. Zero-dashboard.
         </p>
 
         <div id="waitlist-footer" className="mx-auto mt-8 max-w-xl scroll-mt-24 text-left">
@@ -30,7 +30,7 @@ export default function FooterCta() {
         </div>
 
         <p className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs font-medium text-slate-400">
-          <span> iOS private TestFlight · 100 testers</span>
+          <span> Private iOS TestFlight is live · invite-only</span>
           <span aria-hidden>•</span>
           <span>HealthKit optional • Zero data sales</span>
         </p>

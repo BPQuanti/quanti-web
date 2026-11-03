@@ -10,6 +10,7 @@ export type StoredDailyDirective = DailyDirective & {
   date: string;
   agency_arc: string;
   voice_transcript?: string;
+  destination_id?: string;
 };
 
 function isSource(value: unknown): value is DailyDirective['source'] {
@@ -39,6 +40,7 @@ function asStored(value: unknown): StoredDailyDirective | null {
     aborted: record.aborted === true || record.crisis_intercept === true,
     crisis_intercept: record.crisis_intercept === true,
     voice_transcript: typeof record.voice_transcript === 'string' ? record.voice_transcript : undefined,
+    destination_id: typeof record.destination_id === 'string' ? record.destination_id : undefined,
   };
 }
 

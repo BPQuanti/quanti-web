@@ -12,7 +12,7 @@ function suggestion(healthOn: boolean, micOn: boolean, toward: string | null) {
     return null;
   }
   const aim = toward ? `Toward ${toward},` : '';
-  return `${aim} connect the microphone so the morning check can fill what sensors miss. HealthKit is optional.`.trim();
+  return `${aim} turn on the mic if you want a 10–15s blank to size today’s 1%. Optional.`.trim();
 }
 
 type Props = {
@@ -53,7 +53,7 @@ export default function SignalNudgeCard({ northStar, healthOn, micOn, onOpenArcs
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Text style={styles.kicker}>Suggested next signal</Text>
+        <Text style={styles.kicker}>Optional</Text>
         <Pressable
           onPress={() => {
             setHidden(true);
@@ -68,10 +68,10 @@ export default function SignalNudgeCard({ northStar, healthOn, micOn, onOpenArcs
       </View>
       <Text style={styles.body}>{copy}</Text>
       <Pressable onPress={onOpenPrivacy}>
-        <Text style={styles.link}>Connect in Privacy</Text>
+        <Text style={styles.link}>Open Privacy</Text>
       </Pressable>
       <Pressable onPress={onOpenArcs}>
-        <Text style={styles.fluid}>Active Target can be rewritten anytime.</Text>
+        <Text style={styles.fluid}>What is first lives on Compass.</Text>
       </Pressable>
     </View>
   );

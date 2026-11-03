@@ -1,31 +1,27 @@
 const QUESTIONS = [
   {
-    q: "What is Quanti?",
-    a: "Your daily execution compass. You name an Active Target — one checkable object, no calendar deadline. A 10-second voice check-in plus optional HealthKit becomes one 15-word action card. Evening outcome mark: Executed / Partial / Shifted. When the target is done, mark Achieved and set the next one.",
+    q: "What is Quanti right now?",
+    a: "A private iOS TestFlight of a daily execution compass. You name one Active Destination — a checkable object, not a 30-day calendar box. You get one 15–20 word physical 1%. Optional HealthKit sleep/HRV sizes the window. A skippable 10–15s voice check fills one blank. Evening mark: Executed / Partial / Shifted. Achieved archives the destination.",
+  },
+  {
+    q: "Is TestFlight live?",
+    a: "Yes. Private iOS TestFlight is live and invite-only. We enroll in small cohorts from this waitlist and send a direct Apple TestFlight link as spots open. It is not on the public App Store yet.",
+  },
+  {
+    q: "Can I keep more than one destination?",
+    a: "You can park names in an inert queue. Only one destination is Active. Swap moves a parked name into the Active slot. Achieved archives it. The daily card stays locked to the morning destination if you swap mid-day.",
+  },
+  {
+    q: "What is the North Star?",
+    a: "A static vision label. The engine does not compute from it. It is a boundary, not a second goal.",
   },
   {
     q: "How is voice processing secured?",
-    a: "Voice processed securely in-memory via encrypted edge transcription with zero data retention. The transcript fills one blank on today’s card. Audio is not kept and is not used to train models.",
-  },
-  {
-    q: "Where does the daily directive come from?",
-    a: "Active Target + 10-second voice check-in + optional HealthKit (sleep & HRV) + evening outcome mark (Executed / Partial / Shifted). The synthesizer does not use calendar, bank, location, or Screen Time.",
+    a: "Voice is transcribed in-memory at the encrypted edge with zero data retention. Audio is not kept and is not used to train models. You can skip voice if last night’s mark already sized today.",
   },
   {
     q: "Do I have to connect HealthKit?",
-    a: "No. HealthKit is optional. Without it, Quanti still writes a 15-word action card from your destination and voice. Sleep and HRV only size how hard today can go—they never rewrite the target.",
-  },
-  {
-    q: "What if I can't speak out loud every morning?",
-    a: "Skip check-in still works, but the card will be blunter. A short typed note can name the same object, person, or clock time.",
-  },
-  {
-    q: "Does Quanti lock my apps or force my calendar?",
-    a: "No. There are no app locks, streaks, habit grids, or analytics dashboards. One 15-word action card. Then it gets out of the way.",
-  },
-  {
-    q: "When does TestFlight open?",
-    a: "This is a private iOS TestFlight, capped at 100 testers. We enroll in small cohorts from this form and send a direct Apple TestFlight link as spots open. Not a newsletter.",
+    a: "No. HealthKit is optional. Without it, Quanti still writes a 15–20 word action card from your Active Destination and last night’s mark. Sleep and HRV only size how hard today can go.",
   },
 ];
 

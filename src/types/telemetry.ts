@@ -58,6 +58,19 @@ export type DailyTelemetryPayload = {
     status: 'executed' | 'partial' | 'shifted';
     primary_directive: string;
   };
+  destination_id?: string | null;
+  /** Inert queue titles. Negative filter only — never a second plot. */
+  queued_destinations?: string[];
+  physics_memory?: {
+    last_stall_reason?: string;
+    last_artifact_noun?: string;
+    last_entity_moved?: string;
+    last_failed_scope?: string;
+  };
+  /** Durable stall named in onboarding (or last recalibration). */
+  stall_pattern?: string | null;
+  /** Today's precomputed guided question. Transcript answers it. */
+  guided_question?: string | null;
   days_on_target?: number | null;
   target_stale?: boolean;
   /** Onboarding bottleneck vs daily state. Default daily. */
@@ -83,6 +96,7 @@ export type DailyDirective = {
   why_today?: string;
   aborted?: boolean;
   crisis_intercept?: boolean;
+  destination_id?: string;
 };
 
 export type TelemetrySources = {

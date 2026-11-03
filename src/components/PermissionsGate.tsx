@@ -10,17 +10,22 @@ import {
   requestNotificationPermission,
   requestPermissionSequence,
 } from '../services/permissions';
+import { syncDailyReminders } from '../services/dailyReminders';
 
 type RowId = keyof AllPermissions;
 
 const ROWS: { id: RowId; title: string; body: string }[] = [
-  { id: 'healthkit', title: 'Apple HealthKit', body: 'Sleep analysis and HRV, read-only on this device.' },
+  { id: 'healthkit', title: 'Apple HealthKit', body: 'Optional. Sleep and HRV only size today’s window.' },
   {
     id: 'microphone',
     title: 'Microphone',
-    body: 'Voice processed securely in-memory via encrypted edge transcription with zero data retention.',
+    body: 'Optional. 10–15 seconds to size the 1%. Not a journal.',
   },
-  { id: 'notifications', title: 'Local notifications', body: 'Optional directive reminders on this phone.' },
+  {
+    id: 'notifications',
+    title: 'Local notifications',
+    body: '8pm: did you do it? 8am: optional question. Nothing else.',
+  },
 ];
 
 const STATE_COPY: Record<PermissionState, string> = {
@@ -70,6 +75,9 @@ export default function PermissionsGate({ onDone }: Props) {
       }
       const next = await requestPermissionSequence();
       setStatus(next);
+      if (next.notifications.state === 'granted') {
+        await syncDailyReminders().catch(() => {});
+      }
     } catch {
       setMessage('The permission sequence stopped before all prompts finished.');
       await refresh();
@@ -90,7 +98,10 @@ export default function PermissionsGate({ onDone }: Props) {
           setMessage(mic.error ?? 'Microphone was not granted. If no iOS dialog appeared, rebuild the development client.');
         }
       } else if (id === 'notifications') {
-        await requestNotificationPermission();
+        const granted = await requestNotificationPermission();
+        if (granted.state === 'granted') {
+          await syncDailyReminders().catch(() => {});
+        }
       }
       await refresh();
     } catch (error) {
@@ -110,10 +121,10 @@ export default function PermissionsGate({ onDone }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.kicker}>Hardware handshake</Text>
-      <Text style={styles.title}>Allow the signals this device can use.</Text>
+      <Text style={styles.kicker}>Optional</Text>
+      <Text style={styles.title}>What may size the window</Text>
       <Text style={styles.body}>
-        Tap Allow to show the iOS permission prompt. Microphone will not appear in this app’s Settings page until that prompt has run once.
+        None of this picks what is first. Tap Allow for the iOS prompt. Skip anything you do not want.
       </Text>
 
       {!status ? (
@@ -152,14 +163,14 @@ export default function PermissionsGate({ onDone }: Props) {
       {message ? <Text style={styles.message}>{message}</Text> : null}
 
       <Pressable disabled={busy} onPress={runSequence} style={styles.primary}>
-        <Text style={styles.primaryLabel}>{busy ? 'Requesting…' : 'Request all permissions'}</Text>
+        <Text style={styles.primaryLabel}>{busy ? 'Requesting…' : 'Allow optional sizing'}</Text>
       </Pressable>
       <Pressable disabled={busy} onPress={openSettings} style={styles.secondary}>
         <Text style={styles.secondaryLabel}>Open iOS Settings</Text>
       </Pressable>
       {onDone ? (
         <Pressable disabled={busy} onPress={onDone} style={styles.skip}>
-          <Text style={styles.skipLabel}>Continue</Text>
+          <Text style={styles.skipLabel}>Skip — execute anyway</Text>
         </Pressable>
       ) : null}
     </View>

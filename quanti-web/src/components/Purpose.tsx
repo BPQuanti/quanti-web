@@ -16,9 +16,9 @@ export default function Purpose() {
           Your daily execution compass.
         </p>
         <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-400 sm:text-lg">
-          You name an Active Target — one checkable object, no calendar deadline. Each morning a 10-second voice check-in plus optional HealthKit becomes
-          one 15-word action card. Evening outcome mark: Executed / Partial / Shifted. Zero-dashboard. Under 30 seconds
-          of daily screen time.
+          You name one Active Destination — a checkable object, not a 30-day calendar box. Optional HealthKit
+          sleep/HRV sizes the window. A skippable 10–15s voice check fills one blank. You get one 15–20 word physical
+          1%. Evening mark: Executed / Partial / Shifted. Achieved archives it. Zero-dashboard.
         </p>
       </article>
     </section>

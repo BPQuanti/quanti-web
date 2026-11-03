@@ -3,11 +3,12 @@
 import { useRef } from "react";
 
 const CAPABILITIES = [
-  { icon: "🎯", label: "Active Target", detail: "One checkable object. No calendar deadline." },
-  { icon: "⌚", label: "Optional HealthKit", detail: "Sleep and HRV only size today’s push" },
-  { icon: "🎙️", label: "10-second voice check-in", detail: "Name the file, person, place, or clock time in the way" },
+  { icon: "🎯", label: "One Active Destination", detail: "One checkable object. Queue stays inert until you Swap." },
+  { icon: "⭐", label: "North Star", detail: "Static vision. Never a second goal. Never engine input." },
+  { icon: "⌚", label: "Optional HealthKit", detail: "Sleep and HRV only size today’s window" },
+  { icon: "🎙️", label: "Skippable 10–15s voice", detail: "Fill one blank. Skip if last night already sized today." },
   { icon: "✓", label: "Evening outcome mark", detail: "Executed / Partial / Shifted writes tomorrow" },
-  { icon: "📝", label: "Single 15-word action card", detail: "One physical move, then off the phone" },
+  { icon: "📝", label: "15–20 word 1%", detail: "One physical move, then off the phone" },
 ] as const;
 
 export default function SignalCarousel() {
@@ -23,7 +24,7 @@ export default function SignalCarousel() {
         id="signal-carousel-heading"
         className="mb-6 text-center font-mono text-xs uppercase tracking-widest text-neutral-400"
       >
-        Signals size the window. Destination stays the plot.
+        Private TestFlight is live. Destination stays the plot.
       </p>
 
       <div className="relative">

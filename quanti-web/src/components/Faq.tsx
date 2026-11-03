@@ -5,11 +5,11 @@ const QUESTIONS = [
   },
   {
     q: "When does TestFlight open?",
-    a: "Closed TestFlight is rolling out from the waitlist. Request early access now—spot order is based on signup plus referrals.",
+    a: "Private iOS TestFlight is live. Request access now—we send Apple invites in small cohorts. Spot order is based on signup plus referrals.",
   },
   {
     q: "Do I have to log habits or meals?",
-    a: "No. Quanti is an execution compass, not a tracker. A 10-second voice check-in and an evening outcome mark. Zero habit grids, streaks, or dashboards.",
+    a: "No. Quanti is an execution compass, not a tracker. A skippable 10–15s voice check and an evening outcome mark. Zero habit grids, streaks, or dashboards.",
   },
 ];
 

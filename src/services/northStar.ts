@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { currentUserId, scopedSecureKey } from './sessionIsolation';
 
 const NORTH_STAR_KEY = 'quanti_north_star';
+const VISION_KEY = 'quanti_north_star_vision';
 
 export type NorthStar = {
   now: string;
@@ -138,7 +139,7 @@ async function storeAvailable() {
   }
 }
 
-export async function getNorthStar(): Promise<NorthStar | null> {
+export async function readLegacyNorthStar(): Promise<NorthStar | null> {
   try {
     if (await storeAvailable()) {
       const raw = await SecureStore.getItemAsync(await scopedSecureKey(NORTH_STAR_KEY));
@@ -180,14 +181,15 @@ export async function getNorthStar(): Promise<NorthStar | null> {
   }
 }
 
-export async function saveNorthStar(star: NorthStar): Promise<void> {
-  const next = asNorthStar(star);
-  if (!next) {
-    return;
-  }
+export async function writeLegacyNorthStar(star: NorthStar | null): Promise<void> {
+  const next = star ? asNorthStar(star) : null;
   try {
     if (await storeAvailable()) {
-      await SecureStore.setItemAsync(await scopedSecureKey(NORTH_STAR_KEY), JSON.stringify(next));
+      if (next) {
+        await SecureStore.setItemAsync(await scopedSecureKey(NORTH_STAR_KEY), JSON.stringify(next));
+      } else {
+        await SecureStore.deleteItemAsync(await scopedSecureKey(NORTH_STAR_KEY));
+      }
     }
   } catch {
     console.warn('[NorthStar] local persist failed');
@@ -196,10 +198,10 @@ export async function saveNorthStar(star: NorthStar): Promise<void> {
   if (userId) {
     const { error } = await supabase.from('profiles').upsert({
       id: userId,
-      north_star_now: next.now || null,
-      north_star_next: next.next || null,
-      north_star_outcomes: next.outcomes,
-      north_star_set_at: next.setAt || null,
+      north_star_now: next?.now || null,
+      north_star_next: next?.next || null,
+      north_star_outcomes: next?.outcomes ?? [],
+      north_star_set_at: next?.setAt || null,
       updated_at: new Date().toISOString(),
     });
     if (error) {
@@ -207,9 +209,9 @@ export async function saveNorthStar(star: NorthStar): Promise<void> {
       if (/north_star_set_at/i.test(error.message)) {
         await supabase.from('profiles').upsert({
           id: userId,
-          north_star_now: next.now || null,
-          north_star_next: next.next || null,
-          north_star_outcomes: next.outcomes,
+          north_star_now: next?.now || null,
+          north_star_next: next?.next || null,
+          north_star_outcomes: next?.outcomes ?? [],
           updated_at: new Date().toISOString(),
         });
       }
@@ -218,31 +220,103 @@ export async function saveNorthStar(star: NorthStar): Promise<void> {
   notify();
 }
 
-export async function clearNorthStar(): Promise<void> {
+export async function getVision(): Promise<string | null> {
   try {
     if (await storeAvailable()) {
-      await SecureStore.deleteItemAsync(await scopedSecureKey(NORTH_STAR_KEY));
+      const local = (await SecureStore.getItemAsync(await scopedSecureKey(VISION_KEY)))?.trim();
+      if (local) {
+        return local.slice(0, 280);
+      }
     }
   } catch {
-    // Best-effort.
+    // Fall through.
   }
-  const userId = await currentUserId();
-  if (userId) {
-    await supabase
-      .from('profiles')
-      .upsert({
-        id: userId,
-        north_star_now: null,
-        north_star_next: null,
-        north_star_outcomes: [],
-        north_star_set_at: null,
-        updated_at: new Date().toISOString(),
-      })
-      .then(({ error }) => {
-        if (error) {
-          console.warn('[NorthStar] profile clear failed', error.message);
-        }
-      });
+  try {
+    const cloud = await import('./destinationsCloud');
+    const remote = await cloud.readRemoteVision();
+    return remote?.northStar ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveVision(text: string) {
+  const next = text.replace(/\s+/g, ' ').trim().slice(0, 280);
+  try {
+    if (await storeAvailable()) {
+      if (next) {
+        await SecureStore.setItemAsync(await scopedSecureKey(VISION_KEY), next);
+      } else {
+        await SecureStore.deleteItemAsync(await scopedSecureKey(VISION_KEY));
+      }
+    }
+  } catch {
+    console.warn('[NorthStar] vision local persist failed');
+  }
+  try {
+    const cloud = await import('./destinationsCloud');
+    await cloud.writeRemoteVision(next || null);
+  } catch (caught) {
+    console.warn('[NorthStar] vision cloud persist failed', caught);
   }
   notify();
+}
+
+export async function getNorthStar(): Promise<NorthStar | null> {
+  try {
+    const vision = await getVision();
+    try {
+      const board = await import('./destinationBoard');
+      const active = await board.getActiveDestination();
+      if (active?.name) {
+        return asNorthStar({
+          now: vision || '',
+          next: active.name,
+          outcomes: [active.name.slice(0, 120)],
+          setAt: active.setAt,
+        });
+      }
+    } catch {
+      // Board is optional on first run.
+    }
+    const legacy = await readLegacyNorthStar();
+    if (!legacy) {
+      return vision ? { now: vision, next: '', outcomes: [], setAt: undefined } : null;
+    }
+    return {
+      ...legacy,
+      now: vision || legacy.now,
+    };
+  } catch (caught) {
+    console.warn('[NorthStar] read failed', caught);
+    return readLegacyNorthStar();
+  }
+}
+
+export async function saveNorthStar(star: NorthStar): Promise<void> {
+  const next = asNorthStar(star);
+  if (!next) {
+    return;
+  }
+  const vision = await getVision();
+  await writeLegacyNorthStar({
+    ...next,
+    now: vision || next.now,
+  });
+  try {
+    const board = await import('./destinationBoard');
+    await board.upsertActiveFromStar(next);
+  } catch (caught) {
+    console.warn('[NorthStar] board persist failed', caught);
+  }
+}
+
+export async function clearNorthStar(): Promise<void> {
+  await writeLegacyNorthStar(null);
+  try {
+    const board = await import('./destinationBoard');
+    await board.clearDestinationBoard();
+  } catch {
+    // Board may not exist yet.
+  }
 }

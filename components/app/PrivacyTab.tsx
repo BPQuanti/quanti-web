@@ -40,13 +40,13 @@ const DOMAINS: {
     id: 'health',
     title: 'HealthKit',
     line: 'Sleep & HRV · on-device',
-    detail: 'Read-only recovery context. Sleep and HRV size today’s 1%. Samples stay on this phone; summaries only.',
+    detail: 'Optional. Sleep and HRV only shrink today’s window. They do not pick the 1%. Samples stay on this phone.',
   },
   {
     id: 'voice',
     title: 'Microphone',
-    line: 'Spoken context · not stored',
-    detail: 'Voice processed securely in-memory via encrypted edge transcription with zero data retention.',
+    line: 'Sizes the 1% · not stored',
+    detail: 'Optional. A 10–15s answer fills one blank on Today. Transcript is not kept as a journal.',
   },
 ];
 
@@ -152,7 +152,7 @@ export default function PrivacyTab() {
             <Text style={styles.whyChipText}>How data is used</Text>
           </Pressable>
         </View>
-        <Text style={styles.title}>Signals</Text>
+        <Text style={styles.title}>What may size the window</Text>
 
         {isInternalToolsAccount(session?.user) ? <DeveloperTelemetryControls /> : null}
 
