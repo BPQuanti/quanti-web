@@ -21,6 +21,14 @@ export default function Footer() {
           <a href={`mailto:${SUPPORT_EMAIL}`} className={linkClass}>
             Contact
           </a>
+          <a
+            href="https://www.linkedin.com/in/brian-parr-1143b11b9/"
+            className={linkClass}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            LinkedIn
+          </a>
           <Link href="/privacy" className={linkClass}>
             Privacy Policy
           </Link>
