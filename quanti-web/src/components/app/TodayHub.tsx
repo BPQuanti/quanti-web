@@ -146,7 +146,7 @@ export default function TodayHub() {
                   className="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-neutral-400"
                   aria-expanded={reflectionOpen}
                 >
-                  Executed, partial, or shifted?
+                  Done or Missed?
                   <span className="text-neutral-600" aria-hidden>
                     {reflectionOpen ? "–" : "+"}
                   </span>

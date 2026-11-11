@@ -142,10 +142,16 @@ export async function ensureGuidedQuestion(input: {
   const stall = input.stallPattern ?? (await getStallPattern());
   const star = input.destinationNext ?? (await getNorthStar())?.next;
   const dest = await getActiveDestination();
+  const yesterday =
+    input.yesterdayStatus === 'executed' ||
+    input.yesterdayStatus === 'partial' ||
+    input.yesterdayStatus === 'shifted'
+      ? input.yesterdayStatus
+      : null;
   const question = composeGuidedQuestion({
     destinationNext: star,
     stallPattern: stall,
-    yesterdayStatus: input.yesterdayStatus ?? null,
+    yesterdayStatus: yesterday,
     date,
     angle: asQuestionAngle(dest?.lastQuestionAngle),
   });
@@ -173,12 +179,18 @@ export async function writeTomorrowQuestion(input: {
   const stall = input.stallPattern ?? (await getStallPattern());
   const star = input.destinationNext ?? (await getNorthStar())?.next;
   const dest = await getActiveDestination();
-  const angle = rotateQuestionAngle(dest?.lastQuestionAngle, input.yesterdayStatus ?? null);
+  const yesterday =
+    input.yesterdayStatus === 'executed' ||
+    input.yesterdayStatus === 'partial' ||
+    input.yesterdayStatus === 'shifted'
+      ? input.yesterdayStatus
+      : null;
+  const angle = rotateQuestionAngle(dest?.lastQuestionAngle, yesterday);
   const question = (input.question?.trim() ||
     composeGuidedQuestion({
       destinationNext: star,
       stallPattern: stall,
-      yesterdayStatus: input.yesterdayStatus,
+      yesterdayStatus: yesterday,
       date,
       angle,
     })).slice(0, 220);

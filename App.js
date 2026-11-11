@@ -25,6 +25,7 @@ import PermissionsGate from './src/components/PermissionsGate';
 import OnboardingGate from './src/components/onboarding/OnboardingGate';
 import { checkAllPermissions } from './src/services/permissions';
 import RootErrorBoundary from './components/RootErrorBoundary';
+import { getNorthStar } from './src/services/northStar';
 import { colors, fonts } from './screens/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -45,10 +46,34 @@ const navTheme = {
 };
 
 function MainTabs() {
+  const [bootRoute, setBootRoute] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    getNorthStar()
+      .then((star) => {
+        if (live) {
+          setBootRoute(star?.next?.trim() ? 'Today' : 'Arcs');
+        }
+      })
+      .catch(() => {
+        if (live) {
+          setBootRoute('Arcs');
+        }
+      });
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  if (!bootRoute) {
+    return <BootScreen />;
+  }
+
   return (
     <NavigationContainer theme={navTheme}>
       <Tab.Navigator
-        initialRouteName="Today"
+        initialRouteName={bootRoute}
         backBehavior="history"
         screenOptions={{
           headerShown: false,
@@ -71,8 +96,8 @@ function MainTabs() {
           name="Arcs"
           component={ArcsScreen}
           options={{
-            title: 'Compass',
-            tabBarAccessibilityLabel: 'Compass',
+            title: 'Destination',
+            tabBarAccessibilityLabel: 'Destination',
             tabBarIcon: ({ color, size }) => <Ionicons name="layers" color={color} size={size} />,
           }}
         />

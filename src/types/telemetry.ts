@@ -1,3 +1,5 @@
+import type { CapacityWindow, DirectiveTriplets } from '../services/capacityWindow';
+
 export type LocationCategory = 'home_like' | 'transit' | 'travel' | 'unknown';
 
 export type BiometricSummary = {
@@ -56,9 +58,15 @@ export type DailyTelemetryPayload = {
   last_execution?: {
     date: string;
     status: 'executed' | 'partial' | 'shifted';
+    miss_reason?: 'too_big' | 'wrong_move' | 'exogenous' | 'none';
     primary_directive: string;
   };
   destination_id?: string | null;
+  destination_brief?: {
+    done_when?: string | null;
+    constraints?: string | null;
+    current_bottleneck?: string | null;
+  };
   /** Inert queue titles. Negative filter only — never a second plot. */
   queued_destinations?: string[];
   physics_memory?: {
@@ -86,6 +94,8 @@ export type DailyDirective = {
   recovery_actions: string[];
   focus_blocks: string[];
   voice_prompt: string;
+  triplets?: DirectiveTriplets;
+  selected_window?: CapacityWindow;
   source: 'edge' | 'local_fallback';
   inferred_arc?: AgencyArc;
   north_star?: {

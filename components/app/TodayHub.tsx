@@ -39,19 +39,35 @@ import {
 } from '../../src/services/guidedQuestion';
 import { syncDailyReminders } from '../../src/services/dailyReminders';
 import { rememberDestinationMark } from '../../src/services/destinationBoard';
-import { formatToward, getNorthStar, subscribeNorthStar, type NorthStar } from '../../src/services/northStar';
+import NameDestinationCard from './NameDestinationCard';
+import {
+  formatToward,
+  getNorthStar,
+  hasActiveDestination,
+  subscribeNorthStar,
+  type NorthStar,
+} from '../../src/services/northStar';
 import { isInternalToolsAccount } from '../../src/lib/config/reviewMode';
 import { displayNameFromAuthUser, firstNameFromDisplay } from '../../src/services/displayName';
 import { clearStoredDirective, loadStoredDirective } from '../../src/services/dailyDirectiveStore';
 import { generateDailyDirective } from '../../src/services/directiveEngine';
 import { transcribeVoiceRecording } from '../../src/services/transcribeVoice';
 import {
+  addCalendarDays,
+  formatLogDate,
+  getOpenMark,
   getTodayLog,
+  listDirectiveLogs,
   localDateStamp,
+  isOpenMark,
+  missReasonToStatus,
   setTodayExecution,
   subscribeDirectiveHistory,
   type DirectiveLog,
+  type ExecutionStatus,
+  type MissReason,
 } from '../../src/services/directiveHistory';
+import OnePercentLog from './OnePercentLog';
 import type { DailyDirective, DailyTelemetryPayload } from '../../src/types/telemetry';
 import FuturisticVoiceWave from './FuturisticVoiceWave';
 import ObsidianScreen from './ObsidianScreen';
@@ -181,6 +197,61 @@ async function openSystemSettings() {
   }
 }
 
+const MISS_REASONS: { id: MissReason; label: string }[] = [
+  { id: 'too_big', label: 'Too big' },
+  { id: 'wrong_move', label: 'Wrong move' },
+  { id: 'exogenous', label: 'Something else' },
+];
+
+function MarkChips({
+  status,
+  picking,
+  onDone,
+  onMiss,
+  onReason,
+}: {
+  status?: ExecutionStatus;
+  picking: boolean;
+  onDone: () => void;
+  onMiss: () => void;
+  onReason: (reason: MissReason) => void;
+}) {
+  const open = isOpenMark(status);
+  const doneOn = status === 'executed';
+  const missedOn = status === 'partial' || status === 'shifted';
+  return (
+    <View>
+      <View style={styles.checkInRow}>
+        <Pressable
+          onPress={onDone}
+          style={[styles.checkInChip, doneOn && styles.checkInChipOn, open && styles.checkInChipIdle]}
+        >
+          <Text style={[styles.checkInChipText, doneOn && styles.checkInChipTextOn]}>Done</Text>
+        </Pressable>
+        <Pressable
+          onPress={onMiss}
+          style={[styles.checkInChip, missedOn && styles.checkInChipOn, open && styles.checkInChipIdle]}
+        >
+          <Text style={[styles.checkInChipText, missedOn && styles.checkInChipTextOn]}>Missed</Text>
+        </Pressable>
+      </View>
+      {picking ? (
+        <View style={styles.checkInRow}>
+          {MISS_REASONS.map((option) => (
+            <Pressable
+              key={option.id}
+              onPress={() => onReason(option.id)}
+              style={[styles.checkInChip, styles.checkInChipIdle]}
+            >
+              <Text style={styles.checkInChipText}>{option.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export default function TodayHub() {
   const navigation = useNavigation<{ navigate: (name: string) => void }>();
   const { userProfile } = useAppContext() as { userProfile?: { name?: string | null } | null };
@@ -198,6 +269,9 @@ export default function TodayHub() {
   const [reflectionOpen, setReflectionOpen] = useState(false);
   const [reflection, setReflection] = useState<'yes' | 'adjust' | null>(null);
   const [todayLog, setTodayLog] = useState<DirectiveLog | null>(null);
+  const [catchupLog, setCatchupLog] = useState<DirectiveLog | null>(null);
+  const [missPicker, setMissPicker] = useState<'today' | 'catchup' | null>(null);
+  const [historyLogs, setHistoryLogs] = useState<DirectiveLog[]>([]);
   const [questionSkipped, setQuestionSkipped] = useState(false);
   const [northStar, setNorthStar] = useState<NorthStar | null>(null);
   const [starResolved, setStarResolved] = useState(false);
@@ -290,17 +364,22 @@ export default function TodayHub() {
         return;
       }
       const stored = await loadStoredDirective(today);
-      const log = await getTodayLog(today);
+      const openYesterday = await getOpenMark(addCalendarDays(today, -1));
+      const regenerate = forceRegenerate.current;
+      if (regenerate) {
+        forceRegenerate.current = false;
+      }
       if (cancelled) {
+        return;
+      }
+      setCatchupLog(openYesterday);
+      if (openYesterday && !regenerate) {
+        setDirective(null);
         return;
       }
       const voice = payload?.voice_context?.transcript?.trim() || '';
       const storedVoice = stored?.voice_transcript?.trim() || '';
       const newVoice = Boolean(voice && voice !== storedVoice);
-      const regenerate = forceRegenerate.current;
-      if (regenerate) {
-        forceRegenerate.current = false;
-      }
       const destMismatch = Boolean(
         stored?.destination_id && payload?.destination_id && stored.destination_id !== payload.destination_id,
       );
@@ -535,6 +614,80 @@ export default function TodayHub() {
     });
   }
 
+  function applyOutcome(opts: {
+    date: string;
+    status: ExecutionStatus;
+    miss_reason?: MissReason;
+    primary: string;
+    destId?: string;
+    catchup?: boolean;
+  }) {
+    const destId = opts.destId;
+    const reason = opts.miss_reason ?? (opts.status === 'executed' ? 'none' : undefined);
+    setMissPicker(null);
+    setTodayLog((current) =>
+      opts.catchup
+        ? current
+        : {
+            date: opts.date,
+            primary_directive: opts.primary,
+            agency_arc: payload?.agency_arc ?? '',
+            status: opts.status,
+            miss_reason: reason,
+            destination_id: destId,
+            swap_audit: current?.date === opts.date ? current?.swap_audit : undefined,
+          },
+    );
+    if (opts.catchup) {
+      setCatchupLog((current) =>
+        current ? { ...current, status: opts.status, miss_reason: reason } : current,
+      );
+    } else {
+      setQuestionSkipped(true);
+    }
+    setTodayExecution({
+      date: opts.date,
+      primary_directive: opts.primary,
+      agency_arc: payload?.agency_arc ?? '',
+      status: opts.status,
+      miss_reason: reason,
+      destination_id: destId,
+    })
+      .then(() => {
+        if (destId) {
+          return rememberDestinationMark(
+            destId,
+            {
+              date: opts.date,
+              status: opts.status,
+              primary_directive: opts.primary,
+            },
+            checkInQuote || note || payload?.voice_context?.transcript,
+          );
+        }
+        return undefined;
+      })
+      .then(() =>
+        writeTomorrowQuestion({
+          fromDate: opts.date,
+          destinationNext: directive?.north_star?.next || northStar?.next || northStar?.now,
+          yesterdayStatus: opts.status,
+          source: 'mark',
+          destinationId: destId,
+        }),
+      )
+      .then(async () => {
+        await syncDailyReminders({ markedToday: !opts.catchup && opts.date === calendarDate });
+        if (opts.catchup) {
+          forceRegenerate.current = true;
+          setCatchupLog(null);
+          await clearStoredDirective().catch(() => {});
+          await refreshTelemetry('').catch(() => {});
+        }
+      })
+      .catch(() => {});
+  }
+
   function resetCheckIn() {
     setPhase('baseline');
     setIsRecording(false);
@@ -553,10 +706,17 @@ export default function TodayHub() {
   useEffect(() => {
     let mounted = true;
     function load() {
-      getTodayLog(calendarDate)
-        .then((log) => {
+      const yesterday = addCalendarDays(calendarDate, -1);
+      Promise.all([
+        getTodayLog(calendarDate),
+        getOpenMark(yesterday),
+        listDirectiveLogs(),
+      ])
+        .then(([log, open, logs]) => {
           if (mounted) {
             setTodayLog(log);
+            setCatchupLog(open);
+            setHistoryLogs(logs.slice(0, 14));
           }
         })
         .catch(() => {});
@@ -585,7 +745,7 @@ export default function TodayHub() {
     }
   }
 
-  if (starResolved && !northStar) {
+  if (starResolved && !hasActiveDestination(northStar)) {
     return (
       <ObsidianScreen>
         <View style={styles.header}>
@@ -601,16 +761,12 @@ export default function TodayHub() {
           </Pressable>
         </View>
         <View style={styles.scroll}>
-          <View style={styles.sectionCard}>
-            <Text style={styles.sectionKicker}>Name what is first</Text>
-            <Text style={styles.directiveText}>One checkable object — one thing you want true.</Text>
-            <Text style={styles.cardSubtext}>
-              Quanti will not pick this for you. Name a finish line someone else could mark yes or no.
-            </Text>
-            <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.journalSubmit}>
-              <Text style={styles.journalSubmitText}>Choose what is first</Text>
-            </Pressable>
-          </View>
+          <NameDestinationCard
+            previous={northStar}
+            onSaved={(star) => {
+              setNorthStar(star);
+            }}
+          />
         </View>
         <FeedbackModal visible={feedbackOpen} userId={user?.id} onClose={() => setFeedbackOpen(false)} />
       </ObsidianScreen>
@@ -672,7 +828,45 @@ export default function TodayHub() {
               onOpenPrivacy={() => navigation.navigate('SignalVault')}
             />
 
-            {!directive ? (
+            {catchupLog ? (
+              <View style={[styles.sectionCard, styles.outcomeCardUrgent]}>
+                <Text style={styles.sectionKicker}>Last night</Text>
+                <Text style={styles.outcomeTitle}>Last night’s 1% isn’t marked</Text>
+                <Text style={styles.outcomeSub}>
+                  {formatLogDate(catchupLog.date)}. Done or Missed writes today’s 1%.
+                </Text>
+                <Text style={styles.directiveText}>{catchupLog.primary_directive}</Text>
+                <MarkChips
+                  status={catchupLog.status}
+                  picking={missPicker === 'catchup'}
+                  onDone={() =>
+                    applyOutcome({
+                      date: catchupLog.date,
+                      status: 'executed',
+                      miss_reason: 'none',
+                      primary: catchupLog.primary_directive,
+                      destId: catchupLog.destination_id || payload?.destination_id || undefined,
+                      catchup: true,
+                    })
+                  }
+                  onMiss={() => setMissPicker('catchup')}
+                  onReason={(reason) =>
+                    applyOutcome({
+                      date: catchupLog.date,
+                      status: missReasonToStatus(reason),
+                      miss_reason: reason,
+                      primary: catchupLog.primary_directive,
+                      destId: catchupLog.destination_id || payload?.destination_id || undefined,
+                      catchup: true,
+                    })
+                  }
+                />
+              </View>
+            ) : null}
+
+            {catchupLog ? (
+              <Text style={styles.outcomeSub}>Today’s 1% writes after last night’s mark.</Text>
+            ) : !directive ? (
               <View style={styles.sectionCard}>
                 <ActivityIndicator color={colors.heading} />
                 <SkeletonBlock height={28} />
@@ -692,8 +886,8 @@ export default function TodayHub() {
                 <Pressable onPress={() => navigation.navigate('Arcs')} style={styles.arcShift}>
                   <Text style={styles.arcShiftText}>
                     {formatToward(directive?.north_star ?? northStar)
-                      ? `This is first — the priority you chose: ${formatToward(directive?.north_star ?? northStar)}`
-                      : 'Choose what is first on Compass'}
+                      ? `Current priority: ${formatToward(directive?.north_star ?? northStar)}`
+                      : 'Set your current priority'}
                   </Text>
                 </Pressable>
                 {directive.why_today ? <Text style={styles.whyToday}>{directive.why_today}</Text> : null}
@@ -704,80 +898,46 @@ export default function TodayHub() {
                   </Text>
                 ))}
                 {directive.aborted || directive.crisis_intercept ? null : (
-                <View style={[styles.outcomeCard, !todayLog?.status && styles.outcomeCardUrgent]}>
+                <View style={[styles.outcomeCard, isOpenMark(todayLog?.status) && styles.outcomeCardUrgent]}>
                   <Text style={styles.outcomeTitle}>
-                    {todayLog?.status ? 'You marked it' : 'Did you do it?'}
+                    {isOpenMark(todayLog?.status) ? 'Did you do it?' : 'You marked it'}
                   </Text>
                   <Text style={styles.outcomeSub}>
-                    {todayLog?.status
-                      ? 'Tonight’s mark writes tomorrow’s 1%.'
-                      : 'Executed, partial, or shifted. That is the whole ritual.'}
+                    {isOpenMark(todayLog?.status)
+                      ? 'Done or Missed. That writes tomorrow. No score.'
+                      : 'Tonight’s mark writes tomorrow’s 1%.'}
                   </Text>
-                  <View style={styles.checkInRow}>
-                    {(
-                      [
-                        { id: 'executed', label: 'Executed' },
-                        { id: 'partial', label: 'Partial' },
-                        { id: 'shifted', label: 'Shifted' },
-                      ] as const
-                    ).map((option) => {
-                      const on = todayLog?.date === calendarDate && todayLog?.status === option.id;
-                      return (
-                        <Pressable
-                          key={option.id}
-                          onPress={() => {
-                            const date = calendarDate || localDateStamp();
-                            const destId = directive?.destination_id || todayLog?.destination_id || payload?.destination_id || undefined;
-                            setTodayLog({
-                              date,
-                              primary_directive: headline,
-                              agency_arc: payload?.agency_arc ?? '',
-                              status: option.id,
-                              feedback_note: todayLog?.date === date ? todayLog?.feedback_note : undefined,
-                              destination_id: destId,
-                              swap_audit: todayLog?.date === date ? todayLog?.swap_audit : undefined,
-                            });
-                            setQuestionSkipped(true);
-                            setTodayExecution({
-                              date,
-                              primary_directive: headline,
-                              agency_arc: payload?.agency_arc ?? '',
-                              status: option.id,
-                              destination_id: destId,
-                            })
-                              .then(() => {
-                                if (destId) {
-                                  return rememberDestinationMark(
-                                    destId,
-                                    {
-                                      date,
-                                      status: option.id,
-                                      primary_directive: headline,
-                                    },
-                                    checkInQuote || note || payload?.voice_context?.transcript,
-                                  );
-                                }
-                                return undefined;
-                              })
-                              .then(() =>
-                                writeTomorrowQuestion({
-                                  fromDate: date,
-                                  destinationNext: directive?.north_star?.next || northStar?.next || northStar?.now,
-                                  yesterdayStatus: option.id,
-                                  source: 'mark',
-                                  destinationId: destId,
-                                }),
-                              )
-                              .then(() => syncDailyReminders({ markedToday: true }))
-                              .catch(() => {});
-                          }}
-                          style={[styles.checkInChip, on && styles.checkInChipOn, !todayLog?.status && styles.checkInChipIdle]}
-                        >
-                          <Text style={[styles.checkInChipText, on && styles.checkInChipTextOn]}>{option.label}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
+                  <MarkChips
+                    status={todayLog?.date === calendarDate ? todayLog?.status : undefined}
+                    picking={missPicker === 'today'}
+                    onDone={() =>
+                      applyOutcome({
+                        date: calendarDate || localDateStamp(),
+                        status: 'executed',
+                        miss_reason: 'none',
+                        primary: headline,
+                        destId:
+                          directive?.destination_id ||
+                          todayLog?.destination_id ||
+                          payload?.destination_id ||
+                          undefined,
+                      })
+                    }
+                    onMiss={() => setMissPicker('today')}
+                    onReason={(reason) =>
+                      applyOutcome({
+                        date: calendarDate || localDateStamp(),
+                        status: missReasonToStatus(reason),
+                        miss_reason: reason,
+                        primary: headline,
+                        destId:
+                          directive?.destination_id ||
+                          todayLog?.destination_id ||
+                          payload?.destination_id ||
+                          undefined,
+                      })
+                    }
+                  />
                 </View>
                 )}
               </View>
@@ -790,7 +950,7 @@ export default function TodayHub() {
                 <Text style={styles.undoText}>↩ Return to baseline</Text>
               </Pressable>
             ) : null}
-            {questionSkipped || todayLog?.status ? null : (
+            {catchupLog || questionSkipped || !isOpenMark(todayLog?.status) ? null : (
               <View style={[styles.refineCallout, isRecording && styles.refineCalloutLive, phase === 'refining' && styles.refineCalloutBusy]}>
                 <Text style={styles.refineHeader}>Optional · about 10–15 seconds</Text>
                 <Text style={styles.voicePrompt}>{spokenPrompt}</Text>
@@ -905,6 +1065,8 @@ export default function TodayHub() {
             </Pressable>
           </View>
         ) : null}
+
+        <OnePercentLog logs={historyLogs} />
       </ScrollView>
 
       <Modal visible={noteOpen} animationType="slide" transparent onRequestClose={() => setNoteOpen(false)}>
@@ -1139,7 +1301,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: 4,
   },
-  checkInRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
+  checkInRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   checkInChip: {
     borderColor: '#262626',
     borderRadius: 14,

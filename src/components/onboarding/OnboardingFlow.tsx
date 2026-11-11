@@ -39,7 +39,7 @@ import LegalSafetyDrawer from '../LegalSafetyDrawer';
 import { assessBottleneck, assessDestination, heardEcho } from '../../services/destinationQuality';
 import type { DailyDirective, DailyTelemetryPayload } from '../../types/telemetry';
 
-const STEPS = 4;
+const STEPS = 3;
 
 type Props = {
   onComplete: () => void;
@@ -169,9 +169,9 @@ export default function OnboardingFlow({ onComplete }: Props) {
     }
     const typed = destinationDraft.trim();
     const destination = assessDestination(typed);
-    if (!destination.ok) {
-      setError(destination.reason || 'Name a concrete target first.');
-      go(1);
+    if (!destination.ok && !destination.lenientOk) {
+      setError(destination.hint || destination.reason || 'Write your current priority.');
+      go(0);
       return;
     }
     setFinishing(true);
@@ -212,7 +212,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
         durationSeconds,
         retry: false,
       });
-      go(3);
+      go(2);
       setFinishing(false);
     } catch (caught) {
       const reason = caught instanceof Error ? caught.message : String(caught);
@@ -272,7 +272,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
 
   const paneStyle = { width };
   const destinationCheck = assessDestination(destinationDraft);
-  const canLeaveDestination = destinationCheck.ok;
+  const canLeaveDestination = destinationCheck.ok || destinationCheck.lenientOk;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -295,28 +295,10 @@ export default function OnboardingFlow({ onComplete }: Props) {
                 showsVerticalScrollIndicator={false}
               >
                 <LogoMark width={56} />
-                <Text style={styles.kicker}>Quanti</Text>
-                <Text style={styles.headline}>This is an execution engine.</Text>
+                <Text style={styles.kicker}>Current priority</Text>
+                <Text style={styles.headline}>What’s your current priority?</Text>
                 <Text style={styles.body}>
-                  You already have enough ideas. Quanti will not plan your life or tell you what should be first.
-                </Text>
-                <Text style={styles.stepText}>You name one checkable thing.</Text>
-                <Text style={styles.stepText}>Each day you get one physical move.</Text>
-                <Text style={styles.stepText}>Tonight you mark whether you did it.</Text>
-                <Text style={styles.reassure}>That’s the whole product.</Text>
-              </ScrollView>
-            </View>
-
-            <View style={[styles.pane, paneStyle, styles.loopPane]}>
-              <ScrollView
-                contentContainerStyle={styles.destScroll}
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-              >
-                <Text style={styles.kicker}>One thing</Text>
-                <Text style={styles.headline}>Name one thing you want true</Text>
-                <Text style={styles.body}>
-                  One checkable object. Someone else could mark yes or no. Quanti will not pick this for you.
+                  One thing you’re working on now. Each day you get one physical move toward it. That’s the whole product.
                 </Text>
                 <TextInput
                   value={destinationDraft}
@@ -335,6 +317,9 @@ export default function OnboardingFlow({ onComplete }: Props) {
                   onSubmitEditing={Keyboard.dismiss}
                   style={styles.destinationInput}
                 />
+                {!destinationCheck.ok && destinationDraft.trim() ? (
+                  <Text style={styles.reassure}>{destinationCheck.hint}</Text>
+                ) : null}
                 <View style={styles.exampleBlock}>
                   <Text style={styles.exampleLine}>
                     <Text style={styles.exampleLabel}>Weak: </Text>
@@ -345,7 +330,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
                     &quot;Draft landing page copy&quot; / &quot;Ship TestFlight to 10 testers&quot;
                   </Text>
                 </View>
-                <Text style={styles.reassure}>You can rewrite later. Today only executes what you name.</Text>
+                <Text style={styles.reassure}>You can rewrite later. Today will use this sentence.</Text>
               </ScrollView>
             </View>
 
@@ -408,6 +393,9 @@ export default function OnboardingFlow({ onComplete }: Props) {
               >
                 <Text style={styles.kicker}>Do this 1%</Text>
                 <Text style={styles.headline}>Execute this today.</Text>
+                {destinationDraft.trim() ? (
+                  <Text style={styles.reassure}>Today will use this sentence: {destinationDraft.trim()}</Text>
+                ) : null}
                 {echo ? <Text style={styles.echo}>“{echo}”</Text> : null}
                 {card ? (
                   <View style={styles.cardBox}>
@@ -422,7 +410,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
                     ? 'Sleep and HRV sized the window. They did not pick the move.'
                     : 'Default window — HealthKit did not shape this card.'}
                 </Text>
-                <Text style={styles.stepText}>Tonight: did you do it? Executed, partial, or shifted writes tomorrow.</Text>
+                <Text style={styles.stepText}>Tonight: Done or Missed. Missed asks why in one tap. That writes tomorrow.</Text>
                 {finishing ? <ActivityIndicator color={colors.heading} /> : null}
               </ScrollView>
             </View>
@@ -433,31 +421,20 @@ export default function OnboardingFlow({ onComplete }: Props) {
           {step === 0 ? (
             <Pressable
               onPress={() => {
-                setError(null);
-                go(1);
-              }}
-              style={styles.next}
-            >
-              <Text style={styles.nextText}>Continue</Text>
-            </Pressable>
-          ) : null}
-          {step === 1 ? (
-            <Pressable
-              onPress={() => {
                 Keyboard.dismiss();
                 if (!canLeaveDestination) {
-                  setError(destinationCheck.reason || 'Name one checkable thing first.');
+                  setError(destinationCheck.hint || destinationCheck.reason || 'Write your current priority.');
                   return;
                 }
                 saveNorthStar(activeTargetFromText(destinationDraft.trim())).catch(() => {});
-                go(2);
+                go(1);
               }}
               style={[styles.next, !canLeaveDestination && styles.nextDim]}
             >
-              <Text style={styles.nextText}>This is first</Text>
+              <Text style={styles.nextText}>Use this</Text>
             </Pressable>
           ) : null}
-          {step === 2 && !recording && !finishing ? (
+          {step === 1 && !recording && !finishing ? (
             <Pressable
               onPress={() => {
                 captureVoiceAndSynthesize({ skipVoice: true }).catch(() => {});
@@ -467,7 +444,7 @@ export default function OnboardingFlow({ onComplete }: Props) {
               <Text style={styles.skipText}>Skip — write the 1% without a stall</Text>
             </Pressable>
           ) : null}
-          {step === 3 && card && !finishing ? (
+          {step === 2 && card && !finishing ? (
             <View style={styles.cardActions}>
               {!usedRetry ? (
                 <Pressable onPress={() => retryArtifact().catch(() => {})} style={styles.skip}>

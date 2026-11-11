@@ -26,6 +26,7 @@ import {
   emptyPhysics,
   type DestinationPhysicsMemory,
 } from './destinationPhysics';
+import { asBriefField } from './destinationBrief';
 import { asQuestionAngle, composeGuidedQuestion, rotateQuestionAngle, type QuestionAngle } from './voiceCheckPrompt';
 
 const STORAGE_KEY = '@quanti_destination_board';
@@ -41,6 +42,9 @@ export type Destination = {
   archivedAt?: string;
   archiveReason?: ArchiveReason;
   stallPattern?: string | null;
+  doneWhen?: string | null;
+  constraints?: string | null;
+  currentBottleneck?: string | null;
   lastQuestionAngle?: QuestionAngle;
   lastMark?: {
     date: string;
@@ -114,6 +118,9 @@ function asDestination(value: unknown): Destination | null {
       ? record.archiveReason
       : undefined,
     stallPattern: typeof record.stallPattern === 'string' ? record.stallPattern.slice(0, 600) : record.stallPattern ?? null,
+    doneWhen: asBriefField(record.doneWhen),
+    constraints: asBriefField(record.constraints),
+    currentBottleneck: asBriefField(record.currentBottleneck) ?? (typeof record.stallPattern === 'string' ? record.stallPattern.slice(0, 280) : null),
     lastQuestionAngle: asQuestionAngle(record.lastQuestionAngle),
     lastMark: record.lastMark && typeof record.lastMark === 'object' ? record.lastMark : null,
     nextQuestion: typeof record.nextQuestion === 'string' ? record.nextQuestion : record.nextQuestion ?? null,
@@ -293,7 +300,7 @@ export async function enqueueDestination(rawName: string) {
   const board = await getDestinationBoard();
   const queued = queuedDestinations(board);
   if (queued.length >= 12) {
-    throw new Error('Not first is full. Cut one before parking another.');
+    throw new Error('Queue is full. Cut one before adding another.');
   }
   const duplicate = board.items.some(
     (item) => item.status !== 'archived' && item.name.toLowerCase() === name.toLowerCase(),
@@ -357,12 +364,16 @@ export async function rememberDestinationMark(
       ? {
           ...item,
           lastMark: mark,
-          physicsMemory: applyMarkToPhysics(item.physicsMemory, {
-            status: mark.status,
-            primary_directive: mark.primary_directive,
-            transcript,
-            stallPattern: item.stallPattern,
-          }),
+          physicsMemory:
+            mark.status === 'executed' || mark.status === 'partial' || mark.status === 'shifted'
+              ? applyMarkToPhysics(item.physicsMemory, {
+                  status: mark.status,
+                  primary_directive: mark.primary_directive,
+                  transcript,
+                  stallPattern: item.stallPattern,
+                  destinationNext: item.name,
+                })
+              : item.physicsMemory,
         }
       : item,
   );
@@ -394,11 +405,17 @@ export async function swapToDestination(destinationId: string): Promise<SwapResu
     }
   }
 
-  const tomorrowAngle = rotateQuestionAngle(incoming.lastQuestionAngle, incoming.lastMark?.status ?? null);
+  const lastMarkStatus =
+    incoming.lastMark?.status === 'executed' ||
+    incoming.lastMark?.status === 'partial' ||
+    incoming.lastMark?.status === 'shifted'
+      ? incoming.lastMark.status
+      : null;
+  const tomorrowAngle = rotateQuestionAngle(incoming.lastQuestionAngle, lastMarkStatus);
   const tomorrowQuestion = composeGuidedQuestion({
     destinationNext: incoming.name,
     stallPattern: incoming.stallPattern,
-    yesterdayStatus: incoming.lastMark?.status ?? null,
+    yesterdayStatus: lastMarkStatus,
     angle: tomorrowAngle,
   });
   items = items.map((item) =>

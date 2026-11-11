@@ -1,0 +1,13 @@
+# Quanti Repository Rules & Architecture Invariants
+
+You are working on Quanti, a zero-dashboard execution engine for iOS built on an anti-engagement thesis.
+
+## NON-NEGOTIABLE PRODUCT INVARIANTS:
+1. ZERO DASHBOARDS / NO LISTS: Never introduce project boards, subtask trees, habit trackers, analytics tabs, or history lists.
+2. SINGLE CARD CONSTRAINT: The UI displays strictly ONE card per day (15–20 words, verb-first, single action).
+3. ANTI-ENGAGEMENT: Interaction must take <60 seconds. Success is time-off-app.
+4. ZERO RE-ROLL: Never add a "Regenerate", "Shuffle", or "New Card" button. Synthesis is idempotent per day-key.
+5. PRIVACY & VOICE: Audio is strictly a capacity window sensor. Audio files MUST be deleted immediately post-transcription. Never store audio journals or feeds.
+6. NO GUILT COPY: Unmarked days are stored as 'unknown'. Never display failure banners, streaks lost, or guilt messaging.
+
+When writing or refactoring code, always check proposed changes against these invariants. Reject any feature request or component addition that expands UI surface area beyond the single daily card drawer.

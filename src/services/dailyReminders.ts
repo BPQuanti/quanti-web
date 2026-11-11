@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { checkNotificationPermission } from './permissions';
-import { getTodayLog, localDateStamp } from './directiveHistory';
+import { addCalendarDays, getOpenMark, getTodayLog, isOpenMark, localDateStamp } from './directiveHistory';
 import { ensureGuidedQuestion, getGuidedQuestion } from './guidedQuestion';
 
 const MORNING_ID = 'quanti-morning-question';
@@ -75,7 +75,7 @@ export async function syncDailyReminders(opts?: { markedToday?: boolean }) {
     const today = localDateStamp(now);
     const morningToday = atHour(now, MORNING_HOUR);
     const eveningToday = atHour(now, EVENING_HOUR);
-    const marked = opts?.markedToday ?? Boolean((await getTodayLog(today))?.status);
+    const marked = opts?.markedToday ?? !isOpenMark((await getTodayLog(today))?.status);
 
     let morningWhen = morningToday;
     let morningDate = today;
@@ -84,6 +84,8 @@ export async function syncDailyReminders(opts?: { markedToday?: boolean }) {
       morningWhen.setDate(morningWhen.getDate() + 1);
       morningDate = localDateStamp(morningWhen);
     }
+    const catchupDate = addCalendarDays(morningDate, -1);
+    const openMark = await getOpenMark(catchupDate);
     const morningRecord =
       (await getGuidedQuestion(morningDate).catch(() => null)) ??
       (await ensureGuidedQuestion({ date: morningDate, source: 'mark' }).catch(() => null));
@@ -96,11 +98,19 @@ export async function syncDailyReminders(opts?: { markedToday?: boolean }) {
 
     await Notifications.scheduleNotificationAsync({
       identifier: MORNING_ID,
-      content: {
-        title: 'Optional question',
-        body: clipBody(morningRecord?.question || 'Skip if last night’s mark already sized today’s 1%.'),
-        data: { kind: 'question' },
-      },
+      content: openMark
+        ? {
+            title: 'Last night’s 1% isn’t marked',
+            body: clipBody(
+              `Did you do it? Done or Missed writes today. “${openMark.primary_directive}”`,
+            ),
+            data: { kind: 'catchup', date: catchupDate },
+          }
+        : {
+            title: 'Optional question',
+            body: clipBody(morningRecord?.question || 'Skip if last night’s mark already sized today’s 1%.'),
+            data: { kind: 'question' },
+          },
       trigger: trigger as never,
     });
 
@@ -114,7 +124,7 @@ export async function syncDailyReminders(opts?: { markedToday?: boolean }) {
       identifier: EVENING_ID,
       content: {
         title: 'Did you do it?',
-        body: 'Executed, partial, or shifted. Tonight writes tomorrow.',
+        body: 'Done or Missed. Tonight writes tomorrow.',
         data: { kind: 'mark' },
       },
       trigger: {

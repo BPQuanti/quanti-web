@@ -16,7 +16,7 @@ const LOOP = [
   {
     glyph: "✓",
     title: "Evening mark writes tomorrow",
-    body: "Executed, Partial, or Shifted. No streaks. No dashboards.",
+    body: "Done or Missed. No streaks. No dashboards.",
   },
 ] as const;
 

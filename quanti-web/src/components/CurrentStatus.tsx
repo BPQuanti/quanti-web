@@ -12,7 +12,7 @@ const STATUS = [
   {
     label: "The loop",
     title: "Mark tonight. Tomorrow is already written.",
-    body: "Evening mark: Executed, Partial, or Shifted. That mark writes the next card. Achieved archives the destination.",
+    body: "Evening mark: Done or Missed. That mark writes the next card. Achieved archives the destination.",
   },
 ] as const;
 

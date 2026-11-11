@@ -1,3 +1,5 @@
+import { restatesDestination } from './nextIncrement';
+
 export type DestinationPhysicsMemory = {
   last_stall_reason?: string;
   last_artifact_noun?: string;
@@ -89,12 +91,16 @@ export function applyMarkToPhysics(
     primary_directive: string;
     transcript?: string | null;
     stallPattern?: string | null;
+    destinationNext?: string | null;
   },
 ): DestinationPhysicsMemory {
   const prior = asPhysicsMemory(current);
+  const dest = input.destinationNext?.trim() || '';
+  const fromMove = nounFromMove(input.primary_directive);
+  const fromVoice = nounFromMove(input.transcript);
   const artifact =
-    nounFromMove(input.primary_directive) ||
-    nounFromMove(input.transcript) ||
+    (fromMove && (!dest || !restatesDestination(fromMove, dest)) ? fromMove : '') ||
+    (fromVoice && (!dest || !restatesDestination(fromVoice, dest)) ? fromVoice : '') ||
     prior.last_artifact_noun ||
     '';
   const entity = entityFromText(input.transcript) || prior.last_entity_moved;

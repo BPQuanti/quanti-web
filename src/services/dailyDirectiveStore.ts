@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isSupabaseConfigured, supabase } from '../lib/supabase';
+import { asCapacityWindow, asDirectiveTriplets } from './capacityWindow';
 import type { DailyDirective } from '../types/telemetry';
-import { localDateStamp } from './directiveHistory';
+import { localDateStamp, rememberDirectiveCard } from './directiveHistory';
 import { currentUserId, scopedAsyncKey } from './sessionIsolation';
 
 const STORAGE_KEY = '@quanti_daily_directive';
@@ -39,6 +40,8 @@ function asStored(value: unknown): StoredDailyDirective | null {
     why_today: typeof record.why_today === 'string' ? record.why_today.trim() : undefined,
     aborted: record.aborted === true || record.crisis_intercept === true,
     crisis_intercept: record.crisis_intercept === true,
+    triplets: asDirectiveTriplets(record.triplets) ?? undefined,
+    selected_window: asCapacityWindow(record.selected_window) ?? undefined,
     voice_transcript: typeof record.voice_transcript === 'string' ? record.voice_transcript : undefined,
     destination_id: typeof record.destination_id === 'string' ? record.destination_id : undefined,
   };
@@ -116,6 +119,11 @@ async function writeRemote(entry: StoredDailyDirective) {
         ? 'Refined with morning voice context.'
         : 'Saved from Today.',
       momentum_impact: 0,
+      day_id: entry.date,
+      triplets: entry.triplets ?? null,
+      selected_window: entry.selected_window ?? null,
+      mark_state: 'unknown',
+      miss_reason: 'none',
     },
     { onConflict: 'user_id,directive_date' },
   );
@@ -128,6 +136,14 @@ export async function loadStoredDirective(date = localDateStamp()): Promise<Stor
   const local = await readLocal();
   if (local?.date === date) {
     return local;
+  }
+  if (local && local.date < date) {
+    await rememberDirectiveCard({
+      date: local.date,
+      primary_directive: local.primary_directive,
+      agency_arc: local.agency_arc,
+      destination_id: local.destination_id,
+    }).catch(() => {});
   }
   const remote = await readRemote(date);
   if (remote?.date === date) {
@@ -143,6 +159,12 @@ export async function saveStoredDirective(entry: StoredDailyDirective): Promise<
     date: entry.date.slice(0, 10),
   };
   await writeLocal(next);
+  await rememberDirectiveCard({
+    date: next.date,
+    primary_directive: next.primary_directive,
+    agency_arc: next.agency_arc,
+    destination_id: next.destination_id,
+  }).catch(() => {});
   await writeRemote(next).catch((caught) => {
     console.warn('[Directive] cloud persist failed', caught);
   });

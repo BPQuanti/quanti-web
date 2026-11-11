@@ -82,6 +82,10 @@ export function activeTargetFromText(text: string, previous?: NorthStar | null):
   };
 }
 
+export function hasActiveDestination(star: NorthStar | null | undefined): boolean {
+  return Boolean(star?.next?.trim());
+}
+
 export function daysOnTarget(star: NorthStar | null): number | null {
   if (!star?.setAt) {
     return null;

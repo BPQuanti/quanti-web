@@ -10,6 +10,9 @@ type CloudDestination = {
   setAt: string;
   status: 'active' | 'queued' | 'archived';
   stallPattern?: string | null;
+  doneWhen?: string | null;
+  constraints?: string | null;
+  currentBottleneck?: string | null;
   lastQuestionAngle?: QuestionAngle;
   lastMark?: unknown;
   nextQuestion?: string | null;
@@ -29,12 +32,15 @@ export type RemoteDestinationRow = {
   status: 'active' | 'queued' | 'archived';
   last_question_angle: QuestionAngle | string | null;
   physics_memory?: DestinationPhysicsMemory | null;
+  done_when?: string | null;
+  constraints?: string | null;
+  current_bottleneck?: string | null;
   created_at: string;
   updated_at: string;
 };
 
 const DESTINATION_COLUMNS =
-  'id, user_id, title, stale_pattern, status, last_question_angle, physics_memory, created_at, updated_at';
+  'id, user_id, title, stale_pattern, status, last_question_angle, physics_memory, done_when, constraints, current_bottleneck, created_at, updated_at';
 
 export function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
@@ -52,6 +58,9 @@ function rowToDestination(row: RemoteDestinationRow): CloudDestination {
     setAt: row.created_at,
     status: row.status,
     stallPattern: row.stale_pattern,
+    doneWhen: row.done_when ?? null,
+    constraints: row.constraints ?? null,
+    currentBottleneck: row.current_bottleneck ?? row.stale_pattern ?? null,
     lastQuestionAngle: asAngle(row.last_question_angle),
     lastMark: null,
     nextQuestion: null,
@@ -97,6 +106,9 @@ export async function pushDestination(item: CloudDestination): Promise<CloudDest
     user_id: userId,
     title: item.name.slice(0, 280),
     stale_pattern: item.stallPattern ?? null,
+    done_when: item.doneWhen ?? null,
+    constraints: item.constraints ?? null,
+    current_bottleneck: item.currentBottleneck ?? item.stallPattern ?? null,
     status: item.status,
     last_question_angle: item.lastQuestionAngle ?? 'BOTTLENECK',
     physics_memory: asPhysicsMemory(item.physicsMemory),

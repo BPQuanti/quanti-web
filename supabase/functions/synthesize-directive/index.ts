@@ -12,6 +12,15 @@ type Outcome = "executed" | "partial" | "shifted";
 type Destination = {
   now: string;
   next: string;
+  done_when?: string | null;
+  constraints?: string | null;
+  current_bottleneck?: string | null;
+};
+
+type DestinationBrief = {
+  done_when: string | null;
+  constraints: string | null;
+  current_bottleneck: string | null;
 };
 
 type PhysicsMemory = {
@@ -59,8 +68,10 @@ type TelemetryPayload = {
   last_execution?: {
     date?: string;
     status?: Outcome;
+    miss_reason?: "too_big" | "wrong_move" | "exogenous" | "none";
     primary_directive?: string;
   };
+  destination_brief?: DestinationBrief;
   synthesis_mode?: "onboarding" | "daily";
   artifact_retry?: boolean;
   days_on_target?: number | null;
@@ -90,6 +101,8 @@ type SynthesizerInput = {
   guided_question: string | null;
   queued_destinations: string[];
   physics_memory: PhysicsMemory;
+  destination_brief: DestinationBrief;
+  miss_reason: "too_big" | "wrong_move" | "exogenous" | "none" | null;
 };
 
 const EXTRACT_PROMPT = `You extract ONE physical 1% move for Quanti as JSON only.
@@ -105,19 +118,27 @@ Return ONLY:
 RULES
 - destination.next is the only plot. destination.now is a negative filter, never a second goal.
 - queued_destinations are inert. Never pick a noun that would advance one of them.
-- concrete_target_noun must be a physical/checkable object (file, message, person, list, invite), not a mood.
+- concrete_target_noun is a leftover object SMALLER than destination.next (a list of N, a batch of invites, one named file). NEVER restate destination.next. NEVER copy the campaign ("get 100 people to sign up").
+- If destination.next contains a number N, today's noun uses a slice (~N/10, max 10) of that unit — never N itself.
 - physical_action_verb: Build, Draft, Deploy, Ship, Write, Fix, Send, Call, Schedule, Open, Record, Cut, Print, File, Review, Name.
+- First day / empty physics: Name a list of the slice (e.g. Name 10 beta testers). Do not Draft the whole destination.
+- If yesterday_outcome is executed: noun MUST differ from last_directive. Advance the leftover (list → send the batch, send → next batch). Same sentence as yesterday is invalid.
 - If yesterday_outcome is partial: physical_scope_scale MUST be scaled_down_50_percent. Reuse physics_memory.last_artifact_noun or last_failed_scope. Shrink quantity/size. No new plot. No pep.
 - If yesterday_outcome is shifted: scaled_down_50_percent on the same destination.
-- If executed: full, one increment past yesterday still toward destination.next.
 - guided_question lens mapping: in the way -> blocker; physical artifact -> artifact; who/what must move -> entity_movement.
+- Destination Brief is passive context, never a second plot:
+  - done_when: terminal condition of the arc. Today's leftover must be checkable against it.
+  - constraints: operational bounds. Do not propose a move that breaks them.
+  - current_bottleneck: the obstacle the leftover must actually touch.
+- Never emit generic cards ("Draft the next section", "make progress", "work on it"). The noun must be a named leftover bound to current_bottleneck and constraints.
+- If yesterday miss_reason is too_big: shrink quantity. If wrong_move or exogenous: change the leftover, do NOT shrink the window.
 - Ignore journal, vibes, secondary goals, errands.
 - crisis_intercept is not your job unless the transcript is crisis; then still return JSON with verb Name and noun "trusted professional".`;
 
 const RENDER_PROMPT = `Write ONE daily directive sentence from the given DirectiveStruct. Output the sentence only.
 
 - 15–20 words. Verb-first. First word = physical_action_verb.
-- Include concrete_target_noun. Serve destination.next only.
+- Include concrete_target_noun. Serve destination.next as the plot, but do NOT paste destination.next as the action.
 - If physical_scope_scale is scaled_down_50_percent, cut quantity/size (e.g. 2 items, one slice). Same destination.
 - Zero commentary, pep, quotes, markdown, labels.`;
 
@@ -228,6 +249,12 @@ function asPhysics(value: unknown): PhysicsMemory {
 }
 
 function parseDestination(input: TelemetryPayload): Destination {
+  const dest = input.destination && typeof input.destination === "object" ? input.destination : null;
+  const brief = {
+    done_when: String(input.destination_brief?.done_when || dest?.done_when || "").trim().slice(0, 280) || null,
+    constraints: String(input.destination_brief?.constraints || dest?.constraints || "").trim().slice(0, 280) || null,
+    current_bottleneck: String(input.destination_brief?.current_bottleneck || dest?.current_bottleneck || input.stall_pattern || "").trim().slice(0, 280) || null,
+  };
   if (typeof input.destination === "string" && input.destination.trim()) {
     const text = input.destination.trim();
     const parts = text.split(/\s*->\s*|\s+to\s+/i);
@@ -235,14 +262,14 @@ function parseDestination(input: TelemetryPayload): Destination {
       return {
         now: parts[0].trim().slice(0, 280),
         next: parts.slice(1).join(" ").trim().slice(0, 280),
+        ...brief,
       };
     }
-    return { now: text.slice(0, 280), next: text.slice(0, 280) };
+    return { now: text.slice(0, 280), next: text.slice(0, 280), ...brief };
   }
-  const dest = input.destination && typeof input.destination === "object" ? input.destination : null;
   const now = String(dest?.now || input.north_star?.now || "").trim().slice(0, 280);
   const next = String(dest?.next || input.north_star?.next || "").trim().slice(0, 280);
-  return { now, next: next || now };
+  return { now, next: next || now, ...brief };
 }
 
 function sanitizePayload(input: TelemetryPayload): SynthesizerInput {
@@ -275,6 +302,18 @@ function sanitizePayload(input: TelemetryPayload): SynthesizerInput {
       : null,
     target_stale: input.target_stale === true,
     stall_pattern: String(input.stall_pattern || "").trim().slice(0, 280) || null,
+    destination_brief: {
+      done_when: String(input.destination_brief?.done_when || (typeof input.destination === "object" ? input.destination?.done_when : "") || "").trim().slice(0, 280) || null,
+      constraints: String(input.destination_brief?.constraints || (typeof input.destination === "object" ? input.destination?.constraints : "") || "").trim().slice(0, 280) || null,
+      current_bottleneck: String(input.destination_brief?.current_bottleneck || (typeof input.destination === "object" ? input.destination?.current_bottleneck : "") || input.stall_pattern || "").trim().slice(0, 280) || null,
+    },
+    miss_reason:
+      input.last_execution?.miss_reason === "too_big" ||
+      input.last_execution?.miss_reason === "wrong_move" ||
+      input.last_execution?.miss_reason === "exogenous" ||
+      input.last_execution?.miss_reason === "none"
+        ? input.last_execution.miss_reason
+        : null,
     guided_question: String(input.guided_question || "").trim().slice(0, 220) || null,
     queued_destinations: Array.isArray(input.queued_destinations)
       ? input.queued_destinations
@@ -325,6 +364,9 @@ function whyForOutcome(input: SynthesizerInput) {
   if (input.yesterday_outcome === "partial") {
     return "Yesterday was partial. Same destination. Smaller physical scope.";
   }
+  if (input.yesterday_outcome === "executed") {
+    return "Yesterday executed. Today is the next leftover, not the destination restated.";
+  }
   return undefined;
 }
 
@@ -346,6 +388,67 @@ function mentionsQueued(text: string, queued: string[]) {
     const tokens = significantTokens(clipped).filter((token) => token.length >= 5);
     return tokens.length > 0 && tokens.every((token) => hay.includes(token));
   });
+}
+
+function restatesDestination(text: string, destination: string) {
+  const dest = destination.replace(/\s+/g, " ").trim().toLowerCase();
+  const hay = text.replace(/\s+/g, " ").trim().toLowerCase();
+  if (!dest || dest.length < 8 || !hay) {
+    return false;
+  }
+  if (hay.includes(dest) || (hay.length >= 12 && dest.includes(hay))) {
+    return true;
+  }
+  const destTokens = significantTokens(dest);
+  const haySet = new Set(significantTokens(hay));
+  if (destTokens.length < 3) {
+    return destTokens.length > 0 && destTokens.every((token) => hay.includes(token));
+  }
+  const hits = destTokens.filter((token) => haySet.has(token) || hay.includes(token)).length;
+  return hits / destTokens.length >= 0.7;
+}
+
+function sameMove(left: string | null, right: string | null) {
+  if (!left?.trim() || !right?.trim()) {
+    return false;
+  }
+  const a = significantTokens(left);
+  const b = significantTokens(right);
+  if (!a.length || !b.length) {
+    return left.replace(/\s+/g, " ").trim().toLowerCase() === right.replace(/\s+/g, " ").trim().toLowerCase();
+  }
+  const aSet = new Set(a);
+  const hits = b.filter((token) => aSet.has(token)).length;
+  return hits / Math.max(a.length, b.length) >= 0.75;
+}
+
+function campaignSlice(destination: string) {
+  const text = destination.replace(/\s+/g, " ").trim();
+  const match = text.match(/\b(\d{1,5})\b/);
+  const n = match ? Number(match[1]) : 0;
+  const count = n >= 50 ? 10 : n >= 20 ? 5 : n >= 5 ? Math.max(1, Math.floor(n / 5)) : n >= 2 ? 1 : 10;
+  let unit = "named leftover artifacts";
+  if (/\b(tester|beta)\b/i.test(text)) {
+    unit = "beta testers";
+  } else if (/\binvite/i.test(text)) {
+    unit = "invites";
+  } else if (/\b(signup|sign[- ]up|user|people|person|customer|client)\b/i.test(text)) {
+    unit = "people";
+  } else if (/\b(email|message|dm|post)\b/i.test(text)) {
+    unit = "messages";
+  }
+  if (!n) {
+    return { count: 1, unit: "named leftover artifact", campaignNumber: null as number | null };
+  }
+  return { count, unit, campaignNumber: n };
+}
+
+function usableArtifact(artifact: string | null | undefined, destination: string) {
+  const text = artifact?.replace(/\s+/g, " ").trim() || "";
+  if (!text || restatesDestination(text, destination)) {
+    return "";
+  }
+  return text.slice(0, 80);
 }
 
 function normalizeVerb(value: string) {
@@ -385,25 +488,48 @@ function lensFromQuestion(question: string | null, outcome: Outcome | null): Dir
 }
 
 function fallbackStruct(input: SynthesizerInput): DirectiveStruct {
-  const physics = input.physics_memory;
-  const scaled = input.yesterday_outcome === "partial" || input.yesterday_outcome === "shifted";
-  const noun = scaled
-    ? scaleNoun(
-        physics.last_artifact_noun ||
-          physics.last_failed_scope ||
-          input.last_directive ||
-          input.destination.next ||
-          "the next artifact",
-      )
-    : physics.last_artifact_noun ||
-      input.transcript ||
-      input.destination.next ||
-      "the next artifact";
+  const dest = input.destination.next;
+  const slice = campaignSlice(dest);
+  const kept = usableArtifact(input.physics_memory.last_artifact_noun, dest);
+  const scaled = input.yesterday_outcome === "partial" || input.miss_reason === "too_big";
+  if (scaled) {
+    const n = Math.max(1, Math.floor(slice.count / 2));
+    return {
+      lens: "artifact",
+      physical_action_verb: "Send",
+      concrete_target_noun: kept && !/\d/.test(kept)
+        ? `2 smaller pieces of ${kept}`
+        : `${n} ${slice.unit} from yesterday’s leftover`,
+      physical_scope_scale: "scaled_down_50_percent",
+    };
+  }
+  if (
+    input.yesterday_outcome === "shifted" ||
+    input.miss_reason === "wrong_move" ||
+    input.miss_reason === "exogenous"
+  ) {
+    return {
+      lens: "blocker",
+      physical_action_verb: "Name",
+      concrete_target_noun: "a different named leftover",
+      physical_scope_scale: "full",
+    };
+  }
+  if (input.yesterday_outcome === "executed") {
+    return {
+      lens: "artifact",
+      physical_action_verb: "Send",
+      concrete_target_noun: kept
+        ? `${slice.count} ${slice.unit} from yesterday’s list`
+        : `${slice.count} ${slice.unit} as the next batch`,
+      physical_scope_scale: "full",
+    };
+  }
   return {
     lens: lensFromQuestion(input.guided_question, input.yesterday_outcome),
-    physical_action_verb: "Draft",
-    concrete_target_noun: String(noun).replace(/\s+/g, " ").trim().slice(0, 80),
-    physical_scope_scale: scaled ? "scaled_down_50_percent" : "full",
+    physical_action_verb: "Name",
+    concrete_target_noun: `${slice.count} ${slice.unit} to invite or move today`,
+    physical_scope_scale: "full",
   };
 }
 
@@ -450,17 +576,16 @@ function parseStruct(raw: unknown): DirectiveStruct | null {
 
 function enforcePartial(input: SynthesizerInput, struct: DirectiveStruct): DirectiveStruct {
   const next = { ...struct, physical_action_verb: normalizeVerb(struct.physical_action_verb) };
-  if (input.yesterday_outcome === "partial" || input.yesterday_outcome === "shifted") {
+  const shrink = input.yesterday_outcome === "partial" || input.miss_reason === "too_big";
+  if (shrink) {
     next.physical_scope_scale = "scaled_down_50_percent";
-    if (input.yesterday_outcome === "partial") {
-      next.lens = "artifact";
-      const seed =
-        input.physics_memory.last_artifact_noun ||
-        input.physics_memory.last_failed_scope ||
-        input.last_directive ||
-        next.concrete_target_noun;
-      next.concrete_target_noun = scaleNoun(seed);
-    }
+    next.lens = "artifact";
+    const seed =
+      input.physics_memory.last_artifact_noun ||
+      input.physics_memory.last_failed_scope ||
+      input.last_directive ||
+      next.concrete_target_noun;
+    next.concrete_target_noun = scaleNoun(seed);
   }
   return next;
 }
@@ -474,47 +599,69 @@ function validateStruct(input: SynthesizerInput, struct: DirectiveStruct): strin
   if (mentionsQueued(blob, input.queued_destinations)) {
     errors.push("noun advances a queued destination");
   }
-  const dest = input.destination.next.toLowerCase();
+  const dest = input.destination.next;
   const vision = input.destination.now.toLowerCase();
   const noun = struct.concrete_target_noun.toLowerCase();
-  if (vision && vision.length >= 8 && noun.includes(vision) && dest && !noun.includes(dest.slice(0, 12))) {
+  if (vision && vision.length >= 8 && noun.includes(vision) && dest && !noun.includes(dest.slice(0, 12).toLowerCase())) {
     errors.push("noun serves North Star instead of Active Destination");
+  }
+  if (restatesDestination(blob, dest) || restatesDestination(struct.concrete_target_noun, dest)) {
+    errors.push("noun restates the destination");
+  }
+  const slice = campaignSlice(dest);
+  if (slice.campaignNumber && new RegExp(`\\b${slice.campaignNumber}\\b`).test(struct.concrete_target_noun)) {
+    errors.push("noun uses the full campaign number");
+  }
+  if (input.yesterday_outcome === "executed" && sameMove(blob, input.last_directive)) {
+    errors.push("executed card cannot replay yesterday");
   }
   if (input.yesterday_outcome === "partial" && struct.physical_scope_scale !== "scaled_down_50_percent") {
     errors.push("partial must scale down");
+  }
+  if (/\b(next section|make progress|work on it|the next step)\b/i.test(blob)) {
+    errors.push("generic card");
   }
   return errors;
 }
 
 function padDirective(sentence: string, input: SynthesizerInput, struct: DirectiveStruct): string {
   let next = clipWords(sentence);
-  const dest = clip(input.destination.next || "the Active Destination", 28);
   while (wordCount(next) < MIN_DIRECTIVE_WORDS) {
-    next = `${next} toward ${dest} in one sitting`.replace(/\s+/g, " ").trim();
+    next = `${next} in one sitting then stop`.replace(/\s+/g, " ").trim();
     next = clipWords(next);
-    if (wordCount(next) < MIN_DIRECTIVE_WORDS) {
-      next = clipWords(`${next} then stop`);
-    }
     if (struct.physical_scope_scale === "scaled_down_50_percent" && wordCount(next) < MIN_DIRECTIVE_WORDS) {
       next = clipWords(`${next} keep scope small`);
     }
     break;
   }
   if (wordCount(next) < MIN_DIRECTIVE_WORDS) {
-    next = clipWords(
-      `${struct.physical_action_verb} ${struct.concrete_target_noun} toward ${dest} in one sitting then stop`,
-    );
+    next = clipWords(`${struct.physical_action_verb} ${struct.concrete_target_noun} in one sitting then stop`);
   }
   return next;
 }
 
 function renderTemplate(input: SynthesizerInput, struct: DirectiveStruct): string {
-  const dest = clip(input.destination.next || "the Active Destination", 28);
   const core =
     struct.physical_scope_scale === "scaled_down_50_percent"
-      ? `${struct.physical_action_verb} ${struct.concrete_target_noun} toward ${dest} in one sitting then stop`
-      : `${struct.physical_action_verb} ${struct.concrete_target_noun} toward ${dest} in one sitting today`;
+      ? `${struct.physical_action_verb} ${struct.concrete_target_noun} in one sitting then stop`
+      : `${struct.physical_action_verb} ${struct.concrete_target_noun} in one sitting today`;
   return padDirective(core, input, struct);
+}
+
+function sentenceLegal(input: SynthesizerInput, sentence: string): boolean {
+  if (wordCount(sentence) < 8) {
+    return false;
+  }
+  if (mentionsQueued(sentence, input.queued_destinations)) {
+    return false;
+  }
+  if (restatesDestination(sentence, input.destination.next)) {
+    return false;
+  }
+  if (input.yesterday_outcome === "executed" && sameMove(sentence, input.last_directive)) {
+    return false;
+  }
+  return true;
 }
 
 async function chatJson(apiKey: string, system: string, user: string, maxTokens: number) {
@@ -577,6 +724,8 @@ function extractUserPayload(input: SynthesizerInput) {
     queued_destinations: input.queued_destinations,
     physics_memory: input.physics_memory,
     yesterday_outcome: input.yesterday_outcome,
+    miss_reason: input.miss_reason,
+    destination_brief: input.destination_brief,
     last_directive: input.last_directive,
     synthesis_mode: input.synthesis_mode,
     artifact_retry: input.artifact_retry,
@@ -595,7 +744,8 @@ async function extractStruct(apiKey: string, input: SynthesizerInput): Promise<D
     const retryUser = JSON.stringify({
       ...extractUserPayload(input),
       validation_errors: firstErrors,
-      instruction: "Fix the struct. Keep destination.next. Shrink the same leftover noun. Do not use queued names.",
+      instruction:
+        "Fix the struct. Do not restate destination.next. Use a leftover slice (a list or batch), not the campaign. If executed, change the noun from last_directive. Do not use queued names.",
     });
     const second = parseStruct(await chatJson(apiKey, EXTRACT_PROMPT, retryUser, 180));
     const retried = second ? enforcePartial(input, second) : null;
@@ -620,7 +770,7 @@ async function renderSentence(apiKey: string, input: SynthesizerInput, struct: D
       60,
     );
     const sentence = padDirective(raw, input, struct);
-    if (wordCount(sentence) >= 8 && !mentionsQueued(sentence, input.queued_destinations)) {
+    if (sentenceLegal(input, sentence)) {
       return sentence;
     }
   } catch (caught) {
@@ -629,7 +779,57 @@ async function renderSentence(apiKey: string, input: SynthesizerInput, struct: D
   return renderTemplate(input, struct);
 }
 
-function packDirective(input: SynthesizerInput, sentence: string, struct: DirectiveStruct) {
+type MoveCard = {
+  verb: string;
+  object: string;
+  done_condition: string;
+  card_text: string;
+};
+
+type Triplets = {
+  contracted: MoveCard;
+  baseline: MoveCard;
+  expanded: MoveCard;
+};
+
+function bumpCount(noun: string, factor: number) {
+  const numbered = noun.match(/^(\d+)\s+(.*)$/);
+  if (numbered) {
+    const next = Math.max(1, Math.round(Number(numbered[1]) * factor));
+    return `${next} ${numbered[2]}`.trim();
+  }
+  if (factor < 1) {
+    return `2 smaller pieces of ${noun}`.slice(0, 80);
+  }
+  return noun.slice(0, 80);
+}
+
+function cardFrom(verb: string, object: string, until: string): MoveCard {
+  const done = until.startsWith("until ") ? until : `until ${until}`;
+  let text = `${verb} ${object} ${done} in one sitting then stop`;
+  text = clipWords(text);
+  if (wordCount(text) < MIN_DIRECTIVE_WORDS) {
+    text = clipWords(`${text} keep leftover named`);
+  }
+  return {
+    verb,
+    object,
+    done_condition: done,
+    card_text: text,
+  };
+}
+
+function templateTriplets(input: SynthesizerInput, struct: DirectiveStruct): Triplets {
+  const verb = struct.physical_action_verb;
+  const noun = struct.concrete_target_noun;
+  return {
+    contracted: cardFrom(verb, bumpCount(noun, 0.5), "that smaller leftover is done"),
+    baseline: cardFrom(verb, noun, "that leftover is done"),
+    expanded: cardFrom(verb, bumpCount(noun, 1.2), "the extra leftover is done"),
+  };
+}
+
+function packDirective(input: SynthesizerInput, sentence: string, struct: DirectiveStruct, triplets: Triplets) {
   return {
     primary_directive: sentence,
     recovery_actions: [] as string[],
@@ -647,6 +847,8 @@ function packDirective(input: SynthesizerInput, sentence: string, struct: Direct
     crisis_intercept: false,
     aborted: false,
     directive_struct: struct,
+    triplets,
+    selected_window: "baseline",
   };
 }
 
@@ -713,13 +915,34 @@ serve(async (req) => {
 
     const struct = await extractStruct(apiKey, payload);
     const errors = validateStruct(payload, struct);
-    const safeStruct = errors.length ? enforcePartial(payload, fallbackStruct(payload)) : struct;
-    const sentence = await renderSentence(apiKey, payload, safeStruct);
-    const directiveContent = packDirective(payload, sentence, safeStruct);
+    let safeStruct = errors.length ? enforcePartial(payload, fallbackStruct(payload)) : struct;
+    if (validateStruct(payload, safeStruct).length) {
+      safeStruct = fallbackStruct(payload);
+    }
+    const triplets = templateTriplets(payload, safeStruct);
+    let sentence = triplets.baseline.card_text;
+    if (!sentenceLegal(payload, sentence)) {
+      const fallback = fallbackStruct(payload);
+      const fallbackTriplets = templateTriplets(payload, fallback);
+      sentence = fallbackTriplets.baseline.card_text;
+      const directiveContent = packDirective(payload, sentence, fallback, fallbackTriplets);
+      console.log("[synthesize-directive] structured directive", {
+        struct: fallback,
+        validation_errors: errors,
+        primary_directive: directiveContent.primary_directive,
+        triplets: fallbackTriplets,
+      });
+      return jsonResponse({
+        ...directiveContent,
+        source: "edge",
+      });
+    }
+    const directiveContent = packDirective(payload, sentence, safeStruct, triplets);
     console.log("[synthesize-directive] structured directive", {
       struct: safeStruct,
       validation_errors: errors,
       primary_directive: directiveContent.primary_directive,
+      triplets,
     });
 
     return jsonResponse({

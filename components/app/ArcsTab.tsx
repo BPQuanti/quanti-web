@@ -11,8 +11,10 @@ import {
   View,
 } from 'react-native';
 import { colors, fonts, surfaces, typography } from '../../constants/theme';
-import { getCustomArcContext, setCustomArcContext, subscribeCustomArcContext } from '../../src/lib/arcs';
+import { setCustomArcContext } from '../../src/lib/arcs';
 import { assessDestination } from '../../src/services/destinationQuality';
+import DestinationMap from './DestinationMap';
+import NameDestinationCard from './NameDestinationCard';
 import {
   archiveDestination,
   enqueueDestination,
@@ -38,14 +40,7 @@ import {
   TARGET_STALE_DAYS,
   type NorthStar,
 } from '../../src/services/northStar';
-import FuturisticVoiceWave from './FuturisticVoiceWave';
 import ObsidianScreen from './ObsidianScreen';
-
-function formatElapsed(totalSeconds: number) {
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, '0')}`;
-}
 
 function persistTarget(next: NorthStar) {
   setCustomArcContext(next.next.trim());
@@ -53,9 +48,6 @@ function persistTarget(next: NorthStar) {
 }
 
 export default function ArcsTab() {
-  const [context, setContext] = useState(getCustomArcContext());
-  const [isRecording, setIsRecording] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
   const [writeOpen, setWriteOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [saved, setSaved] = useState<NorthStar | null>(null);
@@ -69,11 +61,10 @@ export default function ArcsTab() {
   const scrollRef = useRef<{ scrollToEnd: (options?: { animated?: boolean }) => void } | null>(null);
   const visionSavedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => subscribeCustomArcContext(setContext), []);
   useEffect(() => {
     let mounted = true;
     getNorthStar().then((star) => {
-      if (mounted && star) {
+      if (mounted && star?.next?.trim()) {
         setSaved(star);
       }
     });
@@ -90,7 +81,7 @@ export default function ArcsTab() {
     const unsubStar = subscribeNorthStar(() => {
       getNorthStar().then((star) => {
         if (mounted) {
-          setSaved(star);
+          setSaved(star?.next?.trim() ? star : null);
         }
       });
     });
@@ -136,20 +127,11 @@ export default function ArcsTab() {
     }, 320);
   }
 
-  useEffect(() => {
-    if (!isRecording) {
-      return undefined;
-    }
-    const tick = setInterval(() => {
-      setElapsed((seconds) => seconds + 1);
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [isRecording]);
-
-  function trySave(raw: string) {
+  function trySave(raw: string, opts?: { lenient?: boolean }) {
     const check = assessDestination(raw);
-    if (!check.ok) {
-      setError(check.reason || 'Name one checkable object — the priority you choose.');
+    const allow = check.ok || (opts?.lenient && check.lenientOk);
+    if (!allow) {
+      setError(check.hint || check.reason || 'Write the thing you are finishing.');
       setWriteOpen(true);
       return false;
     }
@@ -158,20 +140,8 @@ export default function ArcsTab() {
     persistTarget(next);
     setError(null);
     setWriteOpen(false);
-    setIsRecording(false);
-    setElapsed(0);
     setStaleDismissed(false);
     return true;
-  }
-
-  function toggleRecord() {
-    if (isRecording) {
-      trySave(draft.trim() || context);
-      return;
-    }
-    setElapsed(0);
-    setIsRecording(true);
-    setError(null);
   }
 
   const activeId = board?.activeId ?? null;
@@ -192,8 +162,6 @@ export default function ArcsTab() {
         setCustomArcContext('');
         setWriteOpen(true);
       }
-      setIsRecording(false);
-      setElapsed(0);
       setStaleDismissed(false);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not archive that destination.');
@@ -203,7 +171,7 @@ export default function ArcsTab() {
   async function addToQueue() {
     const check = assessDestination(queueDraft);
     if (!check.ok) {
-      setError(check.reason || 'Park one checkable name you’re not doing.');
+      setError(check.reason || 'Add one later step to the queue.');
       return;
     }
     try {
@@ -211,7 +179,7 @@ export default function ArcsTab() {
       setQueueDraft('');
       setError(null);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not park that name.');
+      setError(caught instanceof Error ? caught.message : 'Could not add that to the queue.');
     }
   }
 
@@ -226,7 +194,7 @@ export default function ArcsTab() {
         setStallDraft('');
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not make that first.');
+      setError(caught instanceof Error ? caught.message : 'Could not make that the current priority.');
     }
   }
 
@@ -267,13 +235,46 @@ export default function ArcsTab() {
         keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.pageKicker}>Choose</Text>
-        <Text style={styles.pageTitle}>What is first. Cut the rest.</Text>
+        <Text style={styles.pageKicker}>Your map</Text>
+        <Text style={styles.pageTitle}>Vision, this step, later</Text>
+        {error && !writeOpen ? <Text style={styles.error}>{error}</Text> : null}
+
+        <DestinationMap
+          vision={visionDraft.trim()}
+          priority={saved?.next}
+          queued={queue.map((item) => item.name)}
+        />
+
+        {saved ? (
+        <View style={styles.alignCard}>
+          <Text style={styles.seasonTag}>Larger vision</Text>
+          <Text style={styles.alignSub}>
+            Where you’re headed. Not today’s step. The daily 1% does not compute from this.
+          </Text>
+          <TextInput
+            value={visionDraft}
+            onChangeText={setVisionDraft}
+            placeholder="e.g., Become the default execution OS for founders"
+            placeholderTextColor="#737373"
+            style={styles.queueInput}
+          />
+          <Pressable
+            onPress={() => persistNorthStar().catch(() => {})}
+            style={[styles.ghost, visionSaved && styles.ghostSaved]}
+            accessibilityRole="button"
+            accessibilityLabel={visionSaved ? 'Saved' : 'Save vision'}
+          >
+            <Text style={[styles.updateText, visionSaved && styles.savedText]}>
+              {visionSaved ? 'Saved ✓' : 'Save vision'}
+            </Text>
+          </Pressable>
+        </View>
+        ) : null}
 
         {saved ? (
           <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>This is first</Text>
-            <Text style={styles.alignSub}>The priority you chose. Today executes this — nothing else.</Text>
+            <Text style={styles.seasonTag}>Current priority</Text>
+            <Text style={styles.alignSub}>The step you’re on now. Today’s 1% comes from this — nothing else.</Text>
             <View style={styles.summaryBox}>
               <Text style={styles.summaryBody}>{saved.next}</Text>
               {age != null ? (
@@ -285,11 +286,11 @@ export default function ArcsTab() {
             {stale ? (
               <View style={styles.staleBox}>
                 <Text style={styles.alignPrompt}>
-                  This has been first for {TARGET_STALE_DAYS}+ days. Keep it, shrink the sentence, or cut it.
+                  This has been your current priority for {TARGET_STALE_DAYS}+ days. Keep it, shrink the sentence, or finish it.
                 </Text>
                 <View style={styles.row}>
                   <Pressable onPress={() => setStaleDismissed(true)} style={styles.submit}>
-                    <Text style={styles.submitText}>Still first</Text>
+                    <Text style={styles.submitText}>Keep this</Text>
                   </Pressable>
                   <Pressable
                     onPress={() => {
@@ -320,7 +321,7 @@ export default function ArcsTab() {
               </View>
             ) : null}
             <Pressable onPress={() => markAchieved().catch(() => {})} style={styles.achieveBtn}>
-              <Text style={styles.achieveText}>Done — this is true. Cut it.</Text>
+              <Text style={styles.achieveText}>Done — this is finished</Text>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -333,43 +334,28 @@ export default function ArcsTab() {
             </Pressable>
           </View>
         ) : (
-          <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>This is first</Text>
-            <Text style={styles.alignTitle}>Name one thing you want true</Text>
-            <Text style={styles.alignPrompt}>
-              One checkable object. Someone else could mark yes or no. Quanti will not pick this for you.
-            </Text>
-            <Text style={styles.alignSub}>{DESTINATION_PLACEHOLDER}</Text>
-
-            <Pressable
-              onPress={toggleRecord}
-              accessibilityRole="button"
-              accessibilityLabel={isRecording ? 'Tap to finish what is first' : 'Tap wave to name what is first'}
-              style={({ pressed }) => [
-                styles.waveHit,
-                isRecording && styles.waveHitActive,
-                pressed && styles.waveHitPressed,
-              ]}
-            >
-              <FuturisticVoiceWave isRecording={isRecording} gradientId="arcWaveGradient" />
-            </Pressable>
-            <Text style={styles.timer}>
-              {isRecording ? `${formatElapsed(elapsed)} · tap to finish` : 'Speak about 10–15 seconds'}
-            </Text>
-          </View>
+          <NameDestinationCard
+            previous={saved}
+            onSaved={(next) => {
+              setSaved(next);
+              setError(null);
+              setWriteOpen(false);
+              setStaleDismissed(false);
+            }}
+          />
         )}
 
         {saved ? (
           <View style={styles.alignCard}>
-            <Text style={styles.seasonTag}>Not first</Text>
+            <Text style={styles.seasonTag}>Queue</Text>
             <Text style={styles.alignSub}>
-              Parked names. Not a plan. Make first only if you are cutting the current one. Cut = you are not doing this.
+              Later steps. Not today’s work. Make current only if you’re switching off the one above.
             </Text>
             {queue.map((item) => (
               <View key={item.id} style={styles.queueRow}>
                 <Text style={styles.queueName}>{item.name}</Text>
                 <Pressable onPress={() => swapIn(item).catch(() => {})} hitSlop={8}>
-                  <Text style={styles.queueAction}>Make first</Text>
+                  <Text style={styles.queueAction}>Make current</Text>
                 </Pressable>
                 <Pressable
                   onPress={() => archiveDestination(item.id, 'abandoned').catch(() => {})}
@@ -388,71 +374,38 @@ export default function ArcsTab() {
                 }
               }}
               onFocus={focusQueueInput}
-              placeholder="Park a name you’re not doing"
+              placeholder="A later step, not today’s"
               placeholderTextColor="#737373"
               style={styles.queueInput}
             />
             <Pressable onPress={() => addToQueue().catch(() => {})} style={styles.ghost}>
-              <Text style={styles.updateText}>Park it</Text>
+              <Text style={styles.updateText}>Add to queue</Text>
             </Pressable>
           </View>
         ) : null}
 
-        <View style={styles.alignCard}>
-          <Text style={styles.seasonTag}>Still true later</Text>
-          <Text style={styles.alignSub}>
-            Vision only. Not a second first. The 1% never computes from this.
-          </Text>
-          <TextInput
-            value={visionDraft}
-            onChangeText={setVisionDraft}
-            placeholder="e.g., Become the default execution OS for founders"
-            placeholderTextColor="#737373"
-            style={styles.queueInput}
-          />
-          <Pressable
-            onPress={() => persistNorthStar().catch(() => {})}
-            style={[styles.ghost, visionSaved && styles.ghostSaved]}
-            accessibilityRole="button"
-            accessibilityLabel={visionSaved ? 'Saved' : 'Save vision'}
-          >
-            <Text style={[styles.updateText, visionSaved && styles.savedText]}>
-              {visionSaved ? 'Saved ✓' : 'Save vision'}
-            </Text>
-          </Pressable>
-        </View>
-
-        {(writeOpen || !saved) && (
+        {saved && writeOpen ? (
           <View style={styles.writeBox}>
-            {!saved ? (
-              <Pressable onPress={() => setWriteOpen((open) => !open)} style={styles.writeToggle}>
-                <Text style={styles.writeToggleText}>Or write what is first</Text>
-              </Pressable>
-            ) : null}
-            {(writeOpen || (saved && writeOpen)) && (
-              <View>
-                <TextInput
-                  value={draft}
-                  onChangeText={(value) => {
-                    setDraft(value);
-                    if (error) {
-                      setError(null);
-                    }
-                  }}
-                  placeholder={DESTINATION_PLACEHOLDER}
-                  placeholderTextColor="#737373"
-                  multiline
-                  textAlignVertical="top"
-                  style={styles.input}
-                />
-                {error ? <Text style={styles.error}>{error}</Text> : null}
-                <Pressable onPress={() => trySave(draft)} style={styles.submit}>
-                  <Text style={styles.submitText}>Make this first</Text>
-                </Pressable>
-              </View>
-            )}
+            <TextInput
+              value={draft}
+              onChangeText={(value) => {
+                setDraft(value);
+                if (error) {
+                  setError(null);
+                }
+              }}
+              placeholder={DESTINATION_PLACEHOLDER}
+              placeholderTextColor="#737373"
+              multiline
+              textAlignVertical="top"
+              style={styles.input}
+            />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <Pressable onPress={() => trySave(draft, { lenient: true })} style={styles.submit}>
+              <Text style={styles.submitText}>Use this</Text>
+            </Pressable>
           </View>
-        )}
+        ) : null}
       </ScrollView>
       </KeyboardAvoidingView>
     </ObsidianScreen>
@@ -494,44 +447,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     marginTop: 8,
-  },
-  waveHit: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderColor: colors.amberBorder,
-    borderRadius: 24,
-    borderWidth: 1,
-    marginTop: 16,
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-  },
-  waveHitPressed: {
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-  },
-  waveHitActive: {
-    backgroundColor: '#1A1710',
-    shadowColor: '#FBBF24',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.35,
-    shadowRadius: 25,
-  },
-  timer: {
-    color: colors.muted,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 0.6,
-    marginTop: 10,
-    textAlign: 'center',
-  },
-  writeToggle: {
-    alignSelf: 'center',
-    marginTop: 4,
-    paddingVertical: 6,
-  },
-  writeToggleText: {
-    color: colors.muted,
-    fontFamily: fonts.medium,
-    fontSize: 13,
   },
   writeBox: { marginTop: 4, width: '100%' },
   input: {

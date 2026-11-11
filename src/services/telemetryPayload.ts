@@ -257,13 +257,28 @@ export async function assembleAnonymizedPayload(
   const prior = await getPriorExecution(todayStamp, activeDest?.id);
   const lastMark =
     activeDest?.lastMark && activeDest.lastMark.date < todayStamp ? activeDest.lastMark : null;
-  const yesterday = lastMark ?? (prior?.status
-    ? {
-        date: prior.date,
-        status: prior.status,
-        primary_directive: prior.primary_directive.slice(0, 280),
-      }
-    : null);
+  const physicsStatus =
+    lastMark?.status === 'executed' || lastMark?.status === 'partial' || lastMark?.status === 'shifted'
+      ? lastMark.status
+      : prior?.status === 'executed' || prior?.status === 'partial' || prior?.status === 'shifted'
+        ? prior.status
+        : null;
+  const yesterday = physicsStatus
+    ? lastMark && lastMark.status === physicsStatus
+      ? {
+          date: lastMark.date,
+          status: physicsStatus,
+          primary_directive: lastMark.primary_directive.slice(0, 280),
+        }
+      : prior
+        ? {
+            date: prior.date,
+            status: physicsStatus,
+            miss_reason: prior.miss_reason,
+            primary_directive: prior.primary_directive.slice(0, 280),
+          }
+        : null
+    : null;
   const stallPattern = activeDest?.stallPattern?.trim() || (await getStallPattern());
   const guided =
     sources.synthesis_mode === 'onboarding'
@@ -285,6 +300,11 @@ export async function assembleAnonymizedPayload(
     stall_pattern: stallPattern,
     guided_question: guided?.question ?? activeDest?.nextQuestion ?? null,
     destination_id: activeDest?.id ?? null,
+    destination_brief: {
+      done_when: activeDest?.doneWhen ?? null,
+      constraints: activeDest?.constraints ?? null,
+      current_bottleneck: activeDest?.currentBottleneck ?? stallPattern,
+    },
     queued_destinations: queuedDestinations(board).map((item) => item.name).filter(Boolean).slice(0, 12),
     physics_memory: activeDest?.physicsMemory,
     is_mock: !live,

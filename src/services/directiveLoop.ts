@@ -1,4 +1,6 @@
 import type { DailyDirective, DailyTelemetryPayload } from '../types/telemetry';
+import { selectCapacityWindow } from './capacityWindow';
+import { incrementSentence, sizingTriplets } from './nextIncrement';
 import { voicePromptForPayload } from './voiceCheckPrompt';
 
 function clip(text: string, max = 56) {
@@ -42,40 +44,43 @@ export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirecti
   const voice = payload.voice_context?.transcript?.trim() || payload.voice.transcript?.trim();
   const retry = payload.artifact_retry === true;
 
-  let primary = voice
-    ? `Write the next named artifact toward ${toward}, working around what you just named.`
-    : `Name and finish one visible artifact toward ${toward} today.`;
+  const dest = payload.north_star?.next?.trim() || toward;
+  const sliceInput = {
+    destination: dest,
+    yesterdayOutcome: prior?.status ?? null,
+    lastDirective: prior?.primary_directive ?? null,
+    lastArtifact: payload.physics_memory?.last_artifact_noun ?? null,
+  };
+  const triplets = sizingTriplets(sliceInput);
+  const window = selectCapacityWindow({
+    healthkit: payload.healthkit === true,
+    energyLow: low,
+    voiceWindow: null,
+    confidence: 'low',
+  });
+  let primary = triplets[window].card_text || incrementSentence(sliceInput);
   let why = voice
-    ? `Today’s 1% is toward ${toward}, around the stall you named.`
-    : `Today’s 1% is toward ${toward}.`;
-  let blocks = [`One visible increment toward ${toward}.`];
+    ? `Today’s 1% is a leftover toward ${toward}, around the stall you named.`
+    : `Today’s 1% is a leftover object toward ${toward} — not the destination restated.`;
+  let blocks = [`One leftover increment toward ${toward}.`];
   if (retry) {
-    primary = `Produce one concrete artifact toward ${toward}: a list, draft, invite, or message.`;
-    why = `The last card was too vague. Today’s 1% has to leave an object behind.`;
+    primary = triplets[window].card_text;
+    why = `The last card restated the destination. Today’s 1% has to leave a smaller object behind.`;
   }
 
   if (prior?.status === 'shifted') {
-    primary = `Restart smaller toward ${toward}: one 20-minute step, then stop.`;
-    why = `Yesterday you shifted “${clip(prior.primary_directive)}”. Today’s 1% is smaller so you can complete it.`;
-    blocks = [`20 minutes on the smallest next step toward ${toward}.`];
+    why = `Yesterday you shifted. Same destination. Smaller physical leftover.`;
+    blocks = [`Smaller leftover toward ${toward}.`];
   } else if (prior?.status === 'partial') {
-    primary = `Cut yesterday’s leftover toward ${toward} to one smaller physical artifact, then stop.`;
     why = `Yesterday was partial. Same destination. Smaller physical scope.`;
-    blocks = [`One smaller artifact toward ${toward} — not the whole leftover.`];
+    blocks = [`One smaller leftover toward ${toward}.`];
   } else if (prior?.status === 'executed') {
-    primary = `Take the next 1% toward ${toward}: one concrete increment past yesterday’s win.`;
-    why = `Yesterday you executed. Today goes one step further toward ${toward}.`;
-    blocks = [`One increment beyond yesterday, still toward ${toward}.`];
+    why = `Yesterday executed. Today is the next leftover, not the same card.`;
+    blocks = [`Next leftover toward ${toward}.`];
   }
 
-  if (low && !retry) {
-    primary = `Do one 25-minute move toward ${toward}: the smallest visible step, then protect tonight.`;
-    why = prior?.status
-      ? `${why} Energy is bounded today, so the window is shorter.`
-      : `Sleep or late-night load is high. The move still serves ${toward}, with a shorter window.`;
-    blocks = [`25 minutes toward ${toward}, then a hard stop.`];
-  } else if (low && retry) {
-    why = `${why} Keep the window short.`;
+  if (low) {
+    why = `${why} Energy is bounded today, so keep the leftover small.`;
   }
 
   if (payload.target_stale) {
@@ -94,6 +99,8 @@ export function closedLoopFallback(payload: DailyTelemetryPayload): DailyDirecti
       ? ['Keep tonight’s feeds short so tomorrow’s first window stays intact.']
       : ['Keep one recovery buffer so the day does not become all output.'],
     focus_blocks: blocks.slice(0, 2),
+    triplets,
+    selected_window: window,
     source: 'local_fallback',
     voice_prompt: voicePromptForPayload(payload),
     why_today: why,

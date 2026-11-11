@@ -1,9 +1,11 @@
 import { supabase } from '../lib/supabase';
 import { voicePromptForPayload } from './arcVoicePrompts';
+import { asCapacityWindow, asDirectiveTriplets, selectCapacityWindow } from './capacityWindow';
 import { saveStoredDirective } from './dailyDirectiveStore';
 import { getGuidedQuestion, writeTomorrowQuestion } from './guidedQuestion';
 import { addCalendarDays, getPriorExecution, localDateStamp } from './directiveHistory';
-import { closedLoopFallback, whyFromPayload } from './directiveLoop';
+import { closedLoopFallback, energyIsLow, whyFromPayload } from './directiveLoop';
+import { sizingTriplets } from './nextIncrement';
 import { hasGivenAIConsent } from './privacyConsent';
 import { edgeFunctionUrl } from './supabaseFunctions';
 import { asNorthStar, parseNorthStarFromSpeech } from './northStar';
@@ -30,7 +32,7 @@ async function withLastExecution(payload: DailyTelemetryPayload): Promise<DailyT
     return payload;
   }
   const prior = await getPriorExecution(payload.local_date || localDateStamp(), payload.destination_id);
-  if (!prior?.status) {
+  if (prior?.status !== 'executed' && prior?.status !== 'partial' && prior?.status !== 'shifted') {
     return payload;
   }
   return {
@@ -38,6 +40,7 @@ async function withLastExecution(payload: DailyTelemetryPayload): Promise<DailyT
     last_execution: {
       date: prior.date,
       status: prior.status,
+      miss_reason: prior.miss_reason,
       primary_directive: prior.primary_directive.slice(0, 280),
     },
   };
@@ -86,12 +89,15 @@ async function postDirective(payload: DailyTelemetryPayload, accessToken: string
         ? [String((data as { focus_block: string }).focus_block)]
         : [];
 
+    const triplets = asDirectiveTriplets((data as { triplets?: unknown }).triplets);
     return {
       primary_directive: String(data.primary_directive),
       recovery_actions: Array.isArray(data.recovery_actions)
         ? data.recovery_actions.map(String).slice(0, 5)
         : [],
       focus_blocks: focusBlocks,
+      triplets: triplets ?? undefined,
+      selected_window: asCapacityWindow((data as { selected_window?: unknown }).selected_window) ?? undefined,
       voice_prompt:
         typeof data.voice_prompt === 'string' && data.voice_prompt.trim()
           ? data.voice_prompt.trim()
@@ -153,8 +159,26 @@ function withDestination(payload: DailyTelemetryPayload, directive: DailyDirecti
   const spoken = payload.voice_context?.transcript || payload.voice?.transcript || '';
   const northStar =
     directive.north_star ?? payload.north_star ?? (spoken ? parseNorthStarFromSpeech(spoken) : undefined);
+  const window = selectCapacityWindow({
+    healthkit: payload.healthkit === true,
+    energyLow: energyIsLow(payload),
+    voiceWindow: null,
+    confidence: 'low',
+  });
+  const triplets =
+    directive.triplets ??
+    sizingTriplets({
+      destination: payload.north_star?.next || payload.north_star?.now || '',
+      yesterdayOutcome: payload.last_execution?.status ?? null,
+      lastDirective: payload.last_execution?.primary_directive ?? null,
+      lastArtifact: payload.physics_memory?.last_artifact_noun ?? null,
+    });
+  const card = triplets[window];
   return {
     ...directive,
+    triplets,
+    selected_window: window,
+    primary_directive: directive.crisis_intercept ? directive.primary_directive : card.card_text,
     north_star: northStar ?? undefined,
     destination_id: payload.destination_id || directive.destination_id,
     why_today: directive.crisis_intercept

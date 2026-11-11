@@ -26,24 +26,37 @@ function isSingular(text: string) {
   return !/[;]| \/ /.test(text);
 }
 
-export function assessDestination(raw: string): { ok: boolean; reason?: string } {
+export type DestinationAssessment = {
+  ok: boolean;
+  lenientOk: boolean;
+  reason?: string;
+  hint?: string;
+};
+
+function fail(reason: string, lenientOk: boolean): DestinationAssessment {
+  return { ok: false, lenientOk, reason, hint: reason };
+}
+
+export function assessDestination(raw: string): DestinationAssessment {
   const text = raw.replace(/\s+/g, ' ').trim();
-  if (text.length < 12 || text.split(' ').filter(Boolean).length < 4) {
-    return { ok: false, reason: 'Name one checkable object — a finish line someone else could mark yes or no.' };
+  const words = text.split(' ').filter(Boolean).length;
+  const lenientOk = text.length >= 8 && words >= 2;
+  if (text.length < 12 || words < 4) {
+    return fail('Try a finish line someone else could mark yes or no — e.g. “Ship TestFlight to 10 testers.”', lenientOk);
   }
   if (VAGUE_DESTINATION.some((pattern) => pattern.test(text))) {
-    return { ok: false, reason: 'Too mushy. Try “Ship TestFlight to 5 people,” not “Be productive.”' };
+    return fail('Too mushy. Try “Ship TestFlight to 5 people,” not “Be productive.”', lenientOk);
   }
   if (TOO_BIG.some((pattern) => pattern.test(text))) {
-    return { ok: false, reason: 'That’s a whole life. Name one object that would make this true, not the company.' };
+    return fail('That’s a whole life. Name one object that would make this true, not the company.', lenientOk);
   }
   if (!isSingular(text)) {
-    return { ok: false, reason: 'One first. Park the rest as not first — only one destination is active.' };
+    return fail('One current priority. Put the rest in the queue.', lenientOk);
   }
   if (!/\d/.test(text) && !CONCRETE_VERB.test(text)) {
-    return { ok: false, reason: 'Make it checkable: a named artifact, or a number someone could count.' };
+    return fail('Make it checkable: a named artifact, or a number someone could count.', lenientOk);
   }
-  return { ok: true };
+  return { ok: true, lenientOk: true };
 }
 
 export function assessBottleneck(raw: string): { ok: boolean; reason?: string } {

@@ -11,7 +11,7 @@ const QUESTIONS = [
   },
   {
     q: 'What do I do today?',
-    a: 'Open Today. Do the 1%. If the move is obvious, skip the question. Tonight mark Executed, Partial, or Shifted — that writes tomorrow.',
+    a: 'Open Today. Do the 1%. If the move is obvious, skip the question. Tonight mark Done or Missed — that writes tomorrow.',
   },
   {
     q: 'Where does the 1% come from?',
